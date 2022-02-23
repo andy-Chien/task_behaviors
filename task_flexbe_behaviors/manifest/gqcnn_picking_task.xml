@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<behavior name="GQCNN Picking Task">
+
+	<executable package_path="task_flexbe_behaviors.gqcnn_picking_task_sm" class="GQCNNPickingTaskSM" />
+	<tagstring>v0</tagstring>
+	<author>Andy Chien</author>
+	<date>Sun Feb 20 2022</date>
+	<description>
+		A simple picking task to test the performence of GQCNN
+	</description>
+
+
+	<!-- Contained Behaviors -->
+
+	<!-- Available Parameters -->
+
+</behavior>
