@@ -5,6 +5,7 @@ import moveit_commander
 import numpy as np
 import quaternion as qtn
 from moveit_msgs.msg import MoveItErrorCodes, RobotState
+from tf import transformations as tf
 from geometry_msgs.msg import Pose, Point, Quaternion
 from sensor_msgs.msg import JointState
 from std_msgs.msg import Header
@@ -17,9 +18,9 @@ Created on 23.02.2022
 @author: Andy Chien
 '''
 
-class JointsPlan(EventState):
+class MoveItPosePlanState(EventState):
 	'''
-	Uses dcma planner to plan or plan and move the specified joints to the target configuration.
+	Uses MoveIt to plan the trajectory of target pose.
 
 	-- robot_name        string  	The robot name for move group.
 	-- pretarget_length  float   	The distance between target and pretarget.
@@ -41,9 +42,9 @@ class JointsPlan(EventState):
 		'''
 		Constructor
 		'''
-		super(JointsPlan, self).__init__(outcomes=['failed', 'done'],
-											input_keys=['position', 'quaternion'],
-											output_keys=['joint_trajectory', 'target_joints'])
+		super(MoveItPosePlanState, self).__init__(outcomes=['failed', 'done'],
+										 input_keys=['start_joints', 'position', 'quaternion'],
+										 output_keys=['joint_trajectory'])
 		# group_name = ""
 		self._group_name = robot_name
 		self._move_group = moveit_commander.MoveGroupCommander(self._group_name)

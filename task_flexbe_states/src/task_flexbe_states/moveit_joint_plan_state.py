@@ -8,39 +8,42 @@ from flexbe_core.proxy import ProxyActionClient
 # from moveit_msgs.msg import MoveGroupAction, MoveGroupGoal, Constraints, JointConstraint, MoveItErrorCodes
 
 '''
-Created on 15.06.2015
+Created on 23.02.2022
 
-@author: Philipp Schillinger
+@author: Andy Chien
 '''
 
-class JointsPlan(EventState):
+class MoveItJointsPlanState(EventState):
 	'''
-	Uses dcma planner to plan or plan and move the specified joints to the target configuration.
+	Uses MoveIt to plan the trajectory of specified joints value.
 
-	-- robot_name       string      move group name
+	-- robot_name       string      move group name.
+	-- velocity         int     	The velocity for robot motion.
 
-	># joint_config		float[]		Target configuration of the joints.
+	># start_joints 	float[]		The joints of start pose, defult is current joints.
+	># target_joints	float[]		Target configuration of the joints.
 									Same order as their corresponding names in joint_names.
 
 	#> joint_trajectory JointTrajectory  planned or executed trajectory
 
 	<= done 						Target joint configuration has been planned.
-	<= failed 				Failed to find a plan to the given joint configuration.
+	<= failed 						Failed to find a plan to the given joint configuration.
 	'''
 
 
-	def __init__(self, robot_name):
+	def __init__(self, robot_name, velocity):
 		'''
 		Constructor
 		'''
-		super(JointsPlan, self).__init__(outcomes=['failed', 'done'],
-											input_keys=['joint_config'],
-											output_keys=['joint_trajectory', 'target_joints'])
+		super(MoveItJointsPlanState, self).__init__(outcomes=['failed', 'done'],
+											input_keys=['start_joints', 'target_joints'],
+											output_keys=['joint_trajectory'])
 		# group_name = ""
 		self._group_name = robot_name
 		self._move_group = moveit_commander.MoveGroupCommander(self._group_name)
 		self._move_group.set_planner_id("RRTConnectkConfigDefault")
 		self._move_group.set_planning_time(1)
+		self._velocity = velocity / 100 if 1 <= velocity <= 100 else 0.1
 		self._result = None
 
 	def execute(self, userdata):
@@ -49,18 +52,15 @@ class JointsPlan(EventState):
 		'''
 		if len(self._result.joint_trajectory.points) > 0:
 			userdata.joint_trajectory = self._result
-			userdata.target_joints = userdata.joint_config
+			userdata.target_joints = userdata.target_joints
 			return 'done'
 		else:
 			return 'failed'
 
 	def on_enter(self, userdata):
-		# (success flag : boolean, trajectory message : RobotTrajectory,
- 		#  planning time : float, error code : MoveitErrorCodes)
-		speed = 0.1
-		self._move_group.set_max_velocity_scaling_factor(speed)
-		self._move_group.set_max_acceleration_scaling_factor(speed)
-		self._result = self._move_group.plan(userdata.joint_config)
+		self._move_group.set_max_velocity_scaling_factor(self._velocity)
+		self._move_group.set_max_acceleration_scaling_factor(self._velocity)
+		self._result = self._move_group.plan(userdata.target_joints)
 
 	def on_stop(self):
 		pass
