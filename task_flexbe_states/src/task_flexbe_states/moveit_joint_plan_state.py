@@ -60,6 +60,10 @@ class MoveItJointsPlanState(EventState):
 	def on_enter(self, userdata):
 		self._move_group.set_max_velocity_scaling_factor(self._velocity)
 		self._move_group.set_max_acceleration_scaling_factor(self._velocity)
+		joints_name = self._move_group.get_active_joints()
+		if len(userdata.start_joints) == len(joints_name):
+			start_state = self.generate_robot_state(joints_name, userdata.start_joints)
+			self._move_group.set_start_state(start_state)
 		self._result = self._move_group.plan(userdata.target_joints)
 
 	def on_stop(self):

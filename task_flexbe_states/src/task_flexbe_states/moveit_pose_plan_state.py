@@ -38,7 +38,7 @@ class MoveItPosePlanState(EventState):
 	'''
 
 
-	def __init__(self, robot_name, pretarget_vector, pretarget_length, velocity, target_vel):
+	def __init__(self, robot_name, pretarget_vector, pretarget_length, velocity):
 		'''
 		Constructor
 		'''

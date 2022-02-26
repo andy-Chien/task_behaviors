@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<behavior name="Move To Place">
+
+	<executable package_path="task_flexbe_behaviors.move_to_place_sm" class="MoveToPlaceSM" />
+	<tagstring>v0</tagstring>
+	<author>Andy Chien</author>
+	<date>Sun Feb 27 2022</date>
+	<description>
+		Move robot to place object
+	</description>
+
+
+	<!-- Contained Behaviors -->
+
+	<!-- Available Parameters -->
+	<params>
+
+		<param type="text" name="robot_name" default="" label="robot_name" hint="Sets the robot_name" />
+
+		<param type="text" name="io_service" default=" /ur_hardware_interface/set_io" label="io_service" hint="Sets the io_service" />
+
+		<param type="boolean" name="sim" default="True" label="sim" hint="Sets the sim" />
+
+	</params>
+
+
+</behavior>

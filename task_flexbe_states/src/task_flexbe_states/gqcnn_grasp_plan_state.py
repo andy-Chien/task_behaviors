@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 
-from matplotlib import use
 import rospy
-import moveit_commander
-from moveit_msgs.msg import MoveItErrorCodes
 from flexbe_core import EventState
 from flexbe_core.proxy import ProxyServiceCaller
 from gqcnn.srv import GQCNNGraspPlanner
@@ -31,7 +28,7 @@ class GQCNNGraspPlanState(EventState):
 		'''
 		Constructor
 		'''
-		super(GQCNNGraspPlanState, self).__init__(outcomes=['done', 'failed', 'collision'],
+		super(GQCNNGraspPlanState, self).__init__(outcomes=['done', 'failed'],
 											output_keys=['grasp_posision', 'grasp_quaternion'])
 		self._grasp_service = grasp_service
 		self._gqcnn_client = ProxyServiceCaller({self._grasp_service: GQCNNGraspPlanner})

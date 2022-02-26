@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<behavior name="Grasp Plan">
+
+	<executable package_path="task_flexbe_behaviors.grasp_plan_sm" class="GraspPlanSM" />
+	<tagstring>v0</tagstring>
+	<author>Andy Chien</author>
+	<date>Sat Feb 26 2022</date>
+	<description>
+		Plan a pose for grasping
+	</description>
+
+
+	<!-- Contained Behaviors -->
+
+	<!-- Available Parameters -->
+	<params>
+
+		<param type="text" name="grasp_service" default="/gqcnn/grasp_planner" label="grasp_service" hint="Sets the grasp_service" />
+
+	</params>
+
+
+</behavior>
