@@ -1,9 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import rospy
 from flexbe_core import EventState
 from flexbe_core.proxy import ProxyServiceCaller
-from gqcnn.srv import GQCNNGraspPlanner
+from task_msgs.srv import GQCNNGraspPlanner
 
 '''
 Created on 24.02.2022
@@ -29,7 +29,7 @@ class GQCNNGraspPlanState(EventState):
 		Constructor
 		'''
 		super(GQCNNGraspPlanState, self).__init__(outcomes=['done', 'failed'],
-											output_keys=['grasp_posision', 'grasp_quaternion'])
+											output_keys=['grasp_position', 'grasp_quaternion'])
 		self._grasp_service = grasp_service
 		self._gqcnn_client = ProxyServiceCaller({self._grasp_service: GQCNNGraspPlanner})
 		self._result = None

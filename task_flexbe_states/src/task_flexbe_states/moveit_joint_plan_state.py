@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import rospy
 import moveit_commander
@@ -43,7 +43,7 @@ class MoveItJointsPlanState(EventState):
 		self._move_group = moveit_commander.MoveGroupCommander(self._group_name)
 		self._move_group.set_planner_id("RRTConnectkConfigDefault")
 		self._move_group.set_planning_time(1)
-		self._velocity = velocity / 100 if 1 <= velocity <= 100 else 0.1
+		self._velocity = velocity / 100.0 if 1 <= velocity <= 100 else 0.1
 		self._result = None
 
 	def execute(self, userdata):
@@ -52,7 +52,6 @@ class MoveItJointsPlanState(EventState):
 		'''
 		if len(self._result.joint_trajectory.points) > 0:
 			userdata.joint_trajectory = self._result
-			userdata.target_joints = userdata.target_joints
 			return 'done'
 		else:
 			return 'failed'

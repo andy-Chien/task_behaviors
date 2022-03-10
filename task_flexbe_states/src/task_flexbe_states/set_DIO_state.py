@@ -13,24 +13,25 @@ class SetDIOState(EventState):
     Set digital IO state
 
     -- io_service   string   Service name to set IO, ur default is /ur_hardware_interface/set_io
-    -- pins         int[]    A list containing all to be controlled io pins.
-    -- vals         int[]    A list storing the io pin output.
     -- sim          bool     Using simulator or not.
+
+    ># pins         int[]    A list containing all to be controlled io pins.
+    ># vals         int[]    A list storing the io pin output.
 
     <= done                  Set io finished.
     <= failed       bool     Set io failed.
     '''
 
-    def __init__(self, io_service, pins=[], vals=[], sim=False):
+    def __init__(self, io_service, sim=False):
         '''
         Constructor
         '''
-        super(SetDIOState, self).__init__(outcomes=['done', 'failed'])
+        super(SetDIOState, self).__init__(outcomes=['done', 'failed'],
+                                          input_keys=['pins', 'vals'])
         self._sim = sim
         self._io_service = io_service
-        self._pins = pins
-        self._vals = vals
-        self._set_io = ProxyServiceCaller({self._io_service: SetIO})
+        if not sim:
+            self._set_io = ProxyServiceCaller({self._io_service: SetIO})
 
     def execute(self, userdata):
         return 'done' if self.result else 'failed'

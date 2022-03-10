@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 ###########################################################
 #               WARNING: Generated code!                  #
@@ -47,9 +47,9 @@ class GoToInitialPoseSM(Behavior):
 
 	def create(self):
 		# x:30 y:365, x:305 y:164
-		_state_machine = OperatableStateMachine(outcomes=['finished', 'failed'])
+		_state_machine = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['init_joints'])
 		_state_machine.userdata.init_joints = [0, 0, 0, 0, 0, 0]
-		_state_machine.userdata.start_joints = []
+		_state_machine.userdata.default_start_joints = []
 
 		# Additional creation code can be added inside the following tags
 		# [MANUAL_CREATE]
@@ -63,7 +63,7 @@ class GoToInitialPoseSM(Behavior):
 										MoveItJointsPlanState(robot_name=self.robot_name, velocity=self.velocity),
 										transitions={'failed': 'failed', 'done': 'Execute trajectory'},
 										autonomy={'failed': Autonomy.Off, 'done': Autonomy.Off},
-										remapping={'start_joints': 'start_joints', 'target_joints': 'init_joints', 'joint_trajectory': 'joint_trajectory'})
+										remapping={'start_joints': 'default_start_joints', 'target_joints': 'init_joints', 'joint_trajectory': 'joint_trajectory'})
 
 			# x:47 y:181
 			OperatableStateMachine.add('Execute trajectory',

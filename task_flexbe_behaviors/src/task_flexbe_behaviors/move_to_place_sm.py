@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 ###########################################################
 #               WARNING: Generated code!                  #
@@ -34,8 +34,9 @@ class MoveToPlaceSM(Behavior):
 
 		# parameters of this behavior
 		self.add_parameter('robot_name', '')
-		self.add_parameter('io_service', ' /ur_hardware_interface/set_io')
+		self.add_parameter('io_service', '/ur_hardware_interface/set_io')
 		self.add_parameter('sim', True)
+		self.add_parameter('velocity', 10)
 
 		# references to used behaviors
 
@@ -50,13 +51,15 @@ class MoveToPlaceSM(Behavior):
 
 	def create(self):
 		# x:600 y:267, x:309 y:327
-		_state_machine = OperatableStateMachine(outcomes=['finished', 'failed'])
+		_state_machine = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['io_pins', 'io_vals', 'place_pos_max', 'place_pos_min', 'place_quat'])
 		_state_machine.userdata.place_pos_max = [0, 0, 0]
 		_state_machine.userdata.place_pos_min = [0, 0, 0]
 		_state_machine.userdata.place_quat = [1, 0, 0, 0]
-		_state_machine.userdata.start_joints = []
+		_state_machine.userdata.default_start_joints = []
 		_state_machine.userdata.io_pins = [1]
 		_state_machine.userdata.io_vals = [0]
+		_state_machine.userdata.pretarget_vector = [0, 0, 0]
+		_state_machine.userdata.pretarget_length = 0
 
 		# Additional creation code can be added inside the following tags
 		# [MANUAL_CREATE]
@@ -67,23 +70,24 @@ class MoveToPlaceSM(Behavior):
 		with _state_machine:
 			# x:52 y:52
 			OperatableStateMachine.add('Set place pose',
-										SetPlacePoseRandomState(place_position_max=place_pos_max, place_position_min=place_pos_min, place_quaternion=place_quat),
+										SetPlacePoseRandomState(),
 										transitions={'done': 'Plan to pose'},
 										autonomy={'done': Autonomy.Off},
-										remapping={'place_position': 'place_position', 'place_quaternion': 'place_quaternion'})
+										remapping={'place_position_max': 'place_pos_max', 'place_position_min': 'place_pos_min', 'place_position': 'place_position'})
 
 			# x:531 y:138
 			OperatableStateMachine.add('Place the object',
-										SetDIOState(io_service=self.io_service, pins=io_pins, vals=io_vals, sim=self.sim),
+										SetDIOState(io_service=self.io_service, sim=self.sim),
 										transitions={'done': 'finished', 'failed': 'failed'},
-										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
+										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off},
+										remapping={'pins': 'io_pins', 'vals': 'io_vals'})
 
 			# x:59 y:153
 			OperatableStateMachine.add('Plan to pose',
-										MoveItPosePlanState(robot_name=self.robot_name, pretarget_vector=[], pretarget_length=0, velocity=self.velocity),
+										MoveItPosePlanState(robot_name=self.robot_name, velocity=self.velocity),
 										transitions={'failed': 'failed', 'done': 'Execute trajectory'},
 										autonomy={'failed': Autonomy.Off, 'done': Autonomy.Off},
-										remapping={'start_joints': 'start_joints', 'position': 'place_position', 'quaternion': 'place_quaternion', 'joint_trajectory': 'joint_trajectory'})
+										remapping={'pretarget_vector': 'pretarget_vector', 'pretarget_length': 'pretarget_length', 'start_joints': 'default_start_joints', 'position': 'place_position', 'quaternion': 'place_quat', 'joint_trajectory': 'joint_trajectory'})
 
 			# x:298 y:139
 			OperatableStateMachine.add('Execute trajectory',

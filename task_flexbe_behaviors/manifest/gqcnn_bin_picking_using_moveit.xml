@@ -20,7 +20,7 @@
 	<!-- Available Parameters -->
 	<params>
 
-		<param type="text" name="robot_name" default="ur5" label="robot_name" hint="Sets the robot_name" />
+		<param type="text" name="robot_name" default="manipulator" label="robot_name" hint="Sets the robot_name" />
 
 		<param type="numeric" name="velocity" default="10" label="velocity" hint="Sets the velocity">
 			<min value="0" />
@@ -28,6 +28,10 @@
 		</param>
 
 		<param type="boolean" name="sim" default="True" label="sim" hint="Sets the sim" />
+
+		<param type="text" name="io_service" default="/ur_hardware_interface/set_io" label="io_service" hint="Sets the io_service" />
+
+		<param type="text" name="grasp_service" default="/gqcnn/grasp_planner" label="grasp_service" hint="Sets the grasp_service" />
 
 	</params>
 

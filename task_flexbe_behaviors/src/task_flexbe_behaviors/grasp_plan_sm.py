@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 ###########################################################
 #               WARNING: Generated code!                  #
@@ -46,9 +46,11 @@ class GraspPlanSM(Behavior):
 
 	def create(self):
 		# x:30 y:463, x:378 y:140
-		_state_machine = OperatableStateMachine(outcomes=['finished', 'failed'])
+		_state_machine = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['trans_position', 'trans_quaternion'], output_keys=['target_position', 'target_quaternion'])
 		_state_machine.userdata.trans_position = [0, 0, 0]
 		_state_machine.userdata.trans_quaternion = [1, 0, 0, 0]
+		_state_machine.userdata.target_position = []
+		_state_machine.userdata.target_quaternion = []
 
 		# Additional creation code can be added inside the following tags
 		# [MANUAL_CREATE]
@@ -62,14 +64,14 @@ class GraspPlanSM(Behavior):
 										GQCNNGraspPlanState(grasp_service=self.grasp_service),
 										transitions={'done': 'Coordinate transform', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off},
-										remapping={'grasp_posision': 'grasp_posision', 'grasp_quaternion': 'grasp_quaternion'})
+										remapping={'grasp_posision': 'grasp_position', 'grasp_quaternion': 'grasp_quaternion'})
 
 			# x:46 y:206
 			OperatableStateMachine.add('Coordinate transform',
-										CoordinateTransformState(trans_position=trans_position, trans_quaternion=trans_quaternion),
+										CoordinateTransformState(),
 										transitions={'done': 'finished'},
 										autonomy={'done': Autonomy.Off},
-										remapping={'source_position': 'grasp_posision', 'source_quaternion': 'grasp_quaternion', 'target_position': 'target_position', 'target_quaternion': 'target_quaternion'})
+										remapping={'trans_position': 'trans_position', 'trans_quaternion': 'trans_quaternion', 'source_position': 'grasp_position', 'source_quaternion': 'grasp_quaternion', 'target_position': 'target_position', 'target_quaternion': 'target_quaternion'})
 
 
 		return _state_machine
