@@ -46,6 +46,8 @@ class GQCNNGraspPlanState(EventState):
 			p, q = self._result.grasp.pose.position, self._result.grasp.pose.orientation
 			userdata.grasp_position = [p.x, p.y, p.z]
 			userdata.grasp_quaternion = [q.w, q.x, q.y, q.z]
+			print('grasp_position = {}'.format(userdata.grasp_position))
+			print('grasp_quaternion = {}'.format(userdata.grasp_quaternion))
 			return 'done'
 		else:
 			rospy.logerr('[GQCNN Grasp Plan State]: Grasp plan failed')

@@ -64,53 +64,40 @@ class MoveItPosePlanState(EventState):
 
 	def on_enter(self, userdata):
 		self._result = None
-		print('self._velocity = {}'.format(self._velocity))
 		self._move_group.set_max_velocity_scaling_factor(self._velocity)
 		self._move_group.set_max_acceleration_scaling_factor(self._velocity)
 		joints_name = self._move_group.get_active_joints()
-		print('1')
 		if len(userdata.start_joints) == len(joints_name):
 			start_state = self.generate_robot_state(joints_name, userdata.start_joints)
 			self._move_group.set_start_state(start_state)
-		print('2')
+		else:
+			self._move_group.set_start_state_to_current_state()
+			
 		p, q = userdata.position, userdata.quaternion
-		print('userdata.quaternion = {}'.format(q))
 		if userdata.pretarget_length != 0:
 			rot_mat = qtn.as_rotation_matrix(np.quaternion(q[0], q[1], q[2], q[3]))
 			pretarget_offset = userdata.pretarget_length * np.matmul(rot_mat, np.array(userdata.pretarget_vector).T)
 			pretarget_pos = pretarget_offset + np.array(userdata.position)
 		else:
 			pretarget_pos = None
-		print('3 {}'.format(p))
 		pose = Pose()
 		if pretarget_pos is not None:
 			pose.position = Point(pretarget_pos[0], pretarget_pos[1], pretarget_pos[2])
 		else:
 			pose.position = Point(p[0], p[1], p[2])
-		print('4')
 		pose.orientation = Quaternion(q[1], q[2], q[3], q[0])
 		self._move_group.set_pose_target(pose)
 		self._result = self._move_group.plan()
-		print('5 {}'.format(pose))
 		if pretarget_pos is not None:
 			pose.position = Point(p[0], p[1], p[2])
-			print('51 {}'.format(len(self._result.joint_trajectory.points)))
 			jt = self._result.joint_trajectory
 			start_state = self.generate_robot_state(jt.joint_names, jt.points[-1].positions)
-			print('52')
 			self._move_group.set_start_state(start_state)
-			print('53')
 			(cartesian_result, cartesian_fraction) = self._move_group.compute_cartesian_path([pose], 0.01, 0.0)
-			print('54')
 			jt.points += cartesian_result.joint_trajectory.points
-			print('55')
 			start_state = self.generate_robot_state(jt.joint_names, jt.points[0].positions)
-			print('56 {}'.format(len(self._result.joint_trajectory.points)))
 			self._result = self._move_group.retime_trajectory(start_state, self._result, self._velocity, self._velocity, 
 															  algorithm='iterative_time_parameterization')
-		print('6 {}'.format(len(self._result.joint_trajectory.points)))
-			
-		
 
 	def on_stop(self):
 		pass

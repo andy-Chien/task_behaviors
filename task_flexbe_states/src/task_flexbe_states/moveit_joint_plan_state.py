@@ -2,6 +2,7 @@
 
 import rospy
 import moveit_commander
+import numpy as np
 from moveit_msgs.msg import MoveItErrorCodes
 from flexbe_core import EventState, Logger
 from flexbe_core.proxy import ProxyActionClient
@@ -57,13 +58,19 @@ class MoveItJointsPlanState(EventState):
 			return 'failed'
 
 	def on_enter(self, userdata):
+		sj, tj = np.array(userdata.start_joints), np.array(userdata.target_joints)
+		if np.any(np.absolute(sj) > np.pi * 2):
+			sj = sj * np.pi / 180
+		if np.any(np.absolute(tj) > np.pi * 2):
+			tj = tj * np.pi / 180
+
 		self._move_group.set_max_velocity_scaling_factor(self._velocity)
 		self._move_group.set_max_acceleration_scaling_factor(self._velocity)
 		joints_name = self._move_group.get_active_joints()
-		if len(userdata.start_joints) == len(joints_name):
-			start_state = self.generate_robot_state(joints_name, userdata.start_joints)
+		if len(sj) == len(joints_name):
+			start_state = self.generate_robot_state(joints_name, sj)
 			self._move_group.set_start_state(start_state)
-		self._result = self._move_group.plan(userdata.target_joints)
+		self._result = self._move_group.plan(tj)
 
 	def on_stop(self):
 		pass

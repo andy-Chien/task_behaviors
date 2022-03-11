@@ -57,17 +57,18 @@ class GQCNNBinPickingUsingMoveItSM(Behavior):
 	def create(self):
 		# x:663 y:261, x:262 y:61
 		_state_machine = OperatableStateMachine(outcomes=['finished', 'failed'])
-		_state_machine.userdata.init_joints = [0, 0, 0, 0, 0, 0]
-		_state_machine.userdata.trans_position = [0.4, 0, 0.6]
-		_state_machine.userdata.trans_quaternion = [0.707, 0, 0.707, 0]
+		_state_machine.userdata.init_joints = [90, -90, 90, -90, -90, -90]
+		_state_machine.userdata.trans_position = [-0.0325, 0.702, 0.423]
+		_state_machine.userdata.trans_quaternion = [0.00677580204438, -0.00831166644454, 0.999927007232, -0.00556640961782]
 		_state_machine.userdata.io_pins = [1]
 		_state_machine.userdata.pick_io_vals = [1]
 		_state_machine.userdata.place_io_vals = [0]
 		_state_machine.userdata.pretarget_vector = [0, 0, 1]
-		_state_machine.userdata.pretarget_length = 0.1
-		_state_machine.userdata.place_pos_max = [0, 0, 0]
-		_state_machine.userdata.place_pos_min = [0, 0, 0]
-		_state_machine.userdata.place_quat = [1, 0, 0, 0]
+		_state_machine.userdata.pretarget_length = -0.1
+		_state_machine.userdata.place_pos_max = [0.3, 0.4, 0.1]
+		_state_machine.userdata.place_pos_min = [-0.3, 0.3, 0]
+		_state_machine.userdata.place_quat = [0, -0.707, -0.707, 0]
+		_state_machine.userdata.obj_quat_tool = [0.5, 0.5, 0.5, 0.5]
 
 		# Additional creation code can be added inside the following tags
 		# [MANUAL_CREATE]
@@ -90,7 +91,7 @@ class GQCNNBinPickingUsingMoveItSM(Behavior):
 											parameters={'grasp_service': self.grasp_service}),
 										transitions={'finished': 'Move To Pick', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
-										remapping={'trans_position': 'trans_position', 'trans_quaternion': 'trans_quaternion', 'target_position': 'target_position', 'target_quaternion': 'target_quaternion'})
+										remapping={'trans_position': 'trans_position', 'trans_quaternion': 'trans_quaternion', 'obj_quat_tool': 'obj_quat_tool', 'target_position': 'target_position', 'target_quaternion': 'target_quaternion'})
 
 			# x:399 y:67
 			OperatableStateMachine.add('Move To Pick',
