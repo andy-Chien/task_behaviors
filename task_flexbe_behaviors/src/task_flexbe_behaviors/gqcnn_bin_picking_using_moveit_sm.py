@@ -55,20 +55,23 @@ class GQCNNBinPickingUsingMoveItSM(Behavior):
 
 
 	def create(self):
-		# x:663 y:261, x:262 y:61
+		# x:287 y:360, x:262 y:61
 		_state_machine = OperatableStateMachine(outcomes=['finished', 'failed'])
 		_state_machine.userdata.init_joints = [90, -90, 90, -90, -90, -90]
-		_state_machine.userdata.trans_position = [-0.0325, 0.702, 0.423]
+		_state_machine.userdata.trans_position = [-0.0325, 0.702, 0.623]
 		_state_machine.userdata.trans_quaternion = [0.00677580204438, -0.00831166644454, 0.999927007232, -0.00556640961782]
-		_state_machine.userdata.io_pins = [1]
+		_state_machine.userdata.vacuum_io_pins = [1]
 		_state_machine.userdata.pick_io_vals = [1]
 		_state_machine.userdata.place_io_vals = [0]
-		_state_machine.userdata.pretarget_vector = [0, 0, 1]
-		_state_machine.userdata.pretarget_length = -0.1
+		_state_machine.userdata.pick_pretarget_vector = [0, 0, 1]
+		_state_machine.userdata.pick_pretarget_length = -0.1
 		_state_machine.userdata.place_pos_max = [0.3, 0.4, 0.1]
 		_state_machine.userdata.place_pos_min = [-0.3, 0.3, 0]
 		_state_machine.userdata.place_quat = [0, -0.707, -0.707, 0]
 		_state_machine.userdata.obj_quat_tool = [0.5, 0.5, 0.5, 0.5]
+		_state_machine.userdata.place_prestart_vector = [0, 0, 1]
+		_state_machine.userdata.place_prestart_length = -0.1
+		_state_machine.userdata.pressure_io_pins = [2]
 
 		# Additional creation code can be added inside the following tags
 		# [MANUAL_CREATE]
@@ -89,8 +92,8 @@ class GQCNNBinPickingUsingMoveItSM(Behavior):
 			OperatableStateMachine.add('Grasp Plan',
 										self.use_behavior(GraspPlanSM, 'Grasp Plan',
 											parameters={'grasp_service': self.grasp_service}),
-										transitions={'finished': 'Move To Pick', 'failed': 'failed'},
-										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
+										transitions={'finished': 'Move To Pick', 'failed': 'failed', 'no_object': 'finished'},
+										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit, 'no_object': Autonomy.Inherit},
 										remapping={'trans_position': 'trans_position', 'trans_quaternion': 'trans_quaternion', 'obj_quat_tool': 'obj_quat_tool', 'target_position': 'target_position', 'target_quaternion': 'target_quaternion'})
 
 			# x:399 y:67
@@ -99,7 +102,7 @@ class GQCNNBinPickingUsingMoveItSM(Behavior):
 											parameters={'robot_name': self.robot_name, 'velocity': self.velocity, 'io_service': self.io_service, 'sim': self.sim}),
 										transitions={'finished': 'Move To Place', 'failed': 'Grasp Plan'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
-										remapping={'io_pins': 'io_pins', 'io_vals': 'pick_io_vals', 'pretarget_vector': 'pretarget_vector', 'pretarget_length': 'pretarget_length', 'target_position': 'target_position', 'target_quaternion': 'target_quaternion'})
+										remapping={'vacuum_io_pins': 'vacuum_io_pins', 'vacuum_io_vals': 'pick_io_vals', 'pretarget_vector': 'pick_pretarget_vector', 'pretarget_length': 'pick_pretarget_length', 'target_position': 'target_position', 'target_quaternion': 'target_quaternion', 'pressure_io_pins': 'pressure_io_pins'})
 
 			# x:401 y:231
 			OperatableStateMachine.add('Move To Place',
@@ -107,7 +110,7 @@ class GQCNNBinPickingUsingMoveItSM(Behavior):
 											parameters={'robot_name': self.robot_name, 'io_service': self.io_service, 'sim': self.sim, 'velocity': self.velocity}),
 										transitions={'finished': 'Grasp Plan', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
-										remapping={'io_pins': 'io_pins', 'io_vals': 'place_io_vals', 'place_pos_max': 'place_pos_max', 'place_pos_min': 'place_pos_min', 'place_quat': 'place_quat'})
+										remapping={'vacuum_io_pins': 'vacuum_io_pins', 'vacuum_io_vals': 'place_io_vals', 'place_pos_max': 'place_pos_max', 'place_pos_min': 'place_pos_min', 'place_quat': 'place_quat', 'prestart_vector': 'place_prestart_vector', 'prestart_length': 'place_prestart_length'})
 
 
 		return _state_machine

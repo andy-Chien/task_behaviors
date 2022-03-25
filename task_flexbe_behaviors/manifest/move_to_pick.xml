@@ -27,6 +27,8 @@
 
 		<param type="boolean" name="sim" default="True" label="sim" hint="Sets the sim" />
 
+		<param type="text" name="io_topic" default="/ur_hardware_interface/io_states" label="io_topic" hint="Sets the io_topic" />
+
 	</params>
 
 

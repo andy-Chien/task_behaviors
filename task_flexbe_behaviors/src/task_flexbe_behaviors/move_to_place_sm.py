@@ -51,15 +51,18 @@ class MoveToPlaceSM(Behavior):
 
 	def create(self):
 		# x:600 y:267, x:309 y:327
-		_state_machine = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['io_pins', 'io_vals', 'place_pos_max', 'place_pos_min', 'place_quat'])
+		_state_machine = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['vacuum_io_pins', 'vacuum_io_vals', 'place_pos_max', 'place_pos_min', 'place_quat', 'prestart_vector', 'prestart_length'])
 		_state_machine.userdata.place_pos_max = [0, 0, 0]
 		_state_machine.userdata.place_pos_min = [0, 0, 0]
 		_state_machine.userdata.place_quat = [1, 0, 0, 0]
 		_state_machine.userdata.default_start_joints = []
-		_state_machine.userdata.io_pins = [1]
-		_state_machine.userdata.io_vals = [0]
+		_state_machine.userdata.vacuum_io_pins = [1]
+		_state_machine.userdata.vacuum_io_vals = [0]
 		_state_machine.userdata.pretarget_vector = [0, 0, 0]
 		_state_machine.userdata.pretarget_length = 0
+		_state_machine.userdata.prestart_vector = [0, 0, 0]
+		_state_machine.userdata.prestart_length = 0
+		_state_machine.userdata.block_execute = True
 
 		# Additional creation code can be added inside the following tags
 		# [MANUAL_CREATE]
@@ -80,21 +83,21 @@ class MoveToPlaceSM(Behavior):
 										SetDIOState(io_service=self.io_service, sim=self.sim),
 										transitions={'done': 'finished', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off},
-										remapping={'pins': 'io_pins', 'vals': 'io_vals'})
+										remapping={'pins': 'vacuum_io_pins', 'vals': 'vacuum_io_vals'})
 
 			# x:59 y:153
 			OperatableStateMachine.add('Plan to pose',
 										MoveItPosePlanState(robot_name=self.robot_name, velocity=self.velocity),
 										transitions={'failed': 'failed', 'done': 'Execute trajectory'},
 										autonomy={'failed': Autonomy.Off, 'done': Autonomy.Off},
-										remapping={'pretarget_vector': 'pretarget_vector', 'pretarget_length': 'pretarget_length', 'start_joints': 'default_start_joints', 'position': 'place_position', 'quaternion': 'place_quat', 'joint_trajectory': 'joint_trajectory'})
+										remapping={'prestart_length': 'prestart_length', 'prestart_vector': 'prestart_vector', 'pretarget_length': 'pretarget_length', 'pretarget_vector': 'pretarget_vector', 'start_joints': 'default_start_joints', 'position': 'place_position', 'quaternion': 'place_quat', 'joint_trajectory': 'joint_trajectory'})
 
 			# x:298 y:139
 			OperatableStateMachine.add('Execute trajectory',
 										MoveItExecuteTrajectoryState(robot_name=self.robot_name),
-										transitions={'done': 'Place the object', 'failed': 'failed', 'collision': 'Plan to pose'},
-										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off, 'collision': Autonomy.Off},
-										remapping={'joint_trajectory': 'joint_trajectory'})
+										transitions={'done': 'Place the object', 'failed': 'failed', 'collision': 'Plan to pose', 'running': 'Execute trajectory'},
+										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off, 'collision': Autonomy.Off, 'running': Autonomy.Off},
+										remapping={'joint_trajectory': 'joint_trajectory', 'block_execute': 'block_execute'})
 
 
 		return _state_machine

@@ -8,6 +8,8 @@
 ###########################################################
 
 from flexbe_core import Behavior, Autonomy, OperatableStateMachine, ConcurrencyContainer, PriorityContainer, Logger
+from task_flexbe_states.get_DIO_state import GetDIOState
+from task_flexbe_states.grasped_and_stop import GraspedAndStop
 from task_flexbe_states.moveit_execute_traj_state import MoveItExecuteTrajectoryState
 from task_flexbe_states.moveit_pose_plan_state import MoveItPosePlanState
 from task_flexbe_states.set_DIO_state import SetDIOState
@@ -36,6 +38,7 @@ class MoveToPickSM(Behavior):
 		self.add_parameter('velocity', 10)
 		self.add_parameter('io_service', '/ur_hardware_interface/set_io')
 		self.add_parameter('sim', True)
+		self.add_parameter('io_topic', '/ur_hardware_interface/io_states')
 
 		# references to used behaviors
 
@@ -49,15 +52,19 @@ class MoveToPickSM(Behavior):
 
 
 	def create(self):
-		# x:287 y:330, x:279 y:193
-		_state_machine = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['io_pins', 'io_vals', 'pretarget_vector', 'pretarget_length', 'target_position', 'target_quaternion'])
+		# x:321 y:374, x:628 y:207
+		_state_machine = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['vacuum_io_pins', 'vacuum_io_vals', 'pretarget_vector', 'pretarget_length', 'target_position', 'target_quaternion', 'pressure_io_pins'])
 		_state_machine.userdata.pretarget_vector = [0, 0, 1]
 		_state_machine.userdata.pretarget_length = 0.05
 		_state_machine.userdata.default_start_joints = []
-		_state_machine.userdata.io_pins = [1]
-		_state_machine.userdata.io_vals = [1]
+		_state_machine.userdata.vacuum_io_pins = [1]
+		_state_machine.userdata.vacuum_io_vals = [1]
 		_state_machine.userdata.target_position = []
 		_state_machine.userdata.target_quaternion = []
+		_state_machine.userdata.prestart_vector = [0, 0, 0]
+		_state_machine.userdata.prestart_length = 0
+		_state_machine.userdata.block_execute = False
+		_state_machine.userdata.pressure_io_pins = [2]
 
 		# Additional creation code can be added inside the following tags
 		# [MANUAL_CREATE]
@@ -66,26 +73,40 @@ class MoveToPickSM(Behavior):
 
 
 		with _state_machine:
-			# x:51 y:68
+			# x:236 y:61
 			OperatableStateMachine.add('Plan to pose',
 										MoveItPosePlanState(robot_name=self.robot_name, velocity=self.velocity),
 										transitions={'failed': 'failed', 'done': 'Execute trajectory'},
 										autonomy={'failed': Autonomy.Off, 'done': Autonomy.Off},
-										remapping={'pretarget_vector': 'pretarget_vector', 'pretarget_length': 'pretarget_length', 'start_joints': 'default_start_joints', 'position': 'target_position', 'quaternion': 'target_quaternion', 'joint_trajectory': 'joint_trajectory'})
+										remapping={'prestart_length': 'prestart_length', 'prestart_vector': 'prestart_vector', 'pretarget_length': 'pretarget_length', 'pretarget_vector': 'pretarget_vector', 'start_joints': 'default_start_joints', 'position': 'target_position', 'quaternion': 'target_quaternion', 'joint_trajectory': 'joint_trajectory'})
 
-			# x:81 y:281
+			# x:27 y:189
+			OperatableStateMachine.add('Get pressure state',
+										GetDIOState(io_topic=self.io_topic, sim=self.sim),
+										transitions={'done': 'Stop when grasped'},
+										autonomy={'done': Autonomy.Off},
+										remapping={'pins': 'pressure_io_pins', 'vals': 'vals'})
+
+			# x:245 y:277
 			OperatableStateMachine.add('Grasp object',
 										SetDIOState(io_service=self.io_service, sim=self.sim),
 										transitions={'done': 'finished', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off},
-										remapping={'pins': 'io_pins', 'vals': 'io_vals'})
+										remapping={'pins': 'vacuum_io_pins', 'vals': 'vacuum_io_vals'})
 
-			# x:51 y:183
+			# x:25 y:291
+			OperatableStateMachine.add('Stop when grasped',
+										GraspedAndStop(robot_name=self.robot_name, sim=self.sim),
+										transitions={'done': 'Execute trajectory'},
+										autonomy={'done': Autonomy.Off},
+										remapping={'vals': 'vals'})
+
+			# x:207 y:196
 			OperatableStateMachine.add('Execute trajectory',
 										MoveItExecuteTrajectoryState(robot_name=self.robot_name),
-										transitions={'done': 'Grasp object', 'failed': 'failed', 'collision': 'Plan to pose'},
-										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off, 'collision': Autonomy.Off},
-										remapping={'joint_trajectory': 'joint_trajectory'})
+										transitions={'done': 'Grasp object', 'failed': 'failed', 'collision': 'Plan to pose', 'running': 'Get pressure state'},
+										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off, 'collision': Autonomy.Off, 'running': Autonomy.Off},
+										remapping={'joint_trajectory': 'joint_trajectory', 'block_execute': 'block_execute'})
 
 
 		return _state_machine

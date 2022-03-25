@@ -45,8 +45,8 @@ class GraspPlanSM(Behavior):
 
 
 	def create(self):
-		# x:30 y:463, x:378 y:140
-		_state_machine = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['trans_position', 'trans_quaternion', 'obj_quat_tool'], output_keys=['target_position', 'target_quaternion'])
+		# x:30 y:463, x:378 y:140, x:334 y:280
+		_state_machine = OperatableStateMachine(outcomes=['finished', 'failed', 'no_object'], input_keys=['trans_position', 'trans_quaternion', 'obj_quat_tool'], output_keys=['target_position', 'target_quaternion'])
 		_state_machine.userdata.trans_position = [0, 0, 0]
 		_state_machine.userdata.trans_quaternion = [1, 0, 0, 0]
 		_state_machine.userdata.target_position = []
@@ -63,8 +63,8 @@ class GraspPlanSM(Behavior):
 			# x:45 y:68
 			OperatableStateMachine.add('GQCNN client',
 										GQCNNGraspPlanState(grasp_service=self.grasp_service),
-										transitions={'done': 'Coordinate transform', 'failed': 'failed'},
-										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off},
+										transitions={'done': 'Coordinate transform', 'failed': 'failed', 'finish': 'no_object', 'retry': 'GQCNN client'},
+										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off, 'finish': Autonomy.Off, 'retry': Autonomy.Off},
 										remapping={'grasp_position': 'grasp_position', 'grasp_quaternion': 'grasp_quaternion'})
 
 			# x:46 y:206

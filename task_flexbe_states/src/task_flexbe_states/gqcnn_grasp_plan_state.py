@@ -28,11 +28,12 @@ class GQCNNGraspPlanState(EventState):
 		'''
 		Constructor
 		'''
-		super(GQCNNGraspPlanState, self).__init__(outcomes=['done', 'failed'],
+		super(GQCNNGraspPlanState, self).__init__(outcomes=['done', 'failed', 'finish', 'retry'],
 											output_keys=['grasp_position', 'grasp_quaternion'])
 		self._grasp_service = grasp_service
 		self._gqcnn_client = ProxyServiceCaller({self._grasp_service: GQCNNGraspPlanner})
 		self._result = None
+		self._fail_count = 0
 		
 	def stop(self):
 		pass
@@ -43,6 +44,13 @@ class GQCNNGraspPlanState(EventState):
 		'''
 
 		if self._result is not False:
+			if self._result.grasp.q_value < 0.1:
+				self._fail_count += 1
+				if self._fail_count > 10:
+					return 'finish'
+				else:
+					return 'retry'
+					
 			p, q = self._result.grasp.pose.position, self._result.grasp.pose.orientation
 			userdata.grasp_position = [p.x, p.y, p.z]
 			userdata.grasp_quaternion = [q.w, q.x, q.y, q.z]

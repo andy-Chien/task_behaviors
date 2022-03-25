@@ -50,6 +50,7 @@ class GoToInitialPoseSM(Behavior):
 		_state_machine = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['init_joints'])
 		_state_machine.userdata.init_joints = [0, 0, 0, 0, 0, 0]
 		_state_machine.userdata.default_start_joints = []
+		_state_machine.userdata.block_execute = True
 
 		# Additional creation code can be added inside the following tags
 		# [MANUAL_CREATE]
@@ -68,9 +69,9 @@ class GoToInitialPoseSM(Behavior):
 			# x:47 y:181
 			OperatableStateMachine.add('Execute trajectory',
 										MoveItExecuteTrajectoryState(robot_name=self.robot_name),
-										transitions={'done': 'finished', 'failed': 'failed', 'collision': 'Plan to joints'},
-										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off, 'collision': Autonomy.Off},
-										remapping={'joint_trajectory': 'joint_trajectory'})
+										transitions={'done': 'finished', 'failed': 'failed', 'collision': 'Plan to joints', 'running': 'Execute trajectory'},
+										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off, 'collision': Autonomy.Off, 'running': Autonomy.Off},
+										remapping={'joint_trajectory': 'joint_trajectory', 'block_execute': 'block_execute'})
 
 
 		return _state_machine

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import rospy
+import threading
 import moveit_commander
 from moveit_msgs.msg import MoveItErrorCodes
 from flexbe_core import EventState
@@ -29,11 +30,12 @@ class MoveItExecuteTrajectoryState(EventState):
 		'''
 		Constructor
 		'''
-		super(MoveItExecuteTrajectoryState, self).__init__(outcomes=['done', 'failed', 'collision'],
-											input_keys=['joint_trajectory'])
+		super(MoveItExecuteTrajectoryState, self).__init__(outcomes=['done', 'failed', 'collision', 'running'],
+											input_keys=['joint_trajectory', 'block_execute'])
 		self._group_name = robot_name
 		self._move_group = moveit_commander.MoveGroupCommander(self._group_name)
 		self._result = MoveItErrorCodes.FAILURE
+		self._thread = None
 
 	def stop(self):
 		pass
@@ -42,18 +44,29 @@ class MoveItExecuteTrajectoryState(EventState):
 		'''
 		Execute this state
 		'''
-	
+		if self._thread is not None and self._thread.is_alive():
+			return 'running'
+
 		if self._result == MoveItErrorCodes.SUCCESS:
+			self._thread = None
 			return 'done'
 		elif self._result == MoveItErrorCodes.MOTION_PLAN_INVALIDATED_BY_ENVIRONMENT_CHANGE:
+			self._thread = None
 			rospy.logwarn('[MoveIt Execute Trajectory State]: ' + str(self._result))
 			return 'collision'
 		else:
+			self._thread = None
 			rospy.logerr('[MoveIt Execute Trajectory State]: MoveItErrorCodes = ' + str(self._result))
 			return 'failed'
 
 	def on_enter(self, userdata):
-		self._result = self._move_group.execute(userdata.joint_trajectory)
+		if userdata.block_execute:
+			self._result = self._move_group.execute(userdata.joint_trajectory)
+		else:
+			if self._thread is None:
+				self._thread = threading.Thread(target = self.execute_trajectory, 
+												args=(userdata.joint_trajectory,))
+				self._thread.start()
 
 	def on_stop(self):
 		pass
@@ -63,3 +76,6 @@ class MoveItExecuteTrajectoryState(EventState):
 
 	def on_resume(self, userdata):
 		self.on_enter(userdata)
+
+	def execute_trajectory(self, jt):
+		self._result = self._move_group.execute(jt)
