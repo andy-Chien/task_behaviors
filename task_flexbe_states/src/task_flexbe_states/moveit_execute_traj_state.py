@@ -47,7 +47,7 @@ class MoveItExecuteTrajectoryState(EventState):
 		if self._thread is not None and self._thread.is_alive():
 			return 'running'
 
-		if self._result == MoveItErrorCodes.SUCCESS:
+		if self._result == MoveItErrorCodes.SUCCESS or self._result == MoveItErrorCodes.PREEMPTED:
 			self._thread = None
 			return 'done'
 		elif self._result == MoveItErrorCodes.MOTION_PLAN_INVALIDATED_BY_ENVIRONMENT_CHANGE:
@@ -56,14 +56,16 @@ class MoveItExecuteTrajectoryState(EventState):
 			return 'collision'
 		else:
 			self._thread = None
-			rospy.logerr('[MoveIt Execute Trajectory State]: MoveItErrorCodes = ' + str(self._result))
+			rospy.logerr('[MoveIt Execute Trajectory State]: MoveItErrorCodes = {}, typt = {}'.format(self._result, type(self._result)))
 			return 'failed'
 
 	def on_enter(self, userdata):
 		if userdata.block_execute:
+			print('1')
 			self._result = self._move_group.execute(userdata.joint_trajectory)
 		else:
 			if self._thread is None:
+				print('2')
 				self._thread = threading.Thread(target = self.execute_trajectory, 
 												args=(userdata.joint_trajectory,))
 				self._thread.start()

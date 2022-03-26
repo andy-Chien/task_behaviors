@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 ###########################################################
 #               WARNING: Generated code!                  #
@@ -35,7 +35,7 @@ class GQCNNBinPickingUsingMoveItSM(Behavior):
 		# parameters of this behavior
 		self.add_parameter('robot_name', 'manipulator')
 		self.add_parameter('velocity', 10)
-		self.add_parameter('sim', True)
+		self.add_parameter('sim', False)
 		self.add_parameter('io_service', '/ur_hardware_interface/set_io')
 		self.add_parameter('grasp_service', '/gqcnn/grasp_planner')
 
@@ -57,21 +57,21 @@ class GQCNNBinPickingUsingMoveItSM(Behavior):
 	def create(self):
 		# x:287 y:360, x:262 y:61
 		_state_machine = OperatableStateMachine(outcomes=['finished', 'failed'])
-		_state_machine.userdata.init_joints = [90, -90, 90, -90, -90, -90]
-		_state_machine.userdata.trans_position = [-0.0325, 0.702, 0.623]
+		_state_machine.userdata.init_joints = [120, -90, 110, -110, -90, -90]
+		_state_machine.userdata.trans_position = [-0.0325, 0.702, 0.523]
 		_state_machine.userdata.trans_quaternion = [0.00677580204438, -0.00831166644454, 0.999927007232, -0.00556640961782]
-		_state_machine.userdata.vacuum_io_pins = [1]
+		_state_machine.userdata.vacuum_io_pins = [7]
 		_state_machine.userdata.pick_io_vals = [1]
 		_state_machine.userdata.place_io_vals = [0]
 		_state_machine.userdata.pick_pretarget_vector = [0, 0, 1]
 		_state_machine.userdata.pick_pretarget_length = -0.1
-		_state_machine.userdata.place_pos_max = [0.3, 0.4, 0.1]
-		_state_machine.userdata.place_pos_min = [-0.3, 0.3, 0]
-		_state_machine.userdata.place_quat = [0, -0.707, -0.707, 0]
+		_state_machine.userdata.place_pos_max = [-0.1, 0.7, -0.12]
+		_state_machine.userdata.place_pos_min = [-0.38, 0.38, -0.16]
+		_state_machine.userdata.place_quat = [0, -0.707106, -0.707106, 0]
 		_state_machine.userdata.obj_quat_tool = [0.5, 0.5, 0.5, 0.5]
 		_state_machine.userdata.place_prestart_vector = [0, 0, 1]
 		_state_machine.userdata.place_prestart_length = -0.1
-		_state_machine.userdata.pressure_io_pins = [2]
+		_state_machine.userdata.pressure_io_pins = [4]
 
 		# Additional creation code can be added inside the following tags
 		# [MANUAL_CREATE]

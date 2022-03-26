@@ -54,6 +54,7 @@ class CoordinateTransformState(EventState):
 		target_mat = np.matmul(rot_mat, source_mat)
 		# target_mat = np.matmul(rot_mat, source_mat)
 		userdata.target_position = target_mat[:3, 3]
+		userdata.target_position[2] += 0.1
 		userdata.target_quaternion = qtn.as_float_array(qtn.from_rotation_matrix(target_mat[:3, :3]))
 		print('target_position = {}'.format(userdata.target_position))
 		print('target_quaternion = {}'.format(userdata.target_quaternion))

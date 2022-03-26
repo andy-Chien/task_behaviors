@@ -33,8 +33,9 @@ class GraspedAndStop(EventState):
     def execute(self, userdata):
         if self._sim:
             return 'done'
-
+        print('[GraspedAndStop]: userdata.vals = {}'.format(userdata.vals))
         if userdata.vals[0]:
+            print('FFFFUUUUUUUCCCCCCCCKKKKKKKIIIINNNNNNNNGGGGGGGG SSSSSSSTTTTTTTTTTOOOOOOOOOPPPPPPPPPP')
             self._move_group.stop()
         return 'done'
 
