@@ -64,8 +64,8 @@ class MoveItPosePlanState(EventState):
 		'''
 		Execute this state
 		'''
-		if len(self._result.joint_trajectory.points) > 0:
-			userdata.joint_trajectory = self._result
+		if self._result[0] == MoveItErrorCodes.SUCCESS:
+			userdata.joint_trajectory = self._result[1]
 			return 'done'
 		else:
 			return 'failed'
@@ -99,21 +99,20 @@ class MoveItPosePlanState(EventState):
 			pose.position = Point(p[0], p[1], p[2])
 		pose.orientation = Quaternion(q[1], q[2], q[3], q[0])
 		self._move_group.set_pose_target(pose)
-		self._result = self._move_group.plan()
+		self._result = list(self._move_group.plan())
 		if pretarget_pos is not None:
 			pose.position = Point(p[0], p[1], p[2])
 			pretarget_result = self.pretarget_plan(pose)
 
 		if prestart_result or pretarget_result:
-			jt = self._result.joint_trajectory
+			jt = self._result[1].joint_trajectory
 			if prestart_result:
-				jt.points = prestart_result.joint_trajectory.points + jt.points
+				jt.points = prestart_result.joint_trajectory.points + jt.points[1:]
 			if pretarget_result:
-				jt.points += pretarget_result.joint_trajectory.points
+				jt.points += pretarget_result.joint_trajectory.points[1:]
 			start_state = self.generate_robot_state(jt.joint_names, jt.points[0].positions)
-			self._result = self._move_group.retime_trajectory(start_state, self._result, self._velocity, self._velocity, 
+			self._result[1] = self._move_group.retime_trajectory(start_state, self._result[1], self._velocity, self._velocity, 
 																algorithm='iterative_time_parameterization')
-
 	def on_stop(self):
 		pass
 
@@ -142,7 +141,6 @@ class MoveItPosePlanState(EventState):
 			start_pose = res.pose_stamped[0].pose
 		else:
 			start_pose = self._move_group.get_current_pose().pose
-
 		sp, sq = start_pose.position, start_pose.orientation
 		rot_mat = qtn.as_rotation_matrix(np.quaternion(sq.w, sq.x, sq.y, sq.z))
 		prestart_offset = prestart_length * np.matmul(rot_mat, np.array(prestart_vector).T)
@@ -157,7 +155,7 @@ class MoveItPosePlanState(EventState):
 		return cartesian_result
 
 	def pretarget_plan(self, pose):
-		jt = self._result.joint_trajectory
+		jt = self._result[1].joint_trajectory
 		start_state = self.generate_robot_state(jt.joint_names, jt.points[-1].positions)
 		self._move_group.set_start_state(start_state)
 		(cartesian_result, cartesian_fraction) = self._move_group.compute_cartesian_path([pose], 0.01, 0.0)

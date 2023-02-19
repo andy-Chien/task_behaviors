@@ -27,7 +27,7 @@
 			<max value="100" />
 		</param>
 
-		<param type="boolean" name="sim" default="True" label="sim" hint="Sets the sim" />
+		<param type="boolean" name="sim" default="False" label="sim" hint="Sets the sim" />
 
 		<param type="text" name="io_service" default="/ur_hardware_interface/set_io" label="io_service" hint="Sets the io_service" />
 

@@ -51,8 +51,8 @@ class MoveItJointsPlanState(EventState):
 		'''
 		Execute this state
 		'''
-		if len(self._result.joint_trajectory.points) > 0:
-			userdata.joint_trajectory = self._result
+		if self._result[0] == MoveItErrorCodes.SUCCESS:
+			userdata.joint_trajectory = self._result[1]
 			return 'done'
 		else:
 			return 'failed'
@@ -63,14 +63,15 @@ class MoveItJointsPlanState(EventState):
 			sj = sj * np.pi / 180
 		if np.any(np.absolute(tj) > np.pi * 2):
 			tj = tj * np.pi / 180
-
 		self._move_group.set_max_velocity_scaling_factor(self._velocity)
 		self._move_group.set_max_acceleration_scaling_factor(self._velocity)
 		joints_name = self._move_group.get_active_joints()
 		if len(sj) == len(joints_name):
 			start_state = self.generate_robot_state(joints_name, sj)
 			self._move_group.set_start_state(start_state)
-		self._result = self._move_group.plan(tj)
+
+		self._move_group.set_joint_value_target(tj)
+		self._result = self._move_group.plan()
 
 	def on_stop(self):
 		pass

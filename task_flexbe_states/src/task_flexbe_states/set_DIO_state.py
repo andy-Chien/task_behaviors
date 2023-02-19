@@ -41,4 +41,5 @@ class SetDIOState(EventState):
             self.result = True
         else:    
             for p, v in zip(userdata.pins, userdata.vals):
-                self.result = self._set_io(SetIORequest.FUN_SET_DIGITAL_OUT, p, v)
+                req = SetIORequest(SetIORequest.FUN_SET_DIGITAL_OUT, p, v)
+                self.result = self._set_io.call(self._io_service, req)

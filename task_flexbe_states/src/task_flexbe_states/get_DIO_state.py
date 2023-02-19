@@ -38,7 +38,8 @@ class GetDIOState(EventState):
 
         if self._io_sub.has_msg(self._io_topic):
             msg = self._io_sub.get_last_msg(self._io_topic)
-            userdata.vals = [msg.digital_in_states[pin] for pin in userdata.pins]
+            userdata.vals = [msg.digital_in_states[pin].state for pin in userdata.pins]
+            print('[GetDIOState]: userdata.vals = {}'.format(userdata.vals))
             return 'done'
 
     def on_enter(self, userdata):

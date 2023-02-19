@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 ###########################################################
 #               WARNING: Generated code!                  #
@@ -52,7 +52,7 @@ class MoveToPickSM(Behavior):
 
 
 	def create(self):
-		# x:321 y:374, x:628 y:207
+		# x:321 y:374, x:658 y:157
 		_state_machine = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['vacuum_io_pins', 'vacuum_io_vals', 'pretarget_vector', 'pretarget_length', 'target_position', 'target_quaternion', 'pressure_io_pins'])
 		_state_machine.userdata.pretarget_vector = [0, 0, 1]
 		_state_machine.userdata.pretarget_length = 0.05
@@ -76,7 +76,7 @@ class MoveToPickSM(Behavior):
 			# x:236 y:61
 			OperatableStateMachine.add('Plan to pose',
 										MoveItPosePlanState(robot_name=self.robot_name, velocity=self.velocity),
-										transitions={'failed': 'failed', 'done': 'Execute trajectory'},
+										transitions={'failed': 'failed', 'done': 'Grasp object'},
 										autonomy={'failed': Autonomy.Off, 'done': Autonomy.Off},
 										remapping={'prestart_length': 'prestart_length', 'prestart_vector': 'prestart_vector', 'pretarget_length': 'pretarget_length', 'pretarget_vector': 'pretarget_vector', 'start_joints': 'default_start_joints', 'position': 'target_position', 'quaternion': 'target_quaternion', 'joint_trajectory': 'joint_trajectory'})
 
@@ -87,10 +87,10 @@ class MoveToPickSM(Behavior):
 										autonomy={'done': Autonomy.Off},
 										remapping={'pins': 'pressure_io_pins', 'vals': 'vals'})
 
-			# x:245 y:277
+			# x:338 y:125
 			OperatableStateMachine.add('Grasp object',
 										SetDIOState(io_service=self.io_service, sim=self.sim),
-										transitions={'done': 'finished', 'failed': 'failed'},
+										transitions={'done': 'Execute trajectory', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'pins': 'vacuum_io_pins', 'vals': 'vacuum_io_vals'})
 
@@ -104,7 +104,7 @@ class MoveToPickSM(Behavior):
 			# x:207 y:196
 			OperatableStateMachine.add('Execute trajectory',
 										MoveItExecuteTrajectoryState(robot_name=self.robot_name),
-										transitions={'done': 'Grasp object', 'failed': 'failed', 'collision': 'Plan to pose', 'running': 'Get pressure state'},
+										transitions={'done': 'finished', 'failed': 'failed', 'collision': 'Plan to pose', 'running': 'Get pressure state'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off, 'collision': Autonomy.Off, 'running': Autonomy.Off},
 										remapping={'joint_trajectory': 'joint_trajectory', 'block_execute': 'block_execute'})
 
