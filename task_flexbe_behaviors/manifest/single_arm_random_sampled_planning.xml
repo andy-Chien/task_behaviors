@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<behavior name="Single Arm Random Sampled Planning">
+
+	<executable package_path="task_flexbe_behaviors.single_arm_random_sampled_planning_sm" class="SingleArmRandomSampledPlanningSM" />
+	<tagstring>v0</tagstring>
+	<author>Andy Chien</author>
+	<date>Mon Feb 20 2023</date>
+	<description>
+		single robot arm planning for the start and targert pose sampled from two area
+	</description>
+
+
+	<!-- Contained Behaviors -->
+
+	<!-- Available Parameters -->
+	<params>
+
+		<param type="text" name="namespace" default="" label="namespace" hint="Sets the namespace" />
+
+		<param type="text" name="group_name" default="ur_manipulator" label="group_name" hint="Sets the group_name" />
+
+		<param type="yaml" name="test_file" default="config/example.yaml" label="test_file" hint="Sets the test_file">
+			<key name="joint_names" />
+		</param>
+
+	</params>
+
+
+</behavior>

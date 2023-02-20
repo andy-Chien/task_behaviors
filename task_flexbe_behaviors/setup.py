@@ -28,6 +28,9 @@ setup(
             'grasp_plan_sm = task_flexbe_behaviors.grasp_plan_sm',
             'move_to_pick_sm = task_flexbe_behaviors.move_to_pick_sm',
             'move_to_place_sm = task_flexbe_behaviors.move_to_place_sm',
+            'single_arm_random_sampled_planning_sm = task_flexbe_behaviors.single_arm_random_sampled_planning_sm'
+            'multi_robot_roadmap_sampler_sm = task_flexbe_behaviors.multi_robot_roadmap_sampler_sm',
+            'robot_roadmap_sampler_sm = task_flexbe_behaviors.robot_roadmap_sampler_sm',
         ],
     },
 )
