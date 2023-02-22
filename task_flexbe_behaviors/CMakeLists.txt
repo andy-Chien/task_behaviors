@@ -21,7 +21,7 @@ install(DIRECTORY
 
 install(DIRECTORY
   config
-  DESTINATION lib/${PROJECT_NAME}
+  DESTINATION share/${PROJECT_NAME}
 )
 
 # Install Python modules

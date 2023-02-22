@@ -38,13 +38,13 @@ class SetRandomPoseState(EventState):
                                             output_keys = ['sampled_joints'])
         self._node = SetRandomPoseState._node
         ProxyServiceCaller._initialize(self._node)
+        self._logger = self._node.get_logger()
 
         self._req = GetPositionIK.Request()
         self._req.ik_request.group_name = group_name
 
-
-        if len(namespace) > 1 or (len(namespace) == 1 and namespace[0] != '/'):
-            namespace = namespace[1:] if namespace[0] == '/' else namespace
+        if len(namespace) > 1 or (len(namespace) == 1 and not namespace.startswith('/')):
+            namespace = namespace[1:] if namespace.startswith('/') else namespace
             self._ik_service = '/' + namespace + '/compute_ik'
             self._joint_names = [namespace + '_' + jn for jn in joint_names]
             self._req.ik_request.ik_link_name = namespace + '_tool0'
@@ -61,10 +61,10 @@ class SetRandomPoseState(EventState):
         result = self._ik_client.result(self._ik_service)
         if result.error_code.val == MoveItErrorCodes.SUCCESS:
             userdata.sampled_joints = list(result.solution.joint_state.position)
-            print('[SetRandomPoseState]: userdata.sampled_joints = {}'.format(userdata.sampled_joints))
+            self._logger.info('userdata.sampled_joints = {}'.format(userdata.sampled_joints))
             return 'done'
         else:
-            print('[SetRandomPoseState]: Error code = {}'.format(result.error_code.val))
+            self._logger.warn('Error code = {}'.format(result.error_code.val))
             return 'failed'
 
     def on_enter(self, userdata):
@@ -75,7 +75,8 @@ class SetRandomPoseState(EventState):
         rand_qtn = qtn.from_euler_angles(rand_rot)
         print('rand_pos = {}, rand_rot = {}, rand_qtn = {}'.format(rand_pos, rand_rot, rand_qtn))
         # joint_names = self._js_sub.get_last_msg(self._js_topic).name
-        self._req.ik_request.robot_state = self.generate_robot_state(self._joint_names, userdata.init_joints)
+        self._req.ik_request.robot_state = \
+            self.generate_robot_state(self._joint_names, userdata.init_joints)
         self._req.ik_request.pose_stamped.header.stamp = self._node.get_clock().now().to_msg()
         self._req.ik_request.pose_stamped.pose.position.x = rand_pos[0]
         self._req.ik_request.pose_stamped.pose.position.y = rand_pos[1]
@@ -90,14 +91,14 @@ class SetRandomPoseState(EventState):
         self._ik_client.call_async(self._ik_service, self._req)
 
     def generate_robot_state(self, joint_names, start_joints):
-        print("start_joints = ", start_joints)
-        if type(start_joints) == JointState:
-            joint_state = start_joints
-        else:
-            joint_state = JointState()
-            joint_state.header.stamp = self._node.get_clock().now().to_msg()
-            joint_state.name = joint_names
-            joint_state.position = list(np.array(start_joints, dtype=float))
+        sj = np.array(start_joints, dtype=float)
+        if np.any(np.absolute(sj) > np.pi * 2):
+            sj = sj * np.pi / 180
+
+        joint_state = JointState()
+        joint_state.header.stamp = self._node.get_clock().now().to_msg()
+        joint_state.name = joint_names
+        joint_state.position = list(sj)
         state = RobotState()
         state.joint_state = joint_state
         return state
