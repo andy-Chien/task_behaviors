@@ -55,8 +55,6 @@ class MultiArmRandomTaskDemoSM(Behavior):
     def create(self):
         # x:30 y:365, x:130 y:365
         _state_machine = OperatableStateMachine(outcomes=['finished', 'failed'])
-        _state_machine.userdata.block_execute = False
-        _state_machine.userdata.is_running = False
         _state_machine.userdata.velocity = 100
         _state_machine.userdata.exe_client = None
 
@@ -66,7 +64,7 @@ class MultiArmRandomTaskDemoSM(Behavior):
         # [/MANUAL_CREATE]
 
         # x:30 y:365, x:130 y:365
-        _sm_container_0 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['block_execute', 'is_running', 'velocity', 'exe_client'])
+        _sm_container_0 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['velocity', 'exe_client'])
 
         with _sm_container_0:
             # x:77 y:61
@@ -84,7 +82,7 @@ class MultiArmRandomTaskDemoSM(Behavior):
 
 
         # x:314 y:277, x:307 y:364, x:230 y:365, x:356 y:365
-        _sm_container_1 = ConcurrencyContainer(outcomes=['finished', 'failed'], input_keys=['block_execute', 'is_running', 'velocity', 'exe_client'], conditions=[
+        _sm_container_1 = ConcurrencyContainer(outcomes=['finished', 'failed'], input_keys=['velocity', 'exe_client'], conditions=[
                                         ('finished', [('Single Arm Random Task Demo', 'finished'), ('Container', 'finished')]),
                                         ('failed', [('Single Arm Random Task Demo', 'failed'), ('Container', 'failed')])
                                         ])
@@ -102,7 +100,7 @@ class MultiArmRandomTaskDemoSM(Behavior):
                                         _sm_container_0,
                                         transitions={'finished': 'finished', 'failed': 'failed'},
                                         autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
-                                        remapping={'block_execute': 'block_execute', 'is_running': 'is_running', 'velocity': 'velocity', 'exe_client': 'exe_client'})
+                                        remapping={'velocity': 'velocity', 'exe_client': 'exe_client'})
 
 
 
@@ -112,7 +110,7 @@ class MultiArmRandomTaskDemoSM(Behavior):
                                         _sm_container_1,
                                         transitions={'finished': 'finished', 'failed': 'failed'},
                                         autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
-                                        remapping={'block_execute': 'block_execute', 'is_running': 'is_running', 'velocity': 'velocity', 'exe_client': 'exe_client'})
+                                        remapping={'velocity': 'velocity', 'exe_client': 'exe_client'})
 
 
         return _state_machine

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 import rclpy
 from moveit_msgs.msg import MoveItErrorCodes
 from moveit_msgs.action import ExecuteTrajectory
@@ -15,16 +14,14 @@ class WaitForRunningState(EventState):
     '''
     Use MoveIt to move robot by planned trajectory.
 
-    -- group_name         string           move group name.
     -- namespace          string           robot name or namespace.
 
-    ># joint_trajectory   JointTrajectory  planned trajectory.
-    ># block_execute      bool             block in this state or not.
+    ># exe_client         JointTrajectory  planned trajectory.
     
-
+    <= waiting 						Robot is running.
     <= done 						Robot move done.
-    <= failed 						Robot move failed.
     <= collision 				    Robot during collision.
+    <= failed 				        Robot move failed.
     '''
 
 
@@ -32,40 +29,33 @@ class WaitForRunningState(EventState):
         '''
         Constructor
         '''
-        super(WaitForRunningState, self).__init__(outcomes=['waiting', 'done', 'not_running'],
-                                                  input_keys=['is_running', 'exe_client'])
+        super(WaitForRunningState, self).__init__(outcomes=['waiting', 'done', 'collision', 'failed'],
+                                                  input_keys=['exe_client'])
         if len(namespace) > 0 and not namespace.startswith('/'): 
             namespace = '/' + namespace
         self._exe_action = namespace + '/execute_trajectory'
 
-        # ProxyActionClient._initialize(EventState._node)
         self._logger = self._node.get_logger()
-
-
-        # self._exe_client = ProxyActionClient({self._exe_action: ExecuteTrajectory})
 
     def execute(self, userdata):
         '''
         Execute this state
         '''
-        if not userdata.is_running or userdata.exe_client is None:
-            self._logger.info("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! not_running !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-            self._logger.info("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! not_running !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-            self._logger.info("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! not_running !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-            self._logger.info("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! not_running !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-            self._logger.info("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! not_running !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-            self._logger.info("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! not_running !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-            self._logger.info("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! not_running !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-            return 'not_running'
+        if userdata.exe_client is None or not userdata.exe_client.is_active(self._exe_action):
+            self._logger.info("!!!!!!!!!!!!!!!!!!!!!! userdata.exe_client is None !!!!!!!!!!!!!!!!!!!!!!")
+            return 'done'
 
         if userdata.exe_client.has_result(self._exe_action):
-            return 'done'
+            result = userdata.exe_client.get_result(self._exe_action)
+            error_code = result.error_code.val
+            if error_code == MoveItErrorCodes.SUCCESS or error_code == MoveItErrorCodes.PREEMPTED:
+                return 'done'
+            elif error_code == MoveItErrorCodes.MOTION_PLAN_INVALIDATED_BY_ENVIRONMENT_CHANGE:
+                self._logger.warn('[MoveIt Execute Trajectory State]: ' + str(error_code))
+                return 'collision'
+            else:
+                self._logger.warn('[MoveIt Execute Trajectory State]: MoveItErrorCodes = {}'.format(error_code))
+                return 'failed'
         else:
-            self._logger.info("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! waiting !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-            self._logger.info("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! waiting !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-            self._logger.info("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! waiting !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-            self._logger.info("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! waiting !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-            self._logger.info("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! waiting !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-            self._logger.info("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! waiting !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
             self._logger.info("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! waiting !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
             return 'waiting'

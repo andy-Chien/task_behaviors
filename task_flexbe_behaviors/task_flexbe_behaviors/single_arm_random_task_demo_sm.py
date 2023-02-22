@@ -8,8 +8,10 @@
 ###########################################################
 
 from flexbe_core import Behavior, Autonomy, OperatableStateMachine, ConcurrencyContainer, PriorityContainer, Logger
+from task_flexbe_states.data_copy_state import DataCopyState
+from task_flexbe_states.get_current_joints import GetCurrentJoints
 from task_flexbe_states.get_random_pose_in_areas_state import GetRandomPoseInAreasState
-from task_flexbe_states.moveit_execute_traj_state import MoveItExecuteTrajectoryState
+from task_flexbe_states.moveit_async_execute_trajectory import MoveItAsyncExecuteTrajectory
 from task_flexbe_states.moveit_joint_plan_state import MoveItJointsPlanState
 from task_flexbe_states.moveit_wait_for_execute_state import WaitForRunningState
 # Additional imports can be added inside the following tags
@@ -43,8 +45,10 @@ class SingleArmRandomTaskDemoSM(Behavior):
         ConcurrencyContainer.initialize_ros(node)
         PriorityContainer.initialize_ros(node)
         Logger.initialize(node)
+        DataCopyState.initialize_ros(node)
+        GetCurrentJoints.initialize_ros(node)
         GetRandomPoseInAreasState.initialize_ros(node)
-        MoveItExecuteTrajectoryState.initialize_ros(node)
+        MoveItAsyncExecuteTrajectory.initialize_ros(node)
         MoveItJointsPlanState.initialize_ros(node)
         WaitForRunningState.initialize_ros(node)
 
@@ -58,10 +62,8 @@ class SingleArmRandomTaskDemoSM(Behavior):
 
 
     def create(self):
-        # x:30 y:365, x:130 y:365
+        # x:65 y:538, x:132 y:522
         _state_machine = OperatableStateMachine(outcomes=['finished', 'failed'])
-        _state_machine.userdata.block_execute = False
-        _state_machine.userdata.is_running = False
         _state_machine.userdata.velocity = 100
         _state_machine.userdata.exe_client = None
 
@@ -72,31 +74,45 @@ class SingleArmRandomTaskDemoSM(Behavior):
 
 
         with _state_machine:
-            # x:270 y:95
+            # x:98 y:82
+            OperatableStateMachine.add('get_curr_joints',
+                                        GetCurrentJoints(joint_names=self.joint_names, namespace=self.namespace),
+                                        transitions={'done': 'get_random_joints', 'no_msg': 'get_curr_joints'},
+                                        autonomy={'done': Autonomy.Off, 'no_msg': Autonomy.Off},
+                                        remapping={'curr_joints': 'start_joints'})
+
+            # x:598 y:68
+            OperatableStateMachine.add('async_execute',
+                                        MoveItAsyncExecuteTrajectory(group_name=self.group_name, namespace=self.namespace),
+                                        transitions={'done': 'set_last_target_to_new_start', 'failed': 'get_curr_joints'},
+                                        autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off},
+                                        remapping={'joint_trajectory': 'joint_trajectory', 'exe_client': 'exe_client'})
+
+            # x:96 y:236
             OperatableStateMachine.add('get_random_joints',
                                         GetRandomPoseInAreasState(group_name=self.group_name, joint_names=self.joint_names, areas=self.random_areas, namespace=self.namespace),
                                         transitions={'done': 'Plan', 'failed': 'get_random_joints'},
                                         autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off},
-                                        remapping={'is_running': 'is_running', 'start_joints': 'start_joints', 'target_joints': 'target_joints'})
+                                        remapping={'start_joints': 'start_joints', 'target_joints': 'target_joints'})
 
-            # x:589 y:101
-            OperatableStateMachine.add('execute',
-                                        MoveItExecuteTrajectoryState(group_name=self.group_name, namespace=self.namespace),
-                                        transitions={'done': 'get_random_joints', 'failed': 'get_random_joints', 'collision': 'get_random_joints', 'running': 'get_random_joints'},
-                                        autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off, 'collision': Autonomy.Off, 'running': Autonomy.Off},
-                                        remapping={'joint_trajectory': 'joint_trajectory', 'block_execute': 'block_execute', 'is_running': 'is_running', 'exe_client': 'exe_client'})
+            # x:366 y:122
+            OperatableStateMachine.add('set_last_target_to_new_start',
+                                        DataCopyState(),
+                                        transitions={'done': 'get_random_joints'},
+                                        autonomy={'done': Autonomy.Off},
+                                        remapping={'data_in': 'target_joints', 'data_out': 'start_joints'})
 
-            # x:617 y:265
-            OperatableStateMachine.add('wait_execute',
-                                        WaitForRunningState(namespace=self.namespace),
-                                        transitions={'waiting': 'wait_execute', 'done': 'execute', 'not_running': 'execute'},
-                                        autonomy={'waiting': Autonomy.Off, 'done': Autonomy.Off, 'not_running': Autonomy.Off},
-                                        remapping={'is_running': 'is_running', 'exe_client': 'exe_client'})
+            # x:569 y:358
+            OperatableStateMachine.add('wait_for_running',
+                                        WaitForRunningState(namespace=''),
+                                        transitions={'waiting': 'wait_for_running', 'done': 'async_execute', 'collision': 'get_curr_joints', 'failed': 'get_curr_joints'},
+                                        autonomy={'waiting': Autonomy.Off, 'done': Autonomy.Off, 'collision': Autonomy.Off, 'failed': Autonomy.Off},
+                                        remapping={'exe_client': 'exe_client'})
 
-            # x:282 y:268
+            # x:103 y:361
             OperatableStateMachine.add('Plan',
                                         MoveItJointsPlanState(group_name=self.group_name, joint_names=self.joint_names, namespace=self.namespace, planner='RRTConnectkConfigDefault', time_out=1.0),
-                                        transitions={'failed': 'get_random_joints', 'done': 'wait_execute'},
+                                        transitions={'failed': 'get_random_joints', 'done': 'wait_for_running'},
                                         autonomy={'failed': Autonomy.Off, 'done': Autonomy.Off},
                                         remapping={'start_joints': 'start_joints', 'target_joints': 'target_joints', 'velocity': 'velocity', 'joint_trajectory': 'joint_trajectory'})
 

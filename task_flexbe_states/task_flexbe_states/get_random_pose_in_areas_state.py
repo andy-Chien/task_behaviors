@@ -33,8 +33,8 @@ class GetRandomPoseInAreasState(EventState):
     def __init__(self, group_name, joint_names, areas, namespace=''):
         '''Constructor'''
         super(GetRandomPoseInAreasState, self).__init__(outcomes = ['done', 'failed'],
-                                            input_keys = ['is_running'],
-                                            output_keys = ['start_joints', 'target_joints'])
+                                            input_keys = ['start_joints'],
+                                            output_keys = ['target_joints'])
         self._node = GetRandomPoseInAreasState._node
         ProxyServiceCaller._initialize(self._node)
 
@@ -84,21 +84,6 @@ class GetRandomPoseInAreasState(EventState):
             self._logger.info('rand_area == self._curr_area')
             return self.on_enter(userdata)
         self._curr_area = rand_area
-
-        if self._last_target_joint and userdata.is_running:
-            userdata.start_joints = [x for x in self._last_target_joint]
-        else:
-            if not self._joint_state_sub.has_msg(self._joint_state_topic):
-                self._logger.info('self._joint_state_sub.dont has_msg')
-                return self.on_enter(userdata)
-            else:
-                joint_state = self._joint_state_sub.get_last_msg(self._joint_state_topic)
-                userdata.start_joints = []
-                for jn_ in self._joint_names:
-                    for jn, jp in zip(joint_state.name, joint_state.position):
-                        if jn == jn_:
-                            userdata.start_joints.append(jp)
-                            break
 
         self._time_now = self._node.get_clock().now()
         
