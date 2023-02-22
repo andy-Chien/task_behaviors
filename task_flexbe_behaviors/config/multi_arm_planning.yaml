@@ -1,0 +1,19 @@
+# You can use this folder to place general config files
+joint_names:
+  - shoulder_pan_joint
+  - shoulder_lift_joint
+  - elbow_joint
+  - wrist_1_joint
+  - wrist_2_joint
+  - wrist_3_joint
+
+random_areas:
+  - pos_min: [-0.4, -0.4, 0.1]
+    pos_max: [0.0, 0.4, 0.3]
+    rot_min: [-5, 175, -180]
+    rot_max: [5, 185, 180]
+
+  - pos_min: [0.0, -0.4, 0.1]
+    pos_max: [0.4, 0.4, 0.3]
+    rot_min: [-5, 175, -180]
+    rot_max: [5, 185, 180]

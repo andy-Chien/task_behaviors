@@ -1,0 +1,6 @@
+[submodule "flexbe_app"]
+	path = flexbe_app
+	url = https://github.com/FlexBE/flexbe_app.git
+[submodule "flexbe_behavior_engine"]
+	path = flexbe_behavior_engine
+	url = https://github.com/andy-Chien/flexbe_behavior_engine.git

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<behavior name="Multi Robot Roadmap Sampler">
+
+	<executable package_path="task_flexbe_behaviors.multi_robot_roadmap_sampler_sm" class="MultiRobotRoadmapSamplerSM" />
+	<tagstring>v0</tagstring>
+	<author>Andy Chien</author>
+	<date>Thu Apr 26 2022</date>
+	<description>
+		Roadmap sample from random start and target point in bounds
+	</description>
+
+
+	<!-- Contained Behaviors -->
+	<contains name="Robot Roadmap Sampler" />
+
+	<!-- Available Parameters -->
+	<params>
+
+		<param type="text" name="robot_0_name" default="robot0" label="robot_0_name" hint="Sets the robot_0_name" />
+
+		<param type="text" name="robot_1_name" default="robot1" label="robot_1_name" hint="Sets the robot_1_name" />
+
+	</params>
+
+
+</behavior>

@@ -1,1 +1,6 @@
 # You can use this folder to place general config files
+joint_names:
+  - a
+  - b
+  - c
+  - d

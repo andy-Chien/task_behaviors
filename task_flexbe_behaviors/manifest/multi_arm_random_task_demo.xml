@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<behavior name="Multi Arm Random Task Demo">
+
+	<executable package_path="task_flexbe_behaviors.multi_arm_random_task_demo_sm" class="MultiArmRandomTaskDemoSM" />
+	<tagstring>v0</tagstring>
+	<author>Andy Chien</author>
+	<date>Mon Feb 20 2023</date>
+	<description>
+		single robot arm planning for the targert pose sampled from more than one area
+	</description>
+
+
+	<!-- Contained Behaviors -->
+	<contains name="Single Arm Random Task Demo" />
+
+	<!-- Available Parameters -->
+	<params>
+
+		<param type="text" name="robot_1_ns" default="robot_1" label="robot_1_ns" hint="Sets the robot_1_ns" />
+
+		<param type="text" name="robot_2_ns" default="robot_2" label="robot_2_ns" hint="Sets the robot_2_ns" />
+
+	</params>
+
+
+</behavior>

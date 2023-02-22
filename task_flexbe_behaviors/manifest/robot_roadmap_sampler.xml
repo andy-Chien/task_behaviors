@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<behavior name="Robot Roadmap Sampler">
+
+	<executable package_path="task_flexbe_behaviors.robot_roadmap_sampler_sm" class="RobotRoadmapSamplerSM" />
+	<tagstring>v0</tagstring>
+	<author>Andy Chien</author>
+	<date>Thu Apr 19 2022</date>
+	<description>
+		Roadmap sample for pick and place task
+	</description>
+
+
+	<!-- Contained Behaviors -->
+	<contains name="SceneManagerPlan" />
+
+	<!-- Available Parameters -->
+	<params>
+
+		<param type="text" name="robot_name" default="robot0" label="robot_name" hint="Sets the robot_name" />
+
+		<param type="numeric" name="planning_timeout" default="0.3" label="planning_timeout" hint="Sets the planning_timeout">
+			<min value="-1" />
+			<max value="10" />
+		</param>
+
+	</params>
+
+
+</behavior>
