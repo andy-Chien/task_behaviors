@@ -21,6 +21,10 @@
 
 		<param type="text" name="robot_2_ns" default="robot_2" label="robot_2_ns" hint="Sets the robot_2_ns" />
 
+		<param type="text" name="planner_RRTConnect" default="RRTConnectkConfigDefault" label="planner_RRTConnect" hint="Sets the planner_RRTConnect" />
+
+		<param type="text" name="planner_AdaptPRM" default="AdaptPRMkDefault" label="planner_AdaptPRM" hint="Sets the planner_AdaptPRM" />
+
 	</params>
 
 

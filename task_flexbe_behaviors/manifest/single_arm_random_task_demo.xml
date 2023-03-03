@@ -28,6 +28,8 @@
 			<key name="random_areas" />
 		</param>
 
+		<param type="text" name="planner_id" default="RRTConnectkConfigDefault" label="planner_id" hint="Sets the planner_id" />
+
 	</params>
 
 
