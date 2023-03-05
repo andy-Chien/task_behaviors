@@ -8,12 +8,13 @@
 ###########################################################
 
 from flexbe_core import Behavior, Autonomy, OperatableStateMachine, ConcurrencyContainer, PriorityContainer, Logger
-from task_flexbe_states.data_copy_state import DataCopyState
 from task_flexbe_states.get_current_joints import GetCurrentJoints
 from task_flexbe_states.get_random_pose_in_areas_state import GetRandomPoseInAreasState
 from task_flexbe_states.moveit_async_execute_trajectory import MoveItAsyncExecuteTrajectory
 from task_flexbe_states.moveit_joint_plan_state import MoveItJointsPlanState
 from task_flexbe_states.moveit_wait_for_execute_state import WaitForRunningState
+from task_flexbe_states.planning_evaluation import PlanningEvaluation
+from task_flexbe_states.set_data_by_data_state import SetDataByDataState
 # Additional imports can be added inside the following tags
 # [MANUAL_IMPORT]
 
@@ -39,17 +40,21 @@ class SingleArmRandomTaskDemoSM(Behavior):
         self.add_parameter('group_name', 'ur_manipulator')
         self.add_parameter('joint_names', dict())
         self.add_parameter('random_areas', dict())
+        self.add_parameter('planner_id', 'RRTConnectkConfigDefault')
+        self.add_parameter('finish_count', 100)
+        self.add_parameter('do_evaluation', False)
 
         # references to used behaviors
         OperatableStateMachine.initialize_ros(node)
         ConcurrencyContainer.initialize_ros(node)
         PriorityContainer.initialize_ros(node)
         Logger.initialize(node)
-        DataCopyState.initialize_ros(node)
         GetCurrentJoints.initialize_ros(node)
         GetRandomPoseInAreasState.initialize_ros(node)
         MoveItAsyncExecuteTrajectory.initialize_ros(node)
         MoveItJointsPlanState.initialize_ros(node)
+        PlanningEvaluation.initialize_ros(node)
+        SetDataByDataState.initialize_ros(node)
         WaitForRunningState.initialize_ros(node)
 
         # Additional initialization code can be added inside the following tags
@@ -62,10 +67,11 @@ class SingleArmRandomTaskDemoSM(Behavior):
 
 
     def create(self):
-        # x:65 y:538, x:132 y:522
+        # x:65 y:538, x:183 y:548
         _state_machine = OperatableStateMachine(outcomes=['finished', 'failed'])
         _state_machine.userdata.velocity = 100
         _state_machine.userdata.exe_client = None
+        _state_machine.userdata.curr_area = 0
 
         # Additional creation code can be added inside the following tags
         # [MANUAL_CREATE]
@@ -84,7 +90,7 @@ class SingleArmRandomTaskDemoSM(Behavior):
             # x:598 y:68
             OperatableStateMachine.add('async_execute',
                                         MoveItAsyncExecuteTrajectory(group_name=self.group_name, namespace=self.namespace),
-                                        transitions={'done': 'set_last_target_to_new_start', 'failed': 'get_curr_joints'},
+                                        transitions={'done': 'update_start_joints_and_area', 'failed': 'get_curr_joints'},
                                         autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off},
                                         remapping={'joint_trajectory': 'joint_trajectory', 'exe_client': 'exe_client'})
 
@@ -93,16 +99,23 @@ class SingleArmRandomTaskDemoSM(Behavior):
                                         GetRandomPoseInAreasState(group_name=self.group_name, joint_names=self.joint_names, areas=self.random_areas, namespace=self.namespace),
                                         transitions={'done': 'Plan', 'failed': 'get_random_joints'},
                                         autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off},
-                                        remapping={'start_joints': 'start_joints', 'target_joints': 'target_joints'})
+                                        remapping={'start_joints': 'start_joints', 'curr_area': 'curr_area', 'target_joints': 'target_joints', 'rand_area': 'rand_area'})
 
-            # x:366 y:122
-            OperatableStateMachine.add('set_last_target_to_new_start',
-                                        DataCopyState(),
-                                        transitions={'done': 'get_random_joints'},
+            # x:412 y:343
+            OperatableStateMachine.add('plan_eval',
+                                        PlanningEvaluation(finish_count=self.finish_count, do_evaluation=self.do_evaluation),
+                                        transitions={'done': 'get_random_joints', 'finish': 'finished'},
+                                        autonomy={'done': Autonomy.Off, 'finish': Autonomy.Off},
+                                        remapping={'joint_trajectory': 'joint_trajectory', 'planning_time': 'planning_time', 'planning_error_code': 'planning_error_code'})
+
+            # x:604 y:342
+            OperatableStateMachine.add('update_start_joints_and_area',
+                                        SetDataByDataState(userdata_src_names=['target_joints', 'rand_area'], userdata_dst_names=['start_joints', 'curr_area']),
+                                        transitions={'done': 'plan_eval'},
                                         autonomy={'done': Autonomy.Off},
-                                        remapping={'data_in': 'target_joints', 'data_out': 'start_joints'})
+                                        remapping={'target_joints': 'target_joints', 'rand_area': 'rand_area', 'start_joints': 'start_joints', 'curr_area': 'curr_area'})
 
-            # x:569 y:358
+            # x:368 y:194
             OperatableStateMachine.add('wait_for_running',
                                         WaitForRunningState(namespace=''),
                                         transitions={'waiting': 'wait_for_running', 'done': 'async_execute', 'collision': 'get_curr_joints', 'failed': 'get_curr_joints'},
@@ -111,10 +124,10 @@ class SingleArmRandomTaskDemoSM(Behavior):
 
             # x:103 y:361
             OperatableStateMachine.add('Plan',
-                                        MoveItJointsPlanState(group_name=self.group_name, joint_names=self.joint_names, namespace=self.namespace, planner='RRTConnectkConfigDefault', time_out=1.0),
-                                        transitions={'failed': 'get_random_joints', 'done': 'wait_for_running'},
+                                        MoveItJointsPlanState(group_name=self.group_name, joint_names=self.joint_names, namespace=self.namespace, planner=self.planner_id, time_out=1.0),
+                                        transitions={'failed': 'plan_eval', 'done': 'wait_for_running'},
                                         autonomy={'failed': Autonomy.Off, 'done': Autonomy.Off},
-                                        remapping={'start_joints': 'start_joints', 'target_joints': 'target_joints', 'velocity': 'velocity', 'joint_trajectory': 'joint_trajectory'})
+                                        remapping={'start_joints': 'start_joints', 'target_joints': 'target_joints', 'velocity': 'velocity', 'joint_trajectory': 'joint_trajectory', 'planning_time': 'planning_time', 'planning_error_code': 'planning_error_code'})
 
 
         return _state_machine
