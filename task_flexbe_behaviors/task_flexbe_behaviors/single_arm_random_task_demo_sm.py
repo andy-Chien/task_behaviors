@@ -13,6 +13,7 @@ from task_flexbe_states.get_random_pose_in_areas_state import GetRandomPoseInAre
 from task_flexbe_states.moveit_async_execute_trajectory import MoveItAsyncExecuteTrajectory
 from task_flexbe_states.moveit_joint_plan_state import MoveItJointsPlanState
 from task_flexbe_states.moveit_wait_for_execute_state import WaitForRunningState
+from task_flexbe_states.planning_evaluation import PlanningEvaluation
 from task_flexbe_states.set_data_by_data_state import SetDataByDataState
 # Additional imports can be added inside the following tags
 # [MANUAL_IMPORT]
@@ -40,6 +41,8 @@ class SingleArmRandomTaskDemoSM(Behavior):
         self.add_parameter('joint_names', dict())
         self.add_parameter('random_areas', dict())
         self.add_parameter('planner_id', 'RRTConnectkConfigDefault')
+        self.add_parameter('finish_count', 100)
+        self.add_parameter('do_evaluation', False)
 
         # references to used behaviors
         OperatableStateMachine.initialize_ros(node)
@@ -50,6 +53,7 @@ class SingleArmRandomTaskDemoSM(Behavior):
         GetRandomPoseInAreasState.initialize_ros(node)
         MoveItAsyncExecuteTrajectory.initialize_ros(node)
         MoveItJointsPlanState.initialize_ros(node)
+        PlanningEvaluation.initialize_ros(node)
         SetDataByDataState.initialize_ros(node)
         WaitForRunningState.initialize_ros(node)
 
@@ -63,7 +67,7 @@ class SingleArmRandomTaskDemoSM(Behavior):
 
 
     def create(self):
-        # x:65 y:538, x:132 y:522
+        # x:65 y:538, x:183 y:548
         _state_machine = OperatableStateMachine(outcomes=['finished', 'failed'])
         _state_machine.userdata.velocity = 100
         _state_machine.userdata.exe_client = None
@@ -97,14 +101,21 @@ class SingleArmRandomTaskDemoSM(Behavior):
                                         autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off},
                                         remapping={'start_joints': 'start_joints', 'curr_area': 'curr_area', 'target_joints': 'target_joints', 'rand_area': 'rand_area'})
 
-            # x:379 y:160
+            # x:412 y:343
+            OperatableStateMachine.add('plan_eval',
+                                        PlanningEvaluation(finish_count=self.finish_count, do_evaluation=self.do_evaluation),
+                                        transitions={'done': 'get_random_joints', 'finish': 'finished'},
+                                        autonomy={'done': Autonomy.Off, 'finish': Autonomy.Off},
+                                        remapping={'joint_trajectory': 'joint_trajectory', 'planning_time': 'planning_time', 'planning_error_code': 'planning_error_code'})
+
+            # x:604 y:342
             OperatableStateMachine.add('update_start_joints_and_area',
                                         SetDataByDataState(userdata_src_names=['target_joints', 'rand_area'], userdata_dst_names=['start_joints', 'curr_area']),
-                                        transitions={'done': 'get_random_joints'},
+                                        transitions={'done': 'plan_eval'},
                                         autonomy={'done': Autonomy.Off},
                                         remapping={'target_joints': 'target_joints', 'rand_area': 'rand_area', 'start_joints': 'start_joints', 'curr_area': 'curr_area'})
 
-            # x:569 y:358
+            # x:368 y:194
             OperatableStateMachine.add('wait_for_running',
                                         WaitForRunningState(namespace=''),
                                         transitions={'waiting': 'wait_for_running', 'done': 'async_execute', 'collision': 'get_curr_joints', 'failed': 'get_curr_joints'},
@@ -114,9 +125,9 @@ class SingleArmRandomTaskDemoSM(Behavior):
             # x:103 y:361
             OperatableStateMachine.add('Plan',
                                         MoveItJointsPlanState(group_name=self.group_name, joint_names=self.joint_names, namespace=self.namespace, planner=self.planner_id, time_out=1.0),
-                                        transitions={'failed': 'get_random_joints', 'done': 'wait_for_running'},
+                                        transitions={'failed': 'plan_eval', 'done': 'wait_for_running'},
                                         autonomy={'failed': Autonomy.Off, 'done': Autonomy.Off},
-                                        remapping={'start_joints': 'start_joints', 'target_joints': 'target_joints', 'velocity': 'velocity', 'joint_trajectory': 'joint_trajectory'})
+                                        remapping={'start_joints': 'start_joints', 'target_joints': 'target_joints', 'velocity': 'velocity', 'joint_trajectory': 'joint_trajectory', 'planning_time': 'planning_time', 'planning_error_code': 'planning_error_code'})
 
 
         return _state_machine

@@ -30,6 +30,13 @@
 
 		<param type="text" name="planner_id" default="RRTConnectkConfigDefault" label="planner_id" hint="Sets the planner_id" />
 
+		<param type="numeric" name="finish_count" default="100" label="finish_count" hint="Sets the finish_count">
+			<min value="0" />
+			<max value="10000" />
+		</param>
+
+		<param type="boolean" name="do_evaluation" default="False" label="do_evaluation" hint="Sets the do_evaluation" />
+
 	</params>
 
 

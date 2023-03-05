@@ -41,13 +41,13 @@ class MoveItJointsPlanState(EventState):
 
 
     def __init__(self, group_name, joint_names, namespace='', 
-        planner='RRTConnectkConfigDefault', time_out=1.0):
+        planner='RRTConnectkConfigDefault', time_out=0.5, attempts=10):
         '''
         Constructor
         '''
         super(MoveItJointsPlanState, self).__init__(outcomes=['failed', 'done'],
-                                            input_keys=['start_joints', 'target_joints', 'velocity'],
-                                            output_keys=['joint_trajectory'])
+            input_keys=['start_joints', 'target_joints', 'velocity'],
+            output_keys=['joint_trajectory', 'planning_time', 'planning_error_code'])
         # group_name = ""
         self._group_name = group_name
         self._state_accepted = False
@@ -75,6 +75,7 @@ class MoveItJointsPlanState(EventState):
         self._goal.request.group_name = group_name
         self._goal.request.allowed_planning_time = time_out
         self._goal.request.planner_id = planner
+        self._goal.request.num_planning_attempts = attempts
         cs = Constraints()
         for jn in self._joint_names:
             jc = JointConstraint()
@@ -98,7 +99,8 @@ class MoveItJointsPlanState(EventState):
             return
 
         result = self._client.get_result(self._action)
-
+        userdata.planning_time = result.planning_time
+        userdata.planning_error_code = result.error_code.val
         if result.error_code.val == MoveItErrorCodes.SUCCESS:
             userdata.joint_trajectory = result.planned_trajectory
             return 'done'

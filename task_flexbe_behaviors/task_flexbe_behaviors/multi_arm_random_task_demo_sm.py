@@ -83,9 +83,10 @@ class MultiArmRandomTaskDemoSM(Behavior):
                                         autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit})
 
 
-        # x:314 y:277, x:307 y:364, x:230 y:365, x:356 y:365
+        # x:336 y:194, x:307 y:364, x:326 y:111, x:356 y:365, x:430 y:365
         _sm_container_1 = ConcurrencyContainer(outcomes=['finished', 'failed'], input_keys=['velocity', 'exe_client'], conditions=[
-                                        ('finished', [('Single Arm Random Task Demo', 'finished'), ('Container', 'finished')]),
+                                        ('finished', [('Single Arm Random Task Demo', 'finished')]),
+                                        ('finished', [('Container', 'finished')]),
                                         ('failed', [('Single Arm Random Task Demo', 'failed'), ('Container', 'failed')])
                                         ])
 
@@ -93,7 +94,7 @@ class MultiArmRandomTaskDemoSM(Behavior):
             # x:64 y:170
             OperatableStateMachine.add('Single Arm Random Task Demo',
                                         self.use_behavior(SingleArmRandomTaskDemoSM, 'Container/Single Arm Random Task Demo',
-                                            parameters={'namespace': self.robot_1_ns, 'planner_id': self.planner_AdaptPRM}),
+                                            parameters={'namespace': self.robot_1_ns, 'planner_id': self.planner_AdaptPRM, 'do_evaluation': True}),
                                         transitions={'finished': 'finished', 'failed': 'failed'},
                                         autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit})
 
