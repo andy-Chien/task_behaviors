@@ -25,6 +25,8 @@
 
 		<param type="text" name="planner_AdaptPRM" default="AdaptPRMkDefault" label="planner_AdaptPRM" hint="Sets the planner_AdaptPRM" />
 
+		<param type="text" name="planner" default="RRTstarkConfigDefault" label="planner" hint="Sets the planner" />
+
 	</params>
 
 

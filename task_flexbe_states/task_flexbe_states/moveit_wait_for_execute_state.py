@@ -48,20 +48,22 @@ class WaitForRunningState(EventState):
             self._logger.info("!!!!!!!!!!!!!!!!!!!!!! userdata.exe_client is None !!!!!!!!!!!!!!!!!!!!!!")
             return 'failed'
 
-        if not userdata.exe_client.is_active(self._exe_action):
-            return 'done'
-
-        if userdata.exe_client.has_result(self._exe_action):
-            result = userdata.exe_client.get_result(self._exe_action)
-            error_code = result.error_code.val
-            if error_code == MoveItErrorCodes.SUCCESS or error_code == MoveItErrorCodes.PREEMPTED:
-                return 'done'
-            elif error_code == MoveItErrorCodes.MOTION_PLAN_INVALIDATED_BY_ENVIRONMENT_CHANGE:
-                self._logger.warn('[MoveIt Execute Trajectory State]: ' + str(error_code))
-                return 'collision'
-            else:
-                self._logger.warn('[MoveIt Execute Trajectory State]: MoveItErrorCodes = {}'.format(error_code))
-                return 'failed'
-        else:
+        if userdata.exe_client.is_active(self._exe_action):
             self._logger.info("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! waiting !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
             return 'waiting'
+        elif userdata.exe_client.has_result(self._exe_action):
+            result = userdata.exe_client.get_result(self._exe_action)
+            error_code = result.error_code.val
+            userdata.exe_client.remove_result(self._exe_action)
+            if error_code == MoveItErrorCodes.SUCCESS or error_code == MoveItErrorCodes.PREEMPTED:
+                self._logger.info('[MoveIt Waiting execution: ErrorCodes = {}'.format(error_code))
+                return 'done'
+            elif error_code == MoveItErrorCodes.MOTION_PLAN_INVALIDATED_BY_ENVIRONMENT_CHANGE:
+                self._logger.warn('[MoveIt Waiting execution: ErrorCodes = {}'.format(error_code))
+                return 'collision'
+            else:
+                self._logger.warn('[MoveIt Waiting execution: ErrorCodes = {}'.format(error_code))
+                return 'failed'
+        else:
+            self._logger.warn('[MoveIt Waiting execution]: not active and no result!!')
+            return 'done'

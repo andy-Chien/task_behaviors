@@ -68,7 +68,7 @@ class SingleArmRandomTaskDemoSM(Behavior):
 
     def create(self):
         # x:65 y:538, x:183 y:548
-        _state_machine = OperatableStateMachine(outcomes=['finished', 'failed'])
+        _state_machine = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['velocity'])
         _state_machine.userdata.velocity = 100
         _state_machine.userdata.exe_client = None
         _state_machine.userdata.curr_area = 0
@@ -117,14 +117,14 @@ class SingleArmRandomTaskDemoSM(Behavior):
 
             # x:368 y:194
             OperatableStateMachine.add('wait_for_running',
-                                        WaitForRunningState(namespace=''),
+                                        WaitForRunningState(namespace=self.namespace),
                                         transitions={'waiting': 'wait_for_running', 'done': 'async_execute', 'collision': 'get_curr_joints', 'failed': 'get_curr_joints'},
                                         autonomy={'waiting': Autonomy.Off, 'done': Autonomy.Off, 'collision': Autonomy.Off, 'failed': Autonomy.Off},
                                         remapping={'exe_client': 'exe_client'})
 
             # x:103 y:361
             OperatableStateMachine.add('Plan',
-                                        MoveItJointsPlanState(group_name=self.group_name, joint_names=self.joint_names, namespace=self.namespace, planner=self.planner_id, time_out=1.0),
+                                        MoveItJointsPlanState(group_name=self.group_name, joint_names=self.joint_names, namespace=self.namespace, planner=self.planner_id, time_out=0.5, attempts=10),
                                         transitions={'failed': 'plan_eval', 'done': 'wait_for_running'},
                                         autonomy={'failed': Autonomy.Off, 'done': Autonomy.Off},
                                         remapping={'start_joints': 'start_joints', 'target_joints': 'target_joints', 'velocity': 'velocity', 'joint_trajectory': 'joint_trajectory', 'planning_time': 'planning_time', 'planning_error_code': 'planning_error_code'})
