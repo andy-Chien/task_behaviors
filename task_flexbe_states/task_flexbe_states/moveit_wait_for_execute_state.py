@@ -41,22 +41,35 @@ class WaitForRunningState(EventState):
         '''
         Execute this state
         '''
-        if userdata.exe_client is None:
+        client = userdata.exe_client
+        if client is None:
             if self._first_none:
                 self._first_none = False
                 return 'done'
-            self._logger.info("!!!!!!!!!!!!!!!!!!!!!! userdata.exe_client is None !!!!!!!!!!!!!!!!!!!!!!")
+            self._logger.info("!!!!!!!!!!!!!!!!!!!!!! client is None !!!!!!!!!!!!!!!!!!!!!!")
             return 'failed'
-
-        if userdata.exe_client.is_active(self._exe_action):
-            self._logger.info("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! waiting !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        if client.is_active(self._exe_action):
+            complete_rate = 0
+            points_left = 999999
+            if client.has_feedback(self._exe_action):
+                fb = client.get_feedback(self._exe_action).feedback
+                client.remove_feedback(self._exe_action)
+                fb_str_list = fb.state.split(' ')
+                if fb_str_list[0] == 'RUNNING':
+                    try:
+                        complete_rate = int(fb_str_list[1])
+                        points_left = int(fb_str_list[4])
+                    except:
+                        self._logger.error("fb_str_list[1] can't be convert to integer")
+            self._logger.info("!!!!!!!!!!!!! waiting {} / 100, {} points left !!!!!!!!!!!!!".format(
+                complete_rate, points_left))
             return 'waiting'
-        elif userdata.exe_client.has_result(self._exe_action):
-            result = userdata.exe_client.get_result(self._exe_action)
+
+        elif client.has_result(self._exe_action):
+            result = client.get_result(self._exe_action)
             error_code = result.error_code.val
-            userdata.exe_client.remove_result(self._exe_action)
+            client.remove_result(self._exe_action)
             if error_code == MoveItErrorCodes.SUCCESS or error_code == MoveItErrorCodes.PREEMPTED:
-                self._logger.info('[MoveIt Waiting execution: ErrorCodes = {}'.format(error_code))
                 return 'done'
             elif error_code == MoveItErrorCodes.MOTION_PLAN_INVALIDATED_BY_ENVIRONMENT_CHANGE:
                 self._logger.warn('[MoveIt Waiting execution: ErrorCodes = {}'.format(error_code))
