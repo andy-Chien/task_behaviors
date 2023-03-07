@@ -80,49 +80,56 @@ class SingleArmRandomTaskDemoSM(Behavior):
 
 
         with _state_machine:
-            # x:98 y:82
+            # x:80 y:58
             OperatableStateMachine.add('get_curr_joints',
                                         GetCurrentJoints(joint_names=self.joint_names, namespace=self.namespace),
                                         transitions={'done': 'get_random_joints', 'no_msg': 'get_curr_joints'},
                                         autonomy={'done': Autonomy.Off, 'no_msg': Autonomy.Off},
                                         remapping={'curr_joints': 'start_joints'})
 
-            # x:598 y:68
+            # x:699 y:74
             OperatableStateMachine.add('async_execute',
                                         MoveItAsyncExecuteTrajectory(group_name=self.group_name, namespace=self.namespace),
                                         transitions={'done': 'update_start_joints_and_area', 'failed': 'get_curr_joints'},
                                         autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off},
                                         remapping={'joint_trajectory': 'joint_trajectory', 'exe_client': 'exe_client'})
 
-            # x:96 y:236
+            # x:226 y:186
             OperatableStateMachine.add('get_random_joints',
                                         GetRandomPoseInAreasState(group_name=self.group_name, joint_names=self.joint_names, areas=self.random_areas, namespace=self.namespace),
-                                        transitions={'done': 'Plan', 'failed': 'get_random_joints'},
+                                        transitions={'done': 'wait_for_running_until', 'failed': 'get_random_joints'},
                                         autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off},
                                         remapping={'start_joints': 'start_joints', 'curr_area': 'curr_area', 'target_joints': 'target_joints', 'rand_area': 'rand_area'})
 
-            # x:412 y:343
+            # x:508 y:376
             OperatableStateMachine.add('plan_eval',
                                         PlanningEvaluation(finish_count=self.finish_count, do_evaluation=self.do_evaluation),
                                         transitions={'done': 'get_random_joints', 'finish': 'finished'},
                                         autonomy={'done': Autonomy.Off, 'finish': Autonomy.Off},
                                         remapping={'joint_trajectory': 'joint_trajectory', 'planning_time': 'planning_time', 'planning_error_code': 'planning_error_code'})
 
-            # x:604 y:342
+            # x:711 y:382
             OperatableStateMachine.add('update_start_joints_and_area',
                                         SetDataByDataState(userdata_src_names=['target_joints', 'rand_area'], userdata_dst_names=['start_joints', 'curr_area']),
                                         transitions={'done': 'plan_eval'},
                                         autonomy={'done': Autonomy.Off},
                                         remapping={'target_joints': 'target_joints', 'rand_area': 'rand_area', 'start_joints': 'start_joints', 'curr_area': 'curr_area'})
 
-            # x:368 y:194
+            # x:520 y:193
             OperatableStateMachine.add('wait_for_running',
-                                        WaitForRunningState(namespace=self.namespace),
+                                        WaitForRunningState(wait_until_complete_rate=0, wait_until_points_left=0, namespace=self.namespace),
                                         transitions={'waiting': 'wait_for_running', 'done': 'async_execute', 'collision': 'get_curr_joints', 'failed': 'get_curr_joints'},
                                         autonomy={'waiting': Autonomy.Off, 'done': Autonomy.Off, 'collision': Autonomy.Off, 'failed': Autonomy.Off},
                                         remapping={'exe_client': 'exe_client'})
 
-            # x:103 y:361
+            # x:219 y:291
+            OperatableStateMachine.add('wait_for_running_until',
+                                        WaitForRunningState(wait_until_complete_rate=70, wait_until_points_left=20, namespace=self.namespace),
+                                        transitions={'waiting': 'wait_for_running_until', 'done': 'Plan', 'collision': 'get_curr_joints', 'failed': 'get_curr_joints'},
+                                        autonomy={'waiting': Autonomy.Off, 'done': Autonomy.Off, 'collision': Autonomy.Off, 'failed': Autonomy.Off},
+                                        remapping={'exe_client': 'exe_client'})
+
+            # x:216 y:383
             OperatableStateMachine.add('Plan',
                                         MoveItJointsPlanState(group_name=self.group_name, joint_names=self.joint_names, namespace=self.namespace, planner=self.planner_id, time_out=0.5, attempts=10),
                                         transitions={'failed': 'plan_eval', 'done': 'wait_for_running'},

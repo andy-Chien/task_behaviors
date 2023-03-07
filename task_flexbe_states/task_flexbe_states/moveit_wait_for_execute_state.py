@@ -25,7 +25,7 @@ class WaitForRunningState(EventState):
     '''
 
 
-    def __init__(self, namespace=''):
+    def __init__(self, wait_until_complete_rate=0, wait_until_points_left=0, namespace=''):
         '''
         Constructor
         '''
@@ -35,6 +35,8 @@ class WaitForRunningState(EventState):
             namespace = '/' + namespace
         self._exe_action = namespace + '/execute_trajectory'
         self._first_none = True
+        self._wait_until_complete_rate = wait_until_complete_rate
+        self._wait_until_points_left = wait_until_points_left
         self._logger = self._node.get_logger()
 
     def execute(self, userdata):
@@ -63,7 +65,12 @@ class WaitForRunningState(EventState):
                         self._logger.error("fb_str_list[1] can't be convert to integer")
             self._logger.info("!!!!!!!!!!!!! waiting {} / 100, {} points left !!!!!!!!!!!!!".format(
                 complete_rate, points_left))
-            return 'waiting'
+            keep_wating = not (self._wait_until_complete_rate or self._wait_until_points_left)
+            if self._wait_until_complete_rate and complete_rate < self._wait_until_complete_rate:
+                keep_wating = True
+            if self._wait_until_points_left and points_left > self._wait_until_points_left:
+                keep_wating = True
+            return 'waiting' if keep_wating else 'done'
 
         elif client.has_result(self._exe_action):
             result = client.get_result(self._exe_action)
