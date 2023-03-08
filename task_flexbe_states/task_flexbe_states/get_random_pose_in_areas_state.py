@@ -94,8 +94,6 @@ class GetRandomPoseInAreasState(EventState):
         rand_rot = rand_rot * np.pi / 180
         rand_qtn = qtn.from_euler_angles(rand_rot)
 
-        print('rand_pos = {}, rand_rot = {}, rand_qtn = {}'.format(rand_pos, rand_rot, rand_qtn))
-
         self._req.ik_request.robot_state = \
             self.generate_robot_state(self._joint_names, userdata.start_joints)
 

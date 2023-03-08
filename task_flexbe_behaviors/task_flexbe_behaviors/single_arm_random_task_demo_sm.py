@@ -103,10 +103,10 @@ class SingleArmRandomTaskDemoSM(Behavior):
 
             # x:508 y:376
             OperatableStateMachine.add('plan_eval',
-                                        PlanningEvaluation(finish_count=self.finish_count, do_evaluation=self.do_evaluation),
+                                        PlanningEvaluation(finish_count=self.finish_count, do_evaluation=self.do_evaluation, namespace=self.namespace),
                                         transitions={'done': 'get_random_joints', 'finish': 'finished'},
                                         autonomy={'done': Autonomy.Off, 'finish': Autonomy.Off},
-                                        remapping={'joint_trajectory': 'joint_trajectory', 'planning_time': 'planning_time', 'planning_error_code': 'planning_error_code'})
+                                        remapping={'robot_trajectory': 'joint_trajectory', 'planning_time': 'planning_time', 'planning_error_code': 'planning_error_code'})
 
             # x:711 y:382
             OperatableStateMachine.add('update_start_joints_and_area',
