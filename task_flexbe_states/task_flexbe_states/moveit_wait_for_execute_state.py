@@ -34,7 +34,6 @@ class WaitForRunningState(EventState):
         if len(namespace) > 0 and not namespace.startswith('/'): 
             namespace = '/' + namespace
         self._exe_action = namespace + '/execute_trajectory'
-        self._first_none = True
         self._wait_until_complete_rate = wait_until_complete_rate
         self._wait_until_points_left = wait_until_points_left
         self._logger = self._node.get_logger()
@@ -43,13 +42,11 @@ class WaitForRunningState(EventState):
         '''
         Execute this state
         '''
+        if userdata.exe_client is None:
+            return 'done'
+
         client = userdata.exe_client
-        if client is None:
-            if self._first_none:
-                self._first_none = False
-                return 'done'
-            self._logger.info("!!!!!!!!!!!!!!!!!!!!!! client is None !!!!!!!!!!!!!!!!!!!!!!")
-            return 'failed'
+
         if client.is_active(self._exe_action):
             complete_rate = 0
             points_left = 999999

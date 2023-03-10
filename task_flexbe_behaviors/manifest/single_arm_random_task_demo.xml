@@ -16,7 +16,7 @@
 	<!-- Available Parameters -->
 	<params>
 
-		<param type="text" name="namespace" default="" label="namespace" hint="Sets the namespace" />
+		<param type="text" name="namespace" default="robot_1" label="namespace" hint="Sets the namespace" />
 
 		<param type="text" name="group_name" default="ur_manipulator" label="group_name" hint="Sets the group_name" />
 
@@ -30,12 +30,21 @@
 
 		<param type="text" name="planner_id" default="RRTConnectkConfigDefault" label="planner_id" hint="Sets the planner_id" />
 
-		<param type="numeric" name="finish_count" default="100" label="finish_count" hint="Sets the finish_count">
+		<param type="numeric" name="terminal_rounds" default="100" label="terminal_rounds" hint="Sets the terminal_rounds">
 			<min value="0" />
 			<max value="10000" />
 		</param>
 
 		<param type="boolean" name="do_evaluation" default="False" label="do_evaluation" hint="Sets the do_evaluation" />
+
+		<param type="yaml" name="using_areas" default="task_flexbe_behaviors/config/multi_arm_planning.yaml" label="using_areas" hint="Sets the using_areas">
+			<key name="using_areas" />
+		</param>
+
+		<param type="numeric" name="eval_rounds" default="100" label="eval_rounds" hint="Sets the eval_rounds">
+			<min value="0" />
+			<max value="1000000" />
+		</param>
 
 	</params>
 

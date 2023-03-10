@@ -14,7 +14,7 @@ class PlanningEvaluation(EventState):
     <= done                     set robot collision objects to initial pose success
     '''
 
-    def __init__(self, finish_count, do_evaluation, namespace=''):
+    def __init__(self, terminal_rounds, do_evaluation, namespace=''):
         '''Constructor'''
         super(PlanningEvaluation, self).__init__(outcomes = ['done', 'finish'],
             input_keys = ['robot_trajectory', 'planning_time', 'planning_error_code'])
@@ -27,7 +27,7 @@ class PlanningEvaluation(EventState):
         self.total_tool_trajectory_length = 0.0
         self.success_count = 0.0
         self.planning_count = 0.0
-        self.finish_count = finish_count
+        self.terminal = terminal_rounds
         self.do_evaluation = do_evaluation
         self._logger = self._node.get_logger()
 
@@ -42,17 +42,12 @@ class PlanningEvaluation(EventState):
         self._traj_length_client = ProxyServiceCaller({self._compute_traj_service: ComputeTrajectoryLength})
 
     def execute(self, userdata):
-        if not self.do_evaluation:
-            return 'done'
-        
-        if not self._traj_length_client.done(self._compute_traj_service):
-            return
+        if self.do_evaluation and userdata.planning_error_code == MoveItErrorCodes.SUCCESS:
+            if not self._traj_length_client.done(self._compute_traj_service):
+                return
+            result = self._traj_length_client.result(self._compute_traj_service)
 
-        result = self._traj_length_client.result(self._compute_traj_service)
-
-        if userdata.planning_error_code == MoveItErrorCodes.SUCCESS:
             self.success_count += 1
-            self.planning_count += 1
             self.total_planning_success_time += userdata.planning_time
             self.total_joint_trajectory_length += result.joint_traj_length
             self.total_tool_trajectory_length += result.tool_traj_length
@@ -60,25 +55,27 @@ class PlanningEvaluation(EventState):
             self.avg_planning_success_time = self.total_planning_success_time / self.success_count
             self.avg_joint_trajectory_length = self.total_joint_trajectory_length / self.success_count
             self.avg_tool_trajectory_length = self.total_tool_trajectory_length / self.success_count
-
-
-        elif userdata.planning_error_code == MoveItErrorCodes.PLANNING_FAILED or \
-             userdata.planning_error_code == MoveItErrorCodes.TIMED_OUT:
+        
+        if userdata.planning_error_code == MoveItErrorCodes.SUCCESS or \
+            userdata.planning_error_code == MoveItErrorCodes.PLANNING_FAILED or \
+            userdata.planning_error_code == MoveItErrorCodes.TIMED_OUT:
             self.planning_count += 1
         else:
             return 'done'
         
-        self.success_rate = self.success_count / self.planning_count
-        self._logger.info('=======================================================================')
-        self._logger.info('cnt: {}, s_rate: {}, p_time: {}, jt_length: {}, tt_length: {}'.format(
-            self.planning_count, self.success_rate, self.avg_planning_success_time, \
-            self.avg_joint_trajectory_length, self.avg_tool_trajectory_length))
-        self._logger.info('=======================================================================')
+        if self.do_evaluation:
+            self.success_rate = self.success_count / self.planning_count
+            self._logger.info('===================================================================')
+            self._logger.info('cnt: {}, s_rate: {}, p_time: {}, jt_len: {}, tt_len: {}'.format(
+                self.planning_count, self.success_rate, self.avg_planning_success_time, \
+                self.avg_joint_trajectory_length, self.avg_tool_trajectory_length))
+            self._logger.info('===================================================================')
 
-        return 'finish' if self.finish_count and self.planning_count >= self.finish_count else 'done'
+        return 'finish' if self.terminal and self.planning_count >= self.terminal else 'done'
     
     def on_enter(self, userdata):
-        self.call_compute_traj_length_service(userdata.robot_trajectory)
+        if self.do_evaluation and userdata.planning_error_code == MoveItErrorCodes.SUCCESS:
+            self.call_compute_traj_length_service(userdata.robot_trajectory)
     
     def call_compute_traj_length_service(self, robot_trajectory):
         req = ComputeTrajectoryLength.Request()
