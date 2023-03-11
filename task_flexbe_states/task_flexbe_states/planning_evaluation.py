@@ -34,10 +34,10 @@ class PlanningEvaluation(EventState):
         if len(namespace) > 1 or (len(namespace) == 1 and namespace.startswith('/')):
             namespace = namespace[1:] if namespace[0] == '/' else namespace
             self._compute_traj_service = '/' + namespace + '/compute_trajectory_length'
-            self._target_link = namespace + '_tool0'
+            self._target_link = namespace + '_tool_tip'
         else:
             self._compute_traj_service = '/compute_trajectory_length'
-            self._target_link = 'tool0'
+            self._target_link = 'tool_tip'
 
         self._traj_length_client = ProxyServiceCaller({self._compute_traj_service: ComputeTrajectoryLength})
 

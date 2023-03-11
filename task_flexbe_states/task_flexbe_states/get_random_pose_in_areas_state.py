@@ -56,12 +56,12 @@ class GetRandomPoseInAreasState(EventState):
             self._ik_service = '/' + namespace + '/compute_ik'
             self._joint_state_topic = '/' + namespace + '/joint_states'
             self._joint_names = [namespace + '_' + jn for jn in joint_names]
-            self._req.ik_request.ik_link_name = namespace + '_tool0'
+            self._req.ik_request.ik_link_name = namespace + '_tool_tip'
         else:
             self._ik_service = '/compute_ik'
             self._joint_state_topic = '/joint_states'
             self._joint_names = joint_names
-            self._req.ik_request.ik_link_name = 'tool0'
+            self._req.ik_request.ik_link_name = 'tool_tip'
 
         self._ik_client = ProxyServiceCaller({self._ik_service: GetPositionIK})
         self._joint_state_sub = ProxySubscriberCached({self._joint_state_topic: JointState})
