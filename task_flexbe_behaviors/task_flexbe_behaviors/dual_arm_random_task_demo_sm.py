@@ -36,8 +36,8 @@ class DualArmRandomTaskDemoSM(Behavior):
         self.add_parameter('planner_RRTConnect', 'RRTConnectkConfigDefault')
         self.add_parameter('planner_AdaptPRM', 'AdaptPRMkDefault')
         self.add_parameter('planner', 'RRTstarkConfigDefault')
-        self.add_parameter('terminal_rounds', 100)
-        self.add_parameter('eval_rounds', 100)
+        self.add_parameter('terminal_rounds', 3000)
+        self.add_parameter('eval_rounds', 5000)
 
         # references to used behaviors
         OperatableStateMachine.initialize_ros(node)
@@ -80,13 +80,13 @@ class DualArmRandomTaskDemoSM(Behavior):
             # x:158 y:175
             OperatableStateMachine.add('Single Arm Random Task Demo',
                                         self.use_behavior(SingleArmRandomTaskDemoSM, 'Container/Container/Single Arm Random Task Demo',
-                                            parameters={'namespace': self.robot_2_ns, 'planner_id': self.planner_RRTConnect, 'terminal_rounds': self.terminal_rounds, 'do_evaluation': False, 'eval_rounds': self.eval_rounds}),
+                                            parameters={'namespace': self.robot_2_ns, 'planner_id': self.planner_AdaptPRM, 'terminal_rounds': self.terminal_rounds, 'do_evaluation': False, 'eval_rounds': self.eval_rounds}),
                                         transitions={'finished': 'finished', 'failed': 'failed'},
                                         autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
                                         remapping={'velocity': 'velocity'})
 
 
-        # x:747 y:117, x:304 y:334, x:326 y:111, x:746 y:171, x:430 y:365, x:530 y:365
+        # x:747 y:117, x:304 y:334, x:326 y:111, x:746 y:171, x:430 y:365
         _sm_container_1 = ConcurrencyContainer(outcomes=['failed', 'finished'], input_keys=['velocity'], conditions=[
                                         ('finished', [('Single Arm Random Task Demo', 'finished'), ('Container', 'finished')]),
                                         ('failed', [('Single Arm Random Task Demo', 'failed')]),
@@ -97,7 +97,7 @@ class DualArmRandomTaskDemoSM(Behavior):
             # x:64 y:170
             OperatableStateMachine.add('Single Arm Random Task Demo',
                                         self.use_behavior(SingleArmRandomTaskDemoSM, 'Container/Single Arm Random Task Demo',
-                                            parameters={'namespace': self.robot_1_ns, 'planner_id': self.planner_RRTConnect, 'terminal_rounds': self.terminal_rounds, 'do_evaluation': True, 'eval_rounds': self.eval_rounds}),
+                                            parameters={'namespace': self.robot_1_ns, 'planner_id': self.planner_AdaptPRM, 'terminal_rounds': self.terminal_rounds, 'do_evaluation': True, 'eval_rounds': self.eval_rounds}),
                                         transitions={'finished': 'finished', 'failed': 'failed'},
                                         autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
                                         remapping={'velocity': 'velocity'})

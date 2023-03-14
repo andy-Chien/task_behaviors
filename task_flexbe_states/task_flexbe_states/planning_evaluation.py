@@ -29,6 +29,7 @@ class PlanningEvaluation(EventState):
         self.planning_count = 0.0
         self.terminal = terminal_rounds
         self.do_evaluation = do_evaluation
+        self.warm_up_cnt = 20
         self._logger = self._node.get_logger()
 
         if len(namespace) > 1 or (len(namespace) == 1 and namespace.startswith('/')):
@@ -42,7 +43,8 @@ class PlanningEvaluation(EventState):
         self._traj_length_client = ProxyServiceCaller({self._compute_traj_service: ComputeTrajectoryLength})
 
     def execute(self, userdata):
-        if self.do_evaluation and userdata.planning_error_code == MoveItErrorCodes.SUCCESS:
+        if self.do_evaluation and userdata.planning_error_code == MoveItErrorCodes.SUCCESS \
+                                                and self.planning_count > self.warm_up_cnt:
             if not self._traj_length_client.done(self._compute_traj_service):
                 return
             result = self._traj_length_client.result(self._compute_traj_service)
@@ -62,7 +64,7 @@ class PlanningEvaluation(EventState):
             self.planning_count += 1
         else:
             return 'done'
-        
+
         if self.do_evaluation:
             self.success_rate = self.success_count / self.planning_count
             self._logger.info('===================================================================')
@@ -71,10 +73,15 @@ class PlanningEvaluation(EventState):
                 self.avg_joint_trajectory_length, self.avg_tool_trajectory_length))
             self._logger.info('===================================================================')
 
+        if self.warm_up_cnt > 0 and self.planning_count >= self.warm_up_cnt:
+            self.warm_up_cnt = -1
+            self.planning_count = 0.0 
+
         return 'finish' if self.terminal and self.planning_count >= self.terminal else 'done'
     
     def on_enter(self, userdata):
-        if self.do_evaluation and userdata.planning_error_code == MoveItErrorCodes.SUCCESS:
+        if self.do_evaluation and userdata.planning_error_code == MoveItErrorCodes.SUCCESS \
+                                                and self.planning_count > self.warm_up_cnt:
             self.call_compute_traj_length_service(userdata.robot_trajectory)
     
     def call_compute_traj_length_service(self, robot_trajectory):

@@ -30,6 +30,8 @@ def generate_launch_description():
             arguments=[
                 '-b', 'Single Arm Random Task Demo',
                 'do_evaluation:=true',
+                'eval_rounds:=10000',
+                'terminal_rounds:=10000',
                 'YAML:joint_names:=task_flexbe_behaviors/config/multi_arm_planning.yaml:joint_names',
                 'YAML:random_areas:=task_flexbe_behaviors/config/multi_arm_planning.yaml:random_areas',
                 'YAML:using_areas:=task_flexbe_behaviors/config/multi_arm_planning.yaml:using_areas',
