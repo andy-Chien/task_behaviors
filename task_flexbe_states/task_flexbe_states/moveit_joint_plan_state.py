@@ -40,12 +40,12 @@ class MoveItJointsPlanState(EventState):
     '''
 
 
-    def __init__(self, group_name, joint_names, namespace='', 
+    def __init__(self, group_name, joint_names, retry_cnt=3, namespace='', 
         planner='RRTConnectkConfigDefault', time_out=0.5, attempts=10):
         '''
         Constructor
         '''
-        super(MoveItJointsPlanState, self).__init__(outcomes=['failed', 'done'],
+        super(MoveItJointsPlanState, self).__init__(outcomes=['failed', 'done', 'retriable'],
             input_keys=['start_joints', 'target_joints', 'velocity'],
             output_keys=['joint_trajectory', 'planning_time', 'planning_error_code'])
         # group_name = ""
@@ -57,6 +57,8 @@ class MoveItJointsPlanState(EventState):
         # self._velocity = velocity / 100.0 if 1 <= velocity <= 100 else 0.1
         self._node = MoveItJointsPlanState._node
         self._logger = self._node.get_logger()
+        self._retry_cnt = retry_cnt
+        self._now_trying = 0
 
         if len(namespace) > 1 or (len(namespace) == 1 and not namespace.startswith('/')):
             namespace = namespace[1:] if namespace.startswith('/') else namespace
@@ -97,15 +99,21 @@ class MoveItJointsPlanState(EventState):
         # Check if the action has been finished
         if not self._client.has_result(self._action):
             return
-
+        self._now_trying += 1
         result = self._client.get_result(self._action)
         userdata.planning_time = result.planning_time
         userdata.planning_error_code = result.error_code.val
         if result.error_code.val == MoveItErrorCodes.SUCCESS:
             userdata.joint_trajectory = result.planned_trajectory
+            self._now_trying = 0
             return 'done'
+        elif result.error_code.val == MoveItErrorCodes.INVALID_MOTION_PLAN and \
+            self._now_trying < self._retry_cnt:
+            self._now_trying += 1
+            return 'retriable'
         else:
             self._logger.warn("Joint planning failed, error is {}.".format(result.error_code))
+            self._now_trying = 0
             return 'failed'
 
     def on_enter(self, userdata):

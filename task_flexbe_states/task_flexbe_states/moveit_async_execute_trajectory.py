@@ -40,6 +40,7 @@ class MoveItAsyncExecuteTrajectory(EventState):
         ProxyActionClient._initialize(EventState._node)
         self._logger = self._node.get_logger()
         self._exe_client_fail = False
+        self._ns = namespace
 
     def stop(self):
         pass
@@ -55,7 +56,7 @@ class MoveItAsyncExecuteTrajectory(EventState):
             return
         else:
             goal_res = userdata.exe_client.get_goal_response(self._exe_action)
-            userdata.exe_client.remove_goal_response(self._exe_action)
+            self._logger.info("{}, goal_res = {}".format(self._ns, goal_res))
             if not goal_res.accepted:
                 return 'failed'
         return 'done'

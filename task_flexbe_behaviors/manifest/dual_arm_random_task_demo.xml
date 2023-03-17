@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<behavior name="Multi Arm Random Task Demo">
+<behavior name="Dual Arm Random Task Demo">
 
-	<executable package_path="task_flexbe_behaviors.multi_arm_random_task_demo_sm" class="MultiArmRandomTaskDemoSM" />
+	<executable package_path="task_flexbe_behaviors.dual_arm_random_task_demo_sm" class="DualArmRandomTaskDemoSM" />
 	<tagstring>v0</tagstring>
 	<author>Andy Chien</author>
 	<date>Mon Feb 20 2023</date>
 	<description>
-		single robot arm planning for the targert pose sampled from more than one area
+		dual robot arm planning for the targert pose sampled from more than one area
 	</description>
 
 
@@ -26,6 +26,16 @@
 		<param type="text" name="planner_AdaptPRM" default="AdaptPRMkDefault" label="planner_AdaptPRM" hint="Sets the planner_AdaptPRM" />
 
 		<param type="text" name="planner" default="RRTstarkConfigDefault" label="planner" hint="Sets the planner" />
+
+		<param type="numeric" name="terminal_rounds" default="3000" label="terminal_rounds" hint="Sets the terminal_rounds">
+			<min value="0" />
+			<max value="1000000" />
+		</param>
+
+		<param type="numeric" name="eval_rounds" default="5000" label="eval_rounds" hint="Sets the eval_rounds">
+			<min value="0" />
+			<max value="100000" />
+		</param>
 
 	</params>
 

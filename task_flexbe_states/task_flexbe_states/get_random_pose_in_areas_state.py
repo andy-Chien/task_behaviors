@@ -30,7 +30,7 @@ class GetRandomPoseInAreasState(EventState):
     <= done                     set robot collision objects to initial pose success
     '''
 
-    def __init__(self, group_name, joint_names, areas, namespace=''):
+    def __init__(self, group_name, joint_names, areas, using_areas, namespace=''):
         '''Constructor'''
         super(GetRandomPoseInAreasState, self).__init__(outcomes = ['done', 'failed'],
                                             input_keys = ['start_joints', 'curr_area'],
@@ -44,24 +44,27 @@ class GetRandomPoseInAreasState(EventState):
         self._req.ik_request.group_name = group_name
 
         self._last_target_joint = None
-        self._areas = areas
+        self._logger.info("group_name = {}".format(group_name))
+        self._logger.info("joint_names = {}".format(joint_names))
+        self._logger.info("areas = {}".format(areas))
+        self._logger.info("using_areas = {}".format(using_areas))
+        self._areas = [areas[indx] for indx in using_areas[namespace]]
         self._time_now = self._node.get_clock().now()
-        assert(len(self._areas) > 1)
 
         if len(namespace) > 1 or (len(namespace) == 1 and namespace.startswith('/')):
             namespace = namespace[1:] if namespace[0] == '/' else namespace
             self._ik_service = '/' + namespace + '/compute_ik'
-            self._joint_state_topic = '/' + namespace + '/joint_states'
+            # self._joint_state_topic = '/' + namespace + '/joint_states'
             self._joint_names = [namespace + '_' + jn for jn in joint_names]
-            self._req.ik_request.ik_link_name = namespace + '_tool0'
+            self._req.ik_request.ik_link_name = namespace + '_tool_tip'
         else:
             self._ik_service = '/compute_ik'
-            self._joint_state_topic = '/joint_states'
+            # self._joint_state_topic = '/joint_states'
             self._joint_names = joint_names
-            self._req.ik_request.ik_link_name = 'tool0'
+            self._req.ik_request.ik_link_name = 'tool_tip'
 
         self._ik_client = ProxyServiceCaller({self._ik_service: GetPositionIK})
-        self._joint_state_sub = ProxySubscriberCached({self._joint_state_topic: JointState})
+        # self._joint_state_sub = ProxySubscriberCached({self._joint_state_topic: JointState})
 
     def execute(self, userdata):
         if not self._ik_client.done(self._ik_service):
@@ -78,23 +81,30 @@ class GetRandomPoseInAreasState(EventState):
             return 'failed'
 
     def on_enter(self, userdata):
-        rand_area = random.randint(0, len(self._areas) - 1)
-        if rand_area == userdata.curr_area:
-            self._logger.info('rand_area == self._curr_area')
-            return self.on_enter(userdata)
+        if len(self._areas) > 2:
+            rand_area = random.randint(0, len(self._areas) - 1)
+            if rand_area == userdata.curr_area:
+                self._logger.info('rand_area == self._curr_area')
+                return self.on_enter(userdata)
+        else:
+            rand_area = (userdata.curr_area + 1) % len(self._areas)
         userdata.rand_area = rand_area
+
+        area_indx = random.randint(0, len(self._areas[rand_area]) - 1)
 
         self._time_now = self._node.get_clock().now()
         
         self._logger.info("self._areas = {}, {}\n{}".format(rand_area, len(self._areas), self._areas))
         rand_pos = np.random.uniform(
-            low=self._areas[rand_area]['pos_min'], high=self._areas[rand_area]['pos_max'])
+            low=self._areas[rand_area][area_indx]['pos_min'],
+            high=self._areas[rand_area][area_indx]['pos_max']
+        )
         rand_rot = np.random.uniform(
-            low=self._areas[rand_area]['rot_min'], high=self._areas[rand_area]['rot_max'])
+            low=self._areas[rand_area][area_indx]['rot_min'],
+            high=self._areas[rand_area][area_indx]['rot_max']
+        )
         rand_rot = rand_rot * np.pi / 180
         rand_qtn = qtn.from_euler_angles(rand_rot)
-
-        print('rand_pos = {}, rand_rot = {}, rand_qtn = {}'.format(rand_pos, rand_rot, rand_qtn))
 
         self._req.ik_request.robot_state = \
             self.generate_robot_state(self._joint_names, userdata.start_joints)
