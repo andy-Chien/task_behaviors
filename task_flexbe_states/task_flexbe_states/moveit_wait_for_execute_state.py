@@ -62,11 +62,11 @@ class WaitForRunningState(EventState):
                         self._logger.error("fb_str_list[1] can't be convert to integer")
             self._logger.info("!!!!!!!!!!!!! waiting {} / 100, {} points left !!!!!!!!!!!!!".format(
                 complete_rate, points_left))
-            keep_wating = not (self._wait_until_complete_rate or self._wait_until_points_left)
-            if self._wait_until_complete_rate and complete_rate < self._wait_until_complete_rate:
-                keep_wating = True
-            if self._wait_until_points_left and points_left > self._wait_until_points_left:
-                keep_wating = True
+            keep_wating = True
+            if self._wait_until_complete_rate and complete_rate > self._wait_until_complete_rate:
+                keep_wating = False
+            if self._wait_until_points_left and points_left < self._wait_until_points_left:
+                keep_wating = False
             return 'waiting' if keep_wating else 'done'
 
         elif client.has_result(self._exe_action):

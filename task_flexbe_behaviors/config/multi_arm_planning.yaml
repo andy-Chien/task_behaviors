@@ -8,8 +8,8 @@ joint_names:
   - wrist_3_joint
 
 random_areas:
-  - - pos_min: [0.1, 0.1, -0.08]
-      pos_max: [0.42, 0.34, 0.0]
+  - - pos_min: [0.1, 0.1, -0.1]
+      pos_max: [0.42, 0.34, -0.05]
       rot_min: [-15, 165, -180]
       rot_max: [15, 195, 180]
 

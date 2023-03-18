@@ -78,7 +78,7 @@ class MultiArmRandomTaskDemoSM(Behavior):
             # x:158 y:175
             OperatableStateMachine.add('Single Arm Random Task Demo',
                                         self.use_behavior(SingleArmRandomTaskDemoSM, 'Container/Container/Single Arm Random Task Demo',
-                                            parameters={'namespace': self.robot_2_ns, 'planner_id': self.planner_AdaptPRM}),
+                                            parameters={'namespace': self.robot_2_ns, 'planner_id': self.planner_RRTConnect}),
                                         transitions={'finished': 'finished', 'failed': 'failed'},
                                         autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
                                         remapping={'velocity': 'velocity'})
@@ -95,7 +95,7 @@ class MultiArmRandomTaskDemoSM(Behavior):
             # x:64 y:170
             OperatableStateMachine.add('Single Arm Random Task Demo',
                                         self.use_behavior(SingleArmRandomTaskDemoSM, 'Container/Single Arm Random Task Demo',
-                                            parameters={'namespace': self.robot_1_ns, 'planner_id': self.planner_AdaptPRM, 'do_evaluation': True}),
+                                            parameters={'namespace': self.robot_1_ns, 'planner_id': self.planner_RRTConnect, 'do_evaluation': True}),
                                         transitions={'finished': 'finished', 'failed': 'failed'},
                                         autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
                                         remapping={'velocity': 'velocity'})

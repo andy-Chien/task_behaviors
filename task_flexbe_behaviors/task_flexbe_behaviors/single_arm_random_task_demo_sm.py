@@ -136,14 +136,14 @@ class SingleArmRandomTaskDemoSM(Behavior):
 
             # x:219 y:291
             OperatableStateMachine.add('wait_for_running_until',
-                                        WaitForRunningState(wait_until_complete_rate=70, wait_until_points_left=20, namespace=self.namespace),
+                                        WaitForRunningState(wait_until_complete_rate=50, wait_until_points_left=30, namespace=self.namespace),
                                         transitions={'waiting': 'wait_for_running_until', 'done': 'Plan', 'collision': 'get_curr_joints', 'failed': 'get_curr_joints'},
                                         autonomy={'waiting': Autonomy.Off, 'done': Autonomy.Off, 'collision': Autonomy.Off, 'failed': Autonomy.Off},
                                         remapping={'exe_client': 'exe_client'})
 
             # x:216 y:383
             OperatableStateMachine.add('Plan',
-                                        MoveItJointsPlanState(group_name=self.group_name, joint_names=self.joint_names, retry_cnt=3, namespace=self.namespace, planner=self.planner_id, time_out=0.5, attempts=10),
+                                        MoveItJointsPlanState(group_name=self.group_name, joint_names=self.joint_names, retry_cnt=3, namespace=self.namespace, planner=self.planner_id, time_out=0.2, attempts=10),
                                         transitions={'failed': 'plan_eval', 'done': 'wait_for_running', 'retriable': 'Plan'},
                                         autonomy={'failed': Autonomy.Off, 'done': Autonomy.Off, 'retriable': Autonomy.Off},
                                         remapping={'start_joints': 'start_joints', 'target_joints': 'target_joints', 'velocity': 'velocity', 'joint_trajectory': 'joint_trajectory', 'planning_time': 'planning_time', 'planning_error_code': 'planning_error_code'})
