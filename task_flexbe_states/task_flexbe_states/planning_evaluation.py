@@ -29,7 +29,7 @@ class PlanningEvaluation(EventState):
         self.planning_count = 0.0
         self.terminal = terminal_rounds
         self.do_evaluation = do_evaluation
-        self.warm_up_cnt = 20
+        self.warm_up_cnt = 2
         self._logger = self._node.get_logger()
 
         if len(namespace) > 1 or (len(namespace) == 1 and namespace.startswith('/')):

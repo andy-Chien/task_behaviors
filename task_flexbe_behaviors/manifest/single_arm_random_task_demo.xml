@@ -20,11 +20,11 @@
 
 		<param type="text" name="group_name" default="ur_manipulator" label="group_name" hint="Sets the group_name" />
 
-		<param type="yaml" name="joint_names" default="task_flexbe_behaviors/config/multi_arm_planning.yaml" label="joint_names" hint="Sets the joint_names">
+		<param type="yaml" name="joint_names" default="task_flexbe_behaviors/config/multi_arm_planning_rviz_demo.yaml" label="joint_names" hint="Sets the joint_names">
 			<key name="joint_names" />
 		</param>
 
-		<param type="yaml" name="random_areas" default="task_flexbe_behaviors/config/multi_arm_planning.yaml" label="random_areas" hint="Sets the random_areas">
+		<param type="yaml" name="random_areas" default="task_flexbe_behaviors/config/multi_arm_planning_rviz_demo.yaml" label="random_areas" hint="Sets the random_areas">
 			<key name="random_areas" />
 		</param>
 
@@ -37,7 +37,7 @@
 
 		<param type="boolean" name="do_evaluation" default="False" label="do_evaluation" hint="Sets the do_evaluation" />
 
-		<param type="yaml" name="using_areas" default="task_flexbe_behaviors/config/multi_arm_planning.yaml" label="using_areas" hint="Sets the using_areas">
+		<param type="yaml" name="using_areas" default="task_flexbe_behaviors/config/multi_arm_planning_rviz_demo.yaml" label="using_areas" hint="Sets the using_areas">
 			<key name="using_areas" />
 		</param>
 

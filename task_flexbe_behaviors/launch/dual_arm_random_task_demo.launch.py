@@ -29,11 +29,11 @@ def generate_launch_description():
             executable="be_launcher", 
             arguments=[
                 '-b', 'Dual Arm Random Task Demo',
-                'eval_rounds:=10000',
-                'terminal_rounds:=10000',
-                'YAML:joint_names:=task_flexbe_behaviors/config/multi_arm_planning.yaml:joint_names',
-                'YAML:random_areas:=task_flexbe_behaviors/config/multi_arm_planning.yaml:random_areas',
-                'YAML:using_areas:=task_flexbe_behaviors/config/multi_arm_planning.yaml:using_areas',
+                'eval_rounds:=1000',
+                'terminal_rounds:=1000',
+                'YAML:joint_names:=task_flexbe_behaviors/config/multi_arm_planning_rviz_demo.yaml:joint_names',
+                'YAML:random_areas:=task_flexbe_behaviors/config/multi_arm_planning_rviz_demo.yaml:random_areas',
+                'YAML:using_areas:=task_flexbe_behaviors/config/multi_arm_planning_rviz_demo.yaml:using_areas',
             ],
             output="screen",
         )

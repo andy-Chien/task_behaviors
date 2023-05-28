@@ -60,8 +60,8 @@ class WaitForRunningState(EventState):
                         points_left = int(fb_str_list[4])
                     except:
                         self._logger.error("fb_str_list[1] can't be convert to integer")
-            self._logger.info("!!!!!!!!!!!!! waiting {} / 100, {} points left !!!!!!!!!!!!!".format(
-                complete_rate, points_left))
+            # self._logger.info("!!!!!!!!!!!!! waiting {} / 100, {} points left !!!!!!!!!!!!!".format(
+            #     complete_rate, points_left))
             keep_wating = True
             if self._wait_until_complete_rate and complete_rate > self._wait_until_complete_rate:
                 keep_wating = False
