@@ -115,7 +115,7 @@ class SingleArmRandomTaskDemoSM(Behavior):
 
             # x:508 y:376
             OperatableStateMachine.add('plan_eval',
-                                        PlanningEvaluation(terminal_rounds=self.eval_rounds, do_evaluation=self.do_evaluation, namespace=self.namespace),
+                                        PlanningEvaluation(terminal_rounds=self.terminal_rounds, do_evaluation=self.do_evaluation, eval_rounds=self.eval_rounds, namespace=self.namespace, planner=self.planner_id),
                                         transitions={'done': 'get_random_joints', 'finish': 'finished'},
                                         autonomy={'done': Autonomy.Off, 'finish': Autonomy.Off},
                                         remapping={'robot_trajectory': 'joint_trajectory', 'planning_time': 'planning_time', 'planning_error_code': 'planning_error_code'})

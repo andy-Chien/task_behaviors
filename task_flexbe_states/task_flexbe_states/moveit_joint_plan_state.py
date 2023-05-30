@@ -40,7 +40,7 @@ class MoveItJointsPlanState(EventState):
     '''
 
 
-    def __init__(self, group_name, joint_names, retry_cnt=3, namespace='', 
+    def __init__(self, group_name, joint_names, retry_cnt=5, namespace='', 
         planner='RRTConnectkConfigDefault', time_out=0.5, attempts=10):
         '''
         Constructor

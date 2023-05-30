@@ -2,10 +2,13 @@
 Created on 03/05/2023
 @author: Andy Chien
 ''' 
+import time
 from flexbe_core import EventState
 from flexbe_core.proxy import ProxyServiceCaller
 from moveit_msgs.msg import MoveItErrorCodes, RobotTrajectory
 from mr_msgs.srv import ComputeTrajectoryLength
+
+PATH = "/home/andy/packing_ws/data/planner_data/"
 
 class PlanningEvaluation(EventState):
     '''
@@ -14,7 +17,7 @@ class PlanningEvaluation(EventState):
     <= done                     set robot collision objects to initial pose success
     '''
 
-    def __init__(self, terminal_rounds, do_evaluation, namespace=''):
+    def __init__(self, terminal_rounds, do_evaluation, eval_rounds=0, namespace='', planner=''):
         '''Constructor'''
         super(PlanningEvaluation, self).__init__(outcomes = ['done', 'finish'],
             input_keys = ['robot_trajectory', 'planning_time', 'planning_error_code'])
@@ -25,12 +28,20 @@ class PlanningEvaluation(EventState):
         self.total_planning_success_time = 0.0
         self.total_joint_trajectory_length = 0.0
         self.total_tool_trajectory_length = 0.0
+        self.planning_time = []
+        self.tool_trajectory_length = []
+        self.joint_trajectory_length = []
         self.success_count = 0.0
         self.planning_count = 0.0
         self.terminal = terminal_rounds
+        self.eval_rounds = eval_rounds
         self.do_evaluation = do_evaluation
         self.warm_up_cnt = 2
         self._logger = self._node.get_logger()
+        self.last_plan_failed = False
+        self.planner = planner
+        self.namespace = namespace
+        self.not_save_yet = True
 
         if len(namespace) > 1 or (len(namespace) == 1 and namespace.startswith('/')):
             namespace = namespace[1:] if namespace[0] == '/' else namespace
@@ -54,14 +65,21 @@ class PlanningEvaluation(EventState):
             self.total_joint_trajectory_length += result.joint_traj_length
             self.total_tool_trajectory_length += result.tool_traj_length
 
+            self.planning_time.append(userdata.planning_time)
+            self.joint_trajectory_length.append(result.joint_traj_length)
+            self.tool_trajectory_length.append(result.tool_traj_length)
+
             self.avg_planning_success_time = self.total_planning_success_time / self.success_count
             self.avg_joint_trajectory_length = self.total_joint_trajectory_length / self.success_count
             self.avg_tool_trajectory_length = self.total_tool_trajectory_length / self.success_count
         
-        if userdata.planning_error_code == MoveItErrorCodes.SUCCESS or \
-            userdata.planning_error_code == MoveItErrorCodes.PLANNING_FAILED or \
-            userdata.planning_error_code == MoveItErrorCodes.TIMED_OUT:
-            self.planning_count += 1
+        pec = userdata.planning_error_code
+        if pec == MoveItErrorCodes.SUCCESS or \
+            pec == MoveItErrorCodes.PLANNING_FAILED or \
+            pec == MoveItErrorCodes.TIMED_OUT:
+            if pec == MoveItErrorCodes.SUCCESS or not self.last_plan_failed:
+                self.planning_count += 1
+            self.last_plan_failed = pec != MoveItErrorCodes.SUCCESS
         else:
             return 'done'
 
@@ -75,11 +93,23 @@ class PlanningEvaluation(EventState):
 
         if self.warm_up_cnt > 0 and self.planning_count >= self.warm_up_cnt:
             self.warm_up_cnt = -1
-            self.planning_count = 0.0 
+            self.planning_count = 0.0
+
+        if self.planning_count >= self.eval_rounds and self.not_save_yet:
+            self.not_save_yet = False
+            with open(PATH + self.planner + '_' + self.namespace + '.txt', 'w') as f:
+                f.writelines('planning_time: ' + str(self.avg_planning_success_time) +'\n')
+                f.writelines([str(x) + ', ' for x in self.planning_time])
+                f.writelines('\n\njoint_trajectory_length: ' + str(self.avg_joint_trajectory_length) +'\n')
+                f.writelines([str(x) + ', ' for x in self.joint_trajectory_length])
+                f.writelines('\n\ntool_trajectory_length: ' + str(self.avg_tool_trajectory_length) +'\n')
+                f.writelines([str(x) + ', ' for x in self.tool_trajectory_length])
+                f.close()
 
         return 'finish' if self.terminal and self.planning_count >= self.terminal else 'done'
     
     def on_enter(self, userdata):
+        self.do_evaluation = self.do_evaluation and self.planning_count <= self.eval_rounds 
         if self.do_evaluation and userdata.planning_error_code == MoveItErrorCodes.SUCCESS \
                                                 and self.planning_count > self.warm_up_cnt:
             self.call_compute_traj_length_service(userdata.robot_trajectory)
