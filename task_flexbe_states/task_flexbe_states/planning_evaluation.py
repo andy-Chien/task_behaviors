@@ -83,7 +83,7 @@ class PlanningEvaluation(EventState):
         else:
             return 'done'
 
-        if self.do_evaluation:
+        if self.do_evaluation and self.planning_count > self.warm_up_cnt and self.planning_count > 0:
             self.success_rate = self.success_count / self.planning_count
             self._logger.info('===================================================================')
             self._logger.info('cnt: {}, s_rate: {}, p_time: {}, jt_len: {}, tt_len: {}'.format(
@@ -98,6 +98,7 @@ class PlanningEvaluation(EventState):
         if self.planning_count >= self.eval_rounds and self.not_save_yet:
             self.not_save_yet = False
             with open(PATH + self.planner + '_' + self.namespace + '.txt', 'w') as f:
+                f.writelines('success_rate: ' + str(self.success_rate) +'\n')
                 f.writelines('planning_time: ' + str(self.avg_planning_success_time) +'\n')
                 f.writelines([str(x) + ', ' for x in self.planning_time])
                 f.writelines('\n\njoint_trajectory_length: ' + str(self.avg_joint_trajectory_length) +'\n')
