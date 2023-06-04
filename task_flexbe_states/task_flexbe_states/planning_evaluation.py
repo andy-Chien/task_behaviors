@@ -25,11 +25,14 @@ class PlanningEvaluation(EventState):
         self.avg_planning_success_time = 0.0
         self.avg_joint_trajectory_length = 0.0
         self.avg_tool_trajectory_length = 0.0
+        self.avg_quat_trajectory_length = 0.0
         self.total_planning_success_time = 0.0
         self.total_joint_trajectory_length = 0.0
         self.total_tool_trajectory_length = 0.0
+        self.total_quat_trajectory_length = 0.0
         self.planning_time = []
         self.tool_trajectory_length = []
+        self.quat_trajectory_length = []
         self.joint_trajectory_length = []
         self.success_count = 0.0
         self.planning_count = 0.0
@@ -67,14 +70,17 @@ class PlanningEvaluation(EventState):
             self.total_planning_success_time += userdata.planning_time
             self.total_joint_trajectory_length += result.joint_traj_length
             self.total_tool_trajectory_length += result.tool_traj_length
+            self.total_quat_trajectory_length += result.quat_traj_length
 
             self.planning_time.append(userdata.planning_time)
             self.joint_trajectory_length.append(result.joint_traj_length)
             self.tool_trajectory_length.append(result.tool_traj_length)
+            self.quat_trajectory_length.append(result.quat_traj_length)
 
             self.avg_planning_success_time = self.total_planning_success_time / self.success_count
             self.avg_joint_trajectory_length = self.total_joint_trajectory_length / self.success_count
             self.avg_tool_trajectory_length = self.total_tool_trajectory_length / self.success_count
+            self.avg_quat_trajectory_length = self.total_quat_trajectory_length / self.success_count
         
         pec = userdata.planning_error_code
         if pec == MoveItErrorCodes.SUCCESS or \
@@ -97,9 +103,9 @@ class PlanningEvaluation(EventState):
             if self.planning_count % 100 < 1:
                 self.r100_success_record.append(r100_success_rate)
             self._logger.info('===================================================================')
-            self._logger.info('cnt: {}, s_rate: {}, r100_s_r: {}, p_time: {}, jt_len: {}, tt_len: {}'.format(
+            self._logger.info('cnt: {}, s_rate: {}, r100_s_r: {}, p_time: {}, jt_len: {}, tt_len: {}, qt_len: {}'.format(
                 self.planning_count, self.success_rate, r100_success_rate, self.avg_planning_success_time, \
-                self.avg_joint_trajectory_length, self.avg_tool_trajectory_length))
+                self.avg_joint_trajectory_length, self.avg_tool_trajectory_length, self.avg_quat_trajectory_length))
             self._logger.info('===================================================================')
 
         if self.warm_up_cnt > 0 and self.planning_count >= self.warm_up_cnt:
@@ -124,6 +130,9 @@ class PlanningEvaluation(EventState):
                 f.writelines(']\n\n' + name + '_tool_trajectory_length: ' + str(self.avg_tool_trajectory_length) +'\n')
                 f.writelines(name +'_tool_trajectory_length_data = [')
                 f.writelines([str(x) + ', ' for x in self.tool_trajectory_length])
+                f.writelines(']\n\n' + name + '_quat_trajectory_length: ' + str(self.avg_quat_trajectory_length) +'\n')
+                f.writelines(name +'_quat_trajectory_length_data = [')
+                f.writelines([str(x) + ', ' for x in self.quat_trajectory_length])
                 f.writelines(']')
                 f.close()
 
