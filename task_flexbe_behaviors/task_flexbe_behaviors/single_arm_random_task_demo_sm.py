@@ -143,7 +143,7 @@ class SingleArmRandomTaskDemoSM(Behavior):
 
             # x:216 y:383
             OperatableStateMachine.add('Plan',
-                                        MoveItJointsPlanState(group_name=self.group_name, joint_names=self.joint_names, retry_cnt=3, namespace=self.namespace, planner=self.planner_id, time_out=0.2, attempts=8),
+                                        MoveItJointsPlanState(group_name=self.group_name, joint_names=self.joint_names, retry_cnt=3, namespace=self.namespace, planner=self.planner_id, time_out=0.1, attempts=1),
                                         transitions={'failed': 'plan_eval', 'done': 'wait_for_running', 'retriable': 'Plan'},
                                         autonomy={'failed': Autonomy.Off, 'done': Autonomy.Off, 'retriable': Autonomy.Off},
                                         remapping={'start_joints': 'start_joints', 'target_joints': 'target_joints', 'velocity': 'velocity', 'joint_trajectory': 'joint_trajectory', 'planning_time': 'planning_time', 'planning_error_code': 'planning_error_code'})

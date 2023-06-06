@@ -29,7 +29,7 @@ def generate_launch_description():
             executable="be_launcher", 
             arguments=[
                 '-b', 'Dual Arm Random Task Demo',
-                'planner:=LBKPIECEkConfigDefault',
+                'planner:=AdaptLazyPRMkDefault',
                 'eval_rounds:=1000',
                 'terminal_rounds:=1100',
                 'YAML:joint_names:=task_flexbe_behaviors/config/multi_arm_planning_rviz_demo.yaml:joint_names',
@@ -39,3 +39,28 @@ def generate_launch_description():
             output="screen",
         )
     ])
+    # - SBLkConfigDefault
+    # - ESTkConfigDefault
+    # - LBKPIECEkConfigDefault
+    # - BKPIECEkConfigDefault
+    # - KPIECEkConfigDefault
+    # - RRTkConfigDefault
+    # - RRTConnectkConfigDefault
+    # - RRTstarkConfigDefault
+    # - TRRTkConfigDefault
+    # - PRMkConfigDefault
+    # - PRMstarkConfigDefault
+    # - LazyPRMkDefault
+    # - AdaptPRMkDefault
+    # - AdaptLazyPRMkDefault
+    # - FMT
+    # - BFMT
+    # - PDST
+    # - STRIDE
+    # - BiTRRT
+    # - LBTRRT
+    # - BiEST
+    # - ProjEST
+    # - LazyPRMstar
+    # - SPARS
+    # - SPARStwo
