@@ -21,11 +21,27 @@
 
 		<param type="text" name="robot_2_ns" default="robot_2" label="robot_2_ns" hint="Sets the robot_2_ns" />
 
+		<param type="text" name="robot_3_ns" default="robot_3" label="robot_3_ns" hint="Sets the robot_3_ns" />
+
+		<param type="text" name="robot_4_ns" default="robot_4" label="robot_4_ns" hint="Sets the robot_4_ns" />
+
+		<param type="yaml" name="joint_names" default="task_flexbe_behaviors/config/four_arm_planning.yaml" label="joint_names" hint="Sets the joint_names">
+			<key name="joint_names" />
+		</param>
+
+		<param type="yaml" name="random_areas" default="task_flexbe_behaviors/config/four_arm_planning.yaml" label="random_areas" hint="Sets the random_areas">
+			<key name="random_areas" />
+		</param>
+
+		<param type="yaml" name="using_areas" default="task_flexbe_behaviors/config/four_arm_planning.yaml" label="using_areas" hint="Sets the using_areas">
+			<key name="using_areas" />
+		</param>
+
 		<param type="text" name="planner_RRTConnect" default="RRTConnectkConfigDefault" label="planner_RRTConnect" hint="Sets the planner_RRTConnect" />
 
 		<param type="text" name="planner_AdaptPRM" default="AdaptLazyPRMkDefault" label="planner_AdaptPRM" hint="Sets the planner_AdaptPRM" />
 
-		<param type="text" name="planner" default="RRTstarkConfigDefault" label="planner" hint="Sets the planner" />
+		<param type="text" name="planner" default="BiTRRT" label="planner" hint="Sets the planner" />
 
 	</params>
 
