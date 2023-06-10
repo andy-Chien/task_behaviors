@@ -29,9 +29,8 @@ def generate_launch_description():
             executable="be_launcher", 
             arguments=[
                 '-b', 'Four Arms Planner Benchmark',
-                'planner:=BiTRRT',
-                'eval_rounds:=5',
-                'terminal_rounds:=7',
+                'eval_rounds:=10',
+                'terminal_rounds:=20',
                 'YAML:joint_names:=task_flexbe_behaviors/config/four_arm_planning.yaml:joint_names',
                 'YAML:random_areas:=task_flexbe_behaviors/config/four_arm_planning.yaml:random_areas',
                 'YAML:using_areas:=task_flexbe_behaviors/config/four_arm_planning.yaml:using_areas',
