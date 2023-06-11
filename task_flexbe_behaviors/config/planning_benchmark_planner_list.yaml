@@ -1,0 +1,10 @@
+planner_list:
+    - SBLkConfigDefault
+    - LBKPIECEkConfigDefault
+    - BKPIECEkConfigDefault
+    - RRTkConfigDefault
+    - RRTConnectkConfigDefault
+    - PRMkConfigDefault
+    - LazyPRMkDefault
+    - AdaptLazyPRMkDefault
+    - BiTRRT

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<behavior name="Planner Benchmark">
+
+	<executable package_path="task_flexbe_behaviors.planner_benchmark_sm" class="PlannerBenchmarkSM" />
+	<tagstring>v01</tagstring>
+	<author>Andy Chien</author>
+	<date>Fri Jun 11 2023</date>
+	<description>
+		ompl_benchmarker
+	</description>
+
+
+	<!-- Contained Behaviors -->
+	<contains name="Multi Arm Random Task Demo" />
+
+	<!-- Available Parameters -->
+	<params>
+
+		<param type="numeric" name="terminal_rounds" default="100" label="terminal_rounds" hint="Sets the terminal_rounds">
+			<min value="0" />
+			<max value="1000" />
+		</param>
+
+		<param type="numeric" name="eval_rounds" default="100" label="eval_rounds" hint="Sets the eval_rounds">
+			<min value="0" />
+			<max value="1000" />
+		</param>
+
+		<param type="yaml" name="planner_list" default="task_flexbe_behaviors/config/planning_benchmark_planner_list.yaml" label="planner_list" hint="Sets the planner_list">
+			<key name="planner_list" />
+		</param>
+
+	</params>
+
+
+</behavior>

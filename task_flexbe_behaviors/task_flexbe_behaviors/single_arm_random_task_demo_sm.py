@@ -72,11 +72,12 @@ class SingleArmRandomTaskDemoSM(Behavior):
 
     def create(self):
         # x:675 y:527, x:183 y:548
-        _state_machine = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['velocity'])
+        _state_machine = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['velocity', 'planner'])
         _state_machine.userdata.velocity = 100
         _state_machine.userdata.exe_client = None
         _state_machine.userdata.curr_area = 0
         _state_machine.userdata.running_cnt = 0
+        _state_machine.userdata.planner = "BiTRRT"
 
         # Additional creation code can be added inside the following tags
         # [MANUAL_CREATE]
@@ -146,7 +147,7 @@ class SingleArmRandomTaskDemoSM(Behavior):
                                         MoveItJointsPlanState(group_name=self.group_name, joint_names=self.joint_names, retry_cnt=3, namespace=self.namespace, planner=self.planner_id, time_out=0.2, attempts=1),
                                         transitions={'failed': 'plan_eval', 'done': 'wait_for_running', 'retriable': 'Plan'},
                                         autonomy={'failed': Autonomy.Off, 'done': Autonomy.Off, 'retriable': Autonomy.Off},
-                                        remapping={'start_joints': 'start_joints', 'target_joints': 'target_joints', 'velocity': 'velocity', 'joint_trajectory': 'joint_trajectory', 'planning_time': 'planning_time', 'planning_error_code': 'planning_error_code'})
+                                        remapping={'start_joints': 'start_joints', 'target_joints': 'target_joints', 'velocity': 'velocity', 'planner': 'planner', 'joint_trajectory': 'joint_trajectory', 'planning_time': 'planning_time', 'planning_error_code': 'planning_error_code'})
 
 
         return _state_machine

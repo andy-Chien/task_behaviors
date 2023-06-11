@@ -61,6 +61,7 @@ class DualArmRandomTaskDemoSM(Behavior):
         # x:30 y:365, x:130 y:365
         _state_machine = OperatableStateMachine(outcomes=['finished', 'failed'])
         _state_machine.userdata.velocity = 100
+        _state_machine.userdata.planner = "BiTRRT"
 
         # Additional creation code can be added inside the following tags
         # [MANUAL_CREATE]
@@ -68,7 +69,7 @@ class DualArmRandomTaskDemoSM(Behavior):
         # [/MANUAL_CREATE]
 
         # x:30 y:365, x:130 y:365
-        _sm_container_0 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['velocity'])
+        _sm_container_0 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['velocity', 'planner'])
 
         with _sm_container_0:
             # x:77 y:61
@@ -83,11 +84,11 @@ class DualArmRandomTaskDemoSM(Behavior):
                                             parameters={'namespace': self.robot_2_ns, 'planner_id': self.planner, 'terminal_rounds': self.terminal_rounds, 'do_evaluation': True, 'eval_rounds': self.eval_rounds}),
                                         transitions={'finished': 'finished', 'failed': 'failed'},
                                         autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
-                                        remapping={'velocity': 'velocity'})
+                                        remapping={'velocity': 'velocity', 'planner': 'planner'})
 
 
         # x:747 y:117, x:304 y:334, x:326 y:111, x:746 y:171, x:430 y:365
-        _sm_container_1 = ConcurrencyContainer(outcomes=['failed', 'finished'], input_keys=['velocity'], conditions=[
+        _sm_container_1 = ConcurrencyContainer(outcomes=['failed', 'finished'], input_keys=['velocity', 'planner'], conditions=[
                                         ('finished', [('Single Arm Random Task Demo', 'finished'), ('Container', 'finished')]),
                                         ('failed', [('Single Arm Random Task Demo', 'failed')]),
                                         ('failed', [('Container', 'failed')])
@@ -100,14 +101,14 @@ class DualArmRandomTaskDemoSM(Behavior):
                                             parameters={'namespace': self.robot_1_ns, 'planner_id': self.planner, 'terminal_rounds': self.terminal_rounds, 'do_evaluation': True, 'eval_rounds': self.eval_rounds}),
                                         transitions={'finished': 'finished', 'failed': 'failed'},
                                         autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
-                                        remapping={'velocity': 'velocity'})
+                                        remapping={'velocity': 'velocity', 'planner': 'planner'})
 
             # x:461 y:173
             OperatableStateMachine.add('Container',
                                         _sm_container_0,
                                         transitions={'finished': 'finished', 'failed': 'failed'},
                                         autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
-                                        remapping={'velocity': 'velocity'})
+                                        remapping={'velocity': 'velocity', 'planner': 'planner'})
 
 
 
@@ -117,7 +118,7 @@ class DualArmRandomTaskDemoSM(Behavior):
                                         _sm_container_1,
                                         transitions={'failed': 'failed', 'finished': 'finished'},
                                         autonomy={'failed': Autonomy.Inherit, 'finished': Autonomy.Inherit},
-                                        remapping={'velocity': 'velocity'})
+                                        remapping={'velocity': 'velocity', 'planner': 'planner'})
 
 
         return _state_machine

@@ -66,8 +66,9 @@ class MultiArmRandomTaskDemoSM(Behavior):
 
     def create(self):
         # x:30 y:365, x:130 y:365
-        _state_machine = OperatableStateMachine(outcomes=['finished', 'failed'])
+        _state_machine = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['planner'])
         _state_machine.userdata.velocity = 100
+        _state_machine.userdata.planner = "BiTRRT"
 
         # Additional creation code can be added inside the following tags
         # [MANUAL_CREATE]
@@ -75,7 +76,7 @@ class MultiArmRandomTaskDemoSM(Behavior):
         # [/MANUAL_CREATE]
 
         # x:30 y:365, x:130 y:365
-        _sm_container_r4_0 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['velocity'])
+        _sm_container_r4_0 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['velocity', 'planner'])
 
         with _sm_container_r4_0:
             # x:67 y:93
@@ -90,11 +91,11 @@ class MultiArmRandomTaskDemoSM(Behavior):
                                             parameters={'namespace': self.robot_4_ns, 'joint_names': self.joint_names, 'random_areas': self.random_areas, 'planner_id': self.planner, 'terminal_rounds': self.terminal_rounds, 'do_evaluation': True, 'using_areas': self.using_areas, 'eval_rounds': self.eval_rounds}),
                                         transitions={'finished': 'finished', 'failed': 'failed'},
                                         autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
-                                        remapping={'velocity': 'velocity'})
+                                        remapping={'velocity': 'velocity', 'planner': 'planner'})
 
 
         # x:30 y:365, x:130 y:365
-        _sm_container_r3_1 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['velocity'])
+        _sm_container_r3_1 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['velocity', 'planner'])
 
         with _sm_container_r3_1:
             # x:106 y:80
@@ -109,11 +110,11 @@ class MultiArmRandomTaskDemoSM(Behavior):
                                             parameters={'namespace': self.robot_3_ns, 'joint_names': self.joint_names, 'random_areas': self.random_areas, 'planner_id': self.planner, 'terminal_rounds': self.terminal_rounds, 'do_evaluation': True, 'using_areas': self.using_areas, 'eval_rounds': self.eval_rounds}),
                                         transitions={'finished': 'finished', 'failed': 'failed'},
                                         autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
-                                        remapping={'velocity': 'velocity'})
+                                        remapping={'velocity': 'velocity', 'planner': 'planner'})
 
 
         # x:30 y:365, x:130 y:365
-        _sm_container_r2_2 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['velocity'])
+        _sm_container_r2_2 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['velocity', 'planner'])
 
         with _sm_container_r2_2:
             # x:77 y:61
@@ -128,11 +129,11 @@ class MultiArmRandomTaskDemoSM(Behavior):
                                             parameters={'namespace': self.robot_2_ns, 'joint_names': self.joint_names, 'random_areas': self.random_areas, 'planner_id': self.planner, 'terminal_rounds': self.terminal_rounds, 'do_evaluation': True, 'using_areas': self.using_areas, 'eval_rounds': self.eval_rounds}),
                                         transitions={'finished': 'finished', 'failed': 'failed'},
                                         autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
-                                        remapping={'velocity': 'velocity'})
+                                        remapping={'velocity': 'velocity', 'planner': 'planner'})
 
 
         # x:584 y:160, x:307 y:364, x:309 y:473, x:853 y:48, x:493 y:400, x:780 y:418, x:379 y:476
-        _sm_container_3 = ConcurrencyContainer(outcomes=['finished', 'failed'], input_keys=['velocity'], conditions=[
+        _sm_container_3 = ConcurrencyContainer(outcomes=['finished', 'failed'], input_keys=['velocity', 'planner'], conditions=[
                                         ('finished', [('Single Arm Random Task Demo', 'finished'), ('Container_r2', 'finished'), ('Container_r3', 'finished'), ('Container_r4', 'finished')]),
                                         ('failed', [('Single Arm Random Task Demo', 'failed')]),
                                         ('failed', [('Container_r2', 'failed')]),
@@ -147,28 +148,28 @@ class MultiArmRandomTaskDemoSM(Behavior):
                                             parameters={'namespace': self.robot_1_ns, 'joint_names': self.joint_names, 'random_areas': self.random_areas, 'planner_id': self.planner, 'terminal_rounds': self.terminal_rounds, 'do_evaluation': True, 'using_areas': self.using_areas, 'eval_rounds': self.eval_rounds}),
                                         transitions={'finished': 'finished', 'failed': 'failed'},
                                         autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
-                                        remapping={'velocity': 'velocity'})
+                                        remapping={'velocity': 'velocity', 'planner': 'planner'})
 
             # x:638 y:36
             OperatableStateMachine.add('Container_r3',
                                         _sm_container_r3_1,
                                         transitions={'finished': 'finished', 'failed': 'failed'},
                                         autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
-                                        remapping={'velocity': 'velocity'})
+                                        remapping={'velocity': 'velocity', 'planner': 'planner'})
 
             # x:615 y:373
             OperatableStateMachine.add('Container_r4',
                                         _sm_container_r4_0,
                                         transitions={'finished': 'finished', 'failed': 'failed'},
                                         autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
-                                        remapping={'velocity': 'velocity'})
+                                        remapping={'velocity': 'velocity', 'planner': 'planner'})
 
             # x:300 y:68
             OperatableStateMachine.add('Container_r2',
                                         _sm_container_r2_2,
                                         transitions={'finished': 'finished', 'failed': 'failed'},
                                         autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
-                                        remapping={'velocity': 'velocity'})
+                                        remapping={'velocity': 'velocity', 'planner': 'planner'})
 
 
 
@@ -178,7 +179,7 @@ class MultiArmRandomTaskDemoSM(Behavior):
                                         _sm_container_3,
                                         transitions={'finished': 'finished', 'failed': 'failed'},
                                         autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
-                                        remapping={'velocity': 'velocity'})
+                                        remapping={'velocity': 'velocity', 'planner': 'planner'})
 
 
         return _state_machine

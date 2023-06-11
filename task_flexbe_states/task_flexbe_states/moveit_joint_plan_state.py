@@ -46,7 +46,7 @@ class MoveItJointsPlanState(EventState):
         Constructor
         '''
         super(MoveItJointsPlanState, self).__init__(outcomes=['failed', 'done', 'retriable'],
-            input_keys=['start_joints', 'target_joints', 'velocity'],
+            input_keys=['start_joints', 'target_joints', 'velocity', 'planner'],
             output_keys=['joint_trajectory', 'planning_time', 'planning_error_code'])
         # group_name = ""
         self._group_name = group_name
@@ -137,6 +137,9 @@ class MoveItJointsPlanState(EventState):
 
         self._goal.request.start_state = self.generate_robot_state(self._joint_names, sj)
         self._goal.request.max_velocity_scaling_factor = v
+        if userdata.planner != None:
+            self._goal.request.planner_id = userdata.planner
+            
         self._goal.request.max_acceleration_scaling_factor = v
         for jc, pos in zip(self._goal.request.goal_constraints[0].joint_constraints, tj):
             jc.position = pos
