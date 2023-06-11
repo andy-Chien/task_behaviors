@@ -28,12 +28,13 @@ def generate_launch_description():
             package="flexbe_widget", 
             executable="be_launcher", 
             arguments=[
-                '-b', 'Four Arms Planner Benchmark',
-                'eval_rounds:=500',
-                'terminal_rounds:=600',
+                '-b', 'Planner Benchmark',
+                'eval_rounds:=10',
+                'terminal_rounds:=20',
                 'YAML:joint_names:=task_flexbe_behaviors/config/four_arm_planning.yaml:joint_names',
                 'YAML:random_areas:=task_flexbe_behaviors/config/four_arm_planning.yaml:random_areas',
                 'YAML:using_areas:=task_flexbe_behaviors/config/four_arm_planning.yaml:using_areas',
+                'YAML:planner_list:=task_flexbe_behaviors/config/planning_benchmark_planner_list.yaml:planner_list',
             ],
             output="screen",
         )
