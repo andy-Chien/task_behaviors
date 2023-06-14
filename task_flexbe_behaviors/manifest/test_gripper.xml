@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<behavior name="Test Gripper">
+
+	<executable package_path="task_flexbe_behaviors.test_gripper_sm" class="TestGripperSM" />
+	<tagstring>v01</tagstring>
+	<author>TaiTing Tsai</author>
+	<date>Mon Jun 12 2023</date>
+	<description>
+		test hiwin xeg32 gripper api
+	</description>
+
+
+	<!-- Contained Behaviors -->
+
+	<!-- Available Parameters -->
+
+</behavior>
