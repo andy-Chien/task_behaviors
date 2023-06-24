@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<behavior name="Mobile Manipulator Calibration Demo">
+
+	<executable package_path="task_flexbe_behaviors.mobile_manipulator_calibration_demo_sm" class="MobileManipulatorCalibrationDemoSM" />
+	<tagstring>v0</tagstring>
+	<author>TaiTing Tsai</author>
+	<date>Thur Jun 22 2023</date>
+	<description>
+		calibrate moblie manipulator tf_static
+	</description>
+
+
+	<!-- Contained Behaviors -->
+
+	<!-- Available Parameters -->
+	<params>
+
+		<param type="text" name="namespace" default="" label="namespace" hint="Sets the namespace" />
+
+		<param type="text" name="group_name" default="ur_manipulator" label="group_name" hint="Sets the group_name" />
+
+		<param type="yaml" name="joint_names" default="task_flexbe_behaviors/config/multi_arm_planning_rviz_demo.yaml" label="joint_names" hint="Sets the joint_names">
+			<key name="joint_names" />
+		</param>
+
+		<param type="yaml" name="random_areas" default="task_flexbe_behaviors/config/multi_arm_planning_rviz_demo.yaml" label="random_areas" hint="Sets the random_areas">
+			<key name="random_areas" />
+		</param>
+
+		<param type="text" name="planner_id" default="RRTConnectkConfigDefault" label="planner_id" hint="Sets the planner_id" />
+
+		<param type="numeric" name="terminal_rounds" default="100" label="terminal_rounds" hint="Sets the terminal_rounds">
+			<min value="0" />
+			<max value="10000" />
+		</param>
+
+		<param type="boolean" name="do_evaluation" default="False" label="do_evaluation" hint="Sets the do_evaluation" />
+
+		<param type="yaml" name="using_areas" default="task_flexbe_behaviors/config/multi_arm_planning_rviz_demo.yaml" label="using_areas" hint="Sets the using_areas">
+			<key name="using_areas" />
+		</param>
+
+		<param type="numeric" name="eval_rounds" default="100" label="eval_rounds" hint="Sets the eval_rounds">
+			<min value="0" />
+			<max value="1000000" />
+		</param>
+
+	</params>
+
+
+</behavior>
