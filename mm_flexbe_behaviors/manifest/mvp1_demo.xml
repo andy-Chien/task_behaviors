@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<behavior name="Mvp1 Demo">
+
+	<executable package_path="mm_flexbe_behaviors.mvp1_demo_sm" class="Mvp1DemoSM" />
+	<tagstring>v0</tagstring>
+	<author>Andy Chien</author>
+	<date>Mon Mar 13 2023</date>
+	<description>
+		Behavior for mvp1 demonstraction
+	</description>
+
+
+	<!-- Contained Behaviors -->
+	<contains name="Move Base To Pose" />
+	<contains name="Move MM To Pose" />
+	<contains name="Move Arm To Pose" />
+
+	<!-- Available Parameters -->
+	<params>
+
+		<param type="yaml" name="painting_areas" default="mm_flexbe_behaviors/config/mvp1_config.yaml" label="painting_areas" hint="Sets the painting_areas">
+			<key name="painting_areas" />
+		</param>
+
+		<param type="numeric" name="distance_from_wall" default="1.5" label="distance_from_wall" hint="Sets the distance_from_wall">
+			<min value="0" />
+			<max value="5" />
+		</param>
+
+		<param type="yaml" name="image_paths" default="mm_flexbe_behaviors/config/mvp1_config.yaml" label="image_paths" hint="Sets the image_paths">
+			<key name="image_paths" />
+		</param>
+
+		<param type="yaml" name="area_index_of_image" default="mm_flexbe_behaviors/config/mvp1_config.yaml" label="area_index_of_image" hint="Sets the area_index_of_image">
+			<key name="area_index_of_image" />
+		</param>
+
+		<param type="text" name="namespace" default="" label="namespace" hint="Sets the namespace" />
+
+	</params>
+
+
+</behavior>

@@ -1,0 +1,23 @@
+painting_areas:
+  - - [-3.0, -1.0, 1.8]
+    - [-3.0, 2.0, 0.9]
+  - - [-3.0, 0.0, 1.2]
+    - [-3.0, 2.5, 0.3]
+
+image_paths:
+  - "/home/gary/mm_ws/src/Mobile_Manipulator/task_planning/images/freehand.png"
+  - "/home/gary/mm_ws/src/Mobile_Manipulator/task_planning/images/spiral.png"
+  - "/home/gary/mm_ws/src/Mobile_Manipulator/task_planning/images/freehand.png"
+
+area_index_of_image:
+  - 0
+  - 1
+  - 1
+
+joint_names:
+  - shoulder_pan_joint
+  - shoulder_lift_joint
+  - elbow_joint
+  - wrist_1_joint
+  - wrist_2_joint
+  - wrist_3_joint

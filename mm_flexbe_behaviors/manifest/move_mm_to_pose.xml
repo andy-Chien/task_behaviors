@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<behavior name="Move MM To Pose">
+
+	<executable package_path="mm_flexbe_behaviors.move_mm_to_pose_sm" class="MoveMMToPoseSM" />
+	<tagstring>v0.1</tagstring>
+	<author>Andy Chien</author>
+	<date>Tue Mar 21 2023</date>
+	<description>
+		Move mobile manipulator to a pose
+	</description>
+
+
+	<!-- Contained Behaviors -->
+
+	<!-- Available Parameters -->
+	<params>
+
+		<param type="text" name="namespace" default="" label="namespace" hint="Sets the namespace" />
+
+		<param type="text" name="group_name" default="mobile_manipulator" label="group_name" hint="Sets the group_name" />
+
+		<param type="yaml" name="joint_names" default="mm_flexbe_behaviors/config/mvp1_config.yaml" label="joint_names" hint="Sets the joint_names">
+			<key name="joint_names" />
+		</param>
+
+	</params>
+
+
+</behavior>

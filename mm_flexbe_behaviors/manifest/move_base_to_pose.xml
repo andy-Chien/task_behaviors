@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<behavior name="Move Base To Pose">
+
+	<executable package_path="mm_flexbe_behaviors.move_base_to_pose_sm" class="MoveBaseToPoseSM" />
+	<tagstring>v1</tagstring>
+	<author>Andy Chien</author>
+	<date>Mon Mar 13 2023</date>
+	<description>
+		Move base to target pose using nav2 and mm trajectory controller.
+	</description>
+
+
+	<!-- Contained Behaviors -->
+
+	<!-- Available Parameters -->
+
+</behavior>
