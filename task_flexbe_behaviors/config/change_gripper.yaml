@@ -1,0 +1,4 @@
+gripper_no_suction_mesh: /home/andy/packing_ws/src/multi_robot_packing_task/multi_robot_motion_planning/mr_description/meshes/tool/tool_no_suctoin.stl
+gripper_with_suction_mesh: /home/andy/packing_ws/src/multi_robot_packing_task/multi_robot_motion_planning/mr_description/meshes/tool/tool_with_suctoin.stl
+touch_links:
+  - wrist_3_link
