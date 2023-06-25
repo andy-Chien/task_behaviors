@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 ###########################################################
 #               WARNING: Generated code!                  #
@@ -28,7 +28,7 @@ class MoveToPlaceSM(Behavior):
 	'''
 
 
-	def __init__(self):
+	def __init__(self, node):
 		super(MoveToPlaceSM, self).__init__()
 		self.name = 'Move To Place'
 
@@ -39,11 +39,19 @@ class MoveToPlaceSM(Behavior):
 		self.add_parameter('velocity', 10)
 
 		# references to used behaviors
+		OperatableStateMachine.initialize_ros(node)
+		ConcurrencyContainer.initialize_ros(node)
+		PriorityContainer.initialize_ros(node)
+		Logger.initialize(node)
+		MoveItExecuteTrajectoryState.initialize_ros(node)
+		MoveItPosePlanState.initialize_ros(node)
+		SetDIOState.initialize_ros(node)
+		SetPlacePoseRandomState.initialize_ros(node)
 
 		# Additional initialization code can be added inside the following tags
 		# [MANUAL_INIT]
-		
-		# [/MANUAL_INIT]
+        
+        # [/MANUAL_INIT]
 
 		# Behavior comments:
 
@@ -63,11 +71,12 @@ class MoveToPlaceSM(Behavior):
 		_state_machine.userdata.prestart_vector = [0, 0, 0]
 		_state_machine.userdata.prestart_length = 0
 		_state_machine.userdata.block_execute = True
+		_state_machine.userdata.exe_client = None
 
 		# Additional creation code can be added inside the following tags
 		# [MANUAL_CREATE]
-		
-		# [/MANUAL_CREATE]
+        
+        # [/MANUAL_CREATE]
 
 
 		with _state_machine:
@@ -94,10 +103,10 @@ class MoveToPlaceSM(Behavior):
 
 			# x:298 y:139
 			OperatableStateMachine.add('Execute trajectory',
-										MoveItExecuteTrajectoryState(robot_name=self.robot_name),
+										MoveItExecuteTrajectoryState(group_name='manipulator', namespace=''),
 										transitions={'done': 'Place the object', 'failed': 'failed', 'collision': 'Plan to pose', 'running': 'Execute trajectory'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off, 'collision': Autonomy.Off, 'running': Autonomy.Off},
-										remapping={'joint_trajectory': 'joint_trajectory', 'block_execute': 'block_execute'})
+										remapping={'joint_trajectory': 'joint_trajectory', 'block_execute': 'block_execute', 'exe_client': 'exe_client', 'is_running': 'is_running'})
 
 
 		return _state_machine
@@ -105,5 +114,5 @@ class MoveToPlaceSM(Behavior):
 
 	# Private functions can be added inside the following tags
 	# [MANUAL_FUNC]
-	
-	# [/MANUAL_FUNC]
+    
+    # [/MANUAL_FUNC]

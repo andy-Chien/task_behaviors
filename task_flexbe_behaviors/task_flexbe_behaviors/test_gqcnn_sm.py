@@ -8,6 +8,7 @@
 ###########################################################
 
 from flexbe_core import Behavior, Autonomy, OperatableStateMachine, ConcurrencyContainer, PriorityContainer, Logger
+from task_flexbe_states.get_mask_image_state import GetMaskImageState
 from task_flexbe_states.gqcnn_grasp_plan_state import GQCNNGraspPlanState
 # Additional imports can be added inside the following tags
 # [MANUAL_IMPORT]
@@ -37,6 +38,7 @@ class TestGQCNNSM(Behavior):
 		PriorityContainer.initialize_ros(node)
 		Logger.initialize(node)
 		GQCNNGraspPlanState.initialize_ros(node)
+		GetMaskImageState.initialize_ros(node)
 
 		# Additional initialization code can be added inside the following tags
 		# [MANUAL_INIT]
@@ -58,12 +60,19 @@ class TestGQCNNSM(Behavior):
 
 
 		with _state_machine:
-			# x:154 y:158
+			# x:174 y:75
+			OperatableStateMachine.add('mask_image',
+										GetMaskImageState(mask_service='/image_masking', namespace='/id1'),
+										transitions={'done': 'gqcnn', 'failed': 'failed', 'retry': 'mask_image'},
+										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off, 'retry': Autonomy.Off},
+										remapping={'mask_imgmsg': 'mask_imgmsg'})
+
+			# x:384 y:160
 			OperatableStateMachine.add('gqcnn',
-										GQCNNGraspPlanState(grasp_service='/gqcnn/grasp_planner', depth_camera_info='/depth_to_rgb/camera_info', color_image_topic='/rgb/image_raw', depth_image_topic='/depth_to_rgb/image_raw'),
+										GQCNNGraspPlanState(grasp_service='/gqcnn/grasp_planner', depth_camera_info='/depth_to_rgb/camera_info'),
 										transitions={'done': 'finished', 'failed': 'failed', 'retry': 'gqcnn'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off, 'retry': Autonomy.Off},
-										remapping={'grasp_position': 'grasp_position', 'grasp_quaternion': 'grasp_quaternion'})
+										remapping={'mask_imgmsg': 'mask_imgmsg', 'grasp_pos': 'grasp_pos'})
 
 
 		return _state_machine

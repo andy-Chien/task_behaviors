@@ -111,10 +111,10 @@ class GetSingleArmarkerState(EventState):
                 rvecs, tvecs = cv2.aruco.estimatePoseSingleMarkers(self.corners,
                                                                    self.marker_size, self.intrinsic_mat,
                                                                    self.distortion)
-            self.cv_image = cv2.aruco.drawAxis(self.cv_image, self.intrinsic_mat, self.distortion, rvecs[0], tvecs[0], 0.02)
-            cv2.imshow('QueryImage', self.cv_image)
-            cv2.waitKey(0)
-            cv2.destroyAllWindows()
+            # self.cv_image = cv2.aruco.drawAxis(self.cv_image, self.intrinsic_mat, self.distortion, rvecs[0], tvecs[0], 0.02)
+            # cv2.imshow('QueryImage', self.cv_image)
+            # cv2.waitKey(0)
+            # cv2.destroyAllWindows()
 
             for i in range(len(self.marker_ids)):
                 self.armarker_pos = Pose()
