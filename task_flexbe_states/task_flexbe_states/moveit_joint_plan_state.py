@@ -145,6 +145,7 @@ class MoveItJointsPlanState(EventState):
             jc.position = pos
 
         try:
+            self._logger.warn("------------------------------------- {}.".format(self._action))
             self._client.send_goal(self._action, self._goal)
         except Exception as e:
             self._state_accepted = False

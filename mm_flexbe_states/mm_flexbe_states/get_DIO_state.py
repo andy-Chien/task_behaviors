@@ -7,7 +7,7 @@ from ur_msgs.msg import IOStates
 from flexbe_core import EventState, Logger
 from flexbe_core.proxy.proxy_subscriber_cached import ProxySubscriberCached
 
-class GetDIOState(EventState):
+class MMGetDIOState(EventState):
     '''
     Get digital IO state
 
@@ -24,7 +24,7 @@ class GetDIOState(EventState):
         '''
         Constructor
         '''
-        super(GetDIOState, self).__init__(outcomes=['done'],
+        super(MMGetDIOState, self).__init__(outcomes=['done'],
                                           input_keys=['pins'],
                                           output_keys=['vals'])
         self._sim = sim

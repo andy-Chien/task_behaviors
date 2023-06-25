@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<behavior name="Mutil Arm Gqcnn Test">
+
+	<executable package_path="task_flexbe_behaviors.mutil_arm_gqcnn_test_sm" class="MutilArmGqcnnTestSM" />
+	<tagstring>v01</tagstring>
+	<author>TaiTing Tsai</author>
+	<date>Sun Jun 25 2023</date>
+	<description>
+		The demo of mutil arm doing Gqcnn bin picking
+	</description>
+
+
+	<!-- Contained Behaviors -->
+	<contains name="Move Arm To Pose" />
+
+	<!-- Available Parameters -->
+
+</behavior>

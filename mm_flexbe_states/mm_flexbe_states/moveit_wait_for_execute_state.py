@@ -10,7 +10,7 @@ Created on 21.02.2023
 @author: Andy Chien
 '''
 
-class WaitForRunningState(EventState):
+class MMWaitForRunningState(EventState):
     '''
     Use MoveIt to move robot by planned trajectory.
 
@@ -29,7 +29,7 @@ class WaitForRunningState(EventState):
         '''
         Constructor
         '''
-        super(WaitForRunningState, self).__init__(outcomes=['waiting', 'done', 'collision', 'failed'],
+        super(MMWaitForRunningState, self).__init__(outcomes=['waiting', 'done', 'collision', 'failed'],
                                                   input_keys=['exe_client'])
         if len(namespace) > 0 and not namespace.startswith('/'): 
             namespace = '/' + namespace

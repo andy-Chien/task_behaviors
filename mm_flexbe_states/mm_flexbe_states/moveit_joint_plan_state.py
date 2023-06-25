@@ -16,7 +16,7 @@ Created on 23.02.2022
 @author: Andy Chien
 '''
 
-class MoveItJointsPlanState(EventState):
+class MMMoveItJointsPlanState(EventState):
     '''
     Uses MoveIt to plan the trajectory of specified joints value.
 
@@ -46,7 +46,7 @@ class MoveItJointsPlanState(EventState):
         '''
         Constructor
         '''
-        super(MoveItJointsPlanState, self).__init__(outcomes=['failed', 'done', 'retriable'],
+        super(MMMoveItJointsPlanState, self).__init__(outcomes=['failed', 'done', 'retriable'],
             input_keys=['start_joints', 'target_joints', 'velocity'],
             output_keys=['joint_trajectory', 'robot_trajectory', 'planning_time', 'planning_error_code'])
         # group_name = ""
@@ -56,7 +56,7 @@ class MoveItJointsPlanState(EventState):
         # self._move_group.set_planner_id("RRTConnectkConfigDefault")
         # self._move_group.set_planning_time(1)
         # self._velocity = velocity / 100.0 if 1 <= velocity <= 100 else 0.1
-        self._node = MoveItJointsPlanState._node
+        self._node = MMMoveItJointsPlanState._node
         self._logger = self._node.get_logger()
         self._retry_cnt = retry_cnt
         self._now_trying = 0

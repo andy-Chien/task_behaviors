@@ -4,7 +4,7 @@ import rclpy
 from flexbe_core import EventState, Logger
 
 
-class ExampleState(EventState):
+class MMExampleState(EventState):
 	'''
 	Example for a state to demonstrate which functionality is available for state implementation.
 	This example lets the behavior wait until the given target_time has passed since the behavior has been started.
@@ -18,7 +18,7 @@ class ExampleState(EventState):
 
 	def __init__(self, target_time):
 		# Declare outcomes, input_keys, and output_keys by calling the super constructor with the corresponding arguments.
-		super(ExampleState, self).__init__(outcomes = ['continue', 'failed'])
+		super(MMExampleState, self).__init__(outcomes = ['continue', 'failed'])
 
 		# Store state parameter for later use.
 		self._target_time = rclpy.Duration(target_time)
@@ -33,7 +33,7 @@ class ExampleState(EventState):
 		# Main purpose is to check state conditions and trigger a corresponding outcome.
 		# If no outcome is returned, the state will stay active.
 
-		if ExampleState._node.get_clock().now() - self._start_time > self._target_time:
+		if MMExampleState._node.get_clock().now() - self._start_time > self._target_time:
 			return 'continue' # One of the outcomes declared above.
 
 

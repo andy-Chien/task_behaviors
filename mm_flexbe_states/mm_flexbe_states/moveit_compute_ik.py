@@ -19,6 +19,7 @@ class MoveItComputeIK(EventState):
 
     ># start_joints     float[]      start position of joints for IK compute
     ># target_pose      geometry_msgs/Pose target pose
+    ># translation_list float[]      translation list for target_pose x, y, z
 
     #> target_joints    float[]      target joints
 
@@ -29,7 +30,7 @@ class MoveItComputeIK(EventState):
     def __init__(self, group_name, joint_names, namespace=''):
         '''Constructor'''
         super(MoveItComputeIK, self).__init__(outcomes = ['done', 'failed'],
-                                            input_keys = ['start_joints', 'target_pose'],
+                                            input_keys = ['start_joints', 'target_pose','translation_list'],
                                             output_keys = ['target_joints'])
         self._node = MoveItComputeIK._node
         ProxyServiceCaller._initialize(self._node)
@@ -78,6 +79,13 @@ class MoveItComputeIK(EventState):
         self._logger.warn('userdata.target_pose = {}'.format(userdata.target_pose))
         self._req.ik_request.pose_stamped = userdata.target_pose
 
+        userdata.translation_list
+
+        self._req.ik_request.pose_stamped.header.stamp = self._time_now.to_msg()
+        self._req.ik_request.pose_stamped.pose.position.x += userdata.translation_list[0]
+        self._req.ik_request.pose_stamped.pose.position.y += userdata.translation_list[1]
+        self._req.ik_request.pose_stamped.pose.position.z += userdata.translation_list[2]
+        self._logger.info('-------------------------------{}'.format(self._req.ik_request.pose_stamped))
         self._ik_client.call_async(self._ik_service, self._req)
 
     def generate_robot_state(self, joint_names, start_joints):

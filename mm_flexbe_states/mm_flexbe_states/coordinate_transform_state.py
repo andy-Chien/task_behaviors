@@ -10,7 +10,7 @@ Created on 25.02.2022
 @author: Andy Chien
 '''
 
-class CoordinateTransformState(EventState):
+class MMCoordinateTransformState(EventState):
 	'''
 	Trans source pose to target pose by trans matrix.
 
@@ -30,7 +30,7 @@ class CoordinateTransformState(EventState):
 		'''
 		Constructor
 		'''
-		super(CoordinateTransformState, self).__init__(outcomes=['done'],
+		super(MMCoordinateTransformState, self).__init__(outcomes=['done'],
 											input_keys=['trans_position', 'trans_quaternion','source_position', 'source_quaternion', 'obj_quat_tool'],
 											output_keys=['target_position', 'target_quaternion'])
 		

@@ -6,7 +6,7 @@ from flexbe_core import EventState
 from flexbe_core.proxy import ProxyServiceCaller, ProxySubscriberCached
 from sensor_msgs.msg import JointState
 
-class GetCurrentJoints(EventState):
+class MMGetCurrentJoints(EventState):
     '''
     set initial robot collision objects to robot scene
     
@@ -21,9 +21,9 @@ class GetCurrentJoints(EventState):
 
     def __init__(self, joint_names, namespace=''):
         '''Constructor'''
-        super(GetCurrentJoints, self).__init__(outcomes = ['done', 'no_msg'],
+        super(MMGetCurrentJoints, self).__init__(outcomes = ['done', 'no_msg'],
                                             output_keys = ['curr_joints'])
-        self._node = GetCurrentJoints._node
+        self._node = MMGetCurrentJoints._node
         ProxyServiceCaller._initialize(self._node)
 
         self._logger = self._node.get_logger()

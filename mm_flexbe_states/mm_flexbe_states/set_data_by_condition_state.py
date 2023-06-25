@@ -5,7 +5,7 @@ Created on 08/23/2021
 '''
 from flexbe_core import EventState, Logger
 
-class SetDataByConditionState(EventState):
+class MMSetDataByConditionState(EventState):
     '''
     Set/create userdata value from input userdata use the condition function. (userdata_src_names and userdata_dst_names must be same size.)
 
@@ -19,7 +19,7 @@ class SetDataByConditionState(EventState):
         '''
         Constructor
         '''
-        super(SetDataByConditionState, self).__init__(outcomes=['done'],
+        super(MMSetDataByConditionState, self).__init__(outcomes=['done'],
                                                 input_keys=userdata_src_names,
                                                 output_keys=userdata_dst_names)
         self._condition = condition

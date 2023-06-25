@@ -49,18 +49,19 @@ class TestGripperSM(Behavior):
 
 	def create(self):
 		# x:879 y:371, x:457 y:119
-		_state_machine = OperatableStateMachine(outcomes=['finished', 'failed'])
-		_state_machine.userdata.direction = 0
-		_state_machine.userdata.distance = 600
-		_state_machine.userdata.speed = 6000
-		_state_machine.userdata.holding_stroke = 2600
+		_state_machine = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['gripper_mode'])
+		_state_machine.userdata.direction = 1
+		_state_machine.userdata.distance = 10
+		_state_machine.userdata.speed = 500
+		_state_machine.userdata.holding_stroke = 10
 		_state_machine.userdata.holding_speed = 500
-		_state_machine.userdata.holding_force = 40
+		_state_machine.userdata.holding_force = 80
 		_state_machine.userdata.flag = 1
 		_state_machine.userdata.close = 'close'
-		_state_machine.userdata.open = 'on'
+		_state_machine.userdata.open = 'open'
 		_state_machine.userdata.expert = 'expert'
 		_state_machine.userdata.off = 'off'
+		_state_machine.userdata.gripper_mode = 'close'
 
 		# Additional creation code can be added inside the following tags
 		# [MANUAL_CREATE]
@@ -69,33 +70,12 @@ class TestGripperSM(Behavior):
 
 
 		with _state_machine:
-			# x:136 y:143
-			OperatableStateMachine.add('hiwin_gripper_api',
-										HiwinXeg32GripperApi(),
-										transitions={'done': 'hiwin2', 'failed': 'failed'},
-										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off},
-										remapping={'mode': 'close', 'direction': 'direction', 'distance': 'distance', 'speed': 'speed', 'holding_stroke': 'holding_stroke', 'holding_speed': 'holding_speed', 'holding_force': 'holding_force', 'flag': 'flag'})
-
-			# x:614 y:408
-			OperatableStateMachine.add('hiwin_expert',
-										HiwinXeg32GripperApi(),
-										transitions={'done': 'hiwin_open', 'failed': 'failed'},
-										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off},
-										remapping={'mode': 'expert', 'direction': 'direction', 'distance': 'distance', 'speed': 'speed', 'holding_stroke': 'holding_stroke', 'holding_speed': 'holding_speed', 'holding_force': 'holding_force', 'flag': 'flag'})
-
-			# x:622 y:97
-			OperatableStateMachine.add('hiwin_open',
-										HiwinXeg32GripperApi(),
-										transitions={'done': 'finished', 'failed': 'failed'},
-										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off},
-										remapping={'mode': 'open', 'direction': 'direction', 'distance': 'distance', 'speed': 'speed', 'holding_stroke': 'holding_stroke', 'holding_speed': 'holding_speed', 'holding_force': 'holding_force', 'flag': 'flag'})
-
 			# x:376 y:293
 			OperatableStateMachine.add('hiwin2',
 										HiwinXeg32GripperApi(),
-										transitions={'done': 'hiwin_expert', 'failed': 'failed'},
+										transitions={'done': 'finished', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off},
-										remapping={'mode': 'open', 'direction': 'direction', 'distance': 'distance', 'speed': 'speed', 'holding_stroke': 'holding_stroke', 'holding_speed': 'holding_speed', 'holding_force': 'holding_force', 'flag': 'flag'})
+										remapping={'mode': 'gripper_mode', 'direction': 'direction', 'distance': 'distance', 'speed': 'speed', 'holding_stroke': 'holding_stroke', 'holding_speed': 'holding_speed', 'holding_force': 'holding_force', 'flag': 'flag'})
 
 
 		return _state_machine

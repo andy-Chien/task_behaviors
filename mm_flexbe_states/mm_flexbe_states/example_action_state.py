@@ -6,7 +6,7 @@ from flexbe_core.proxy import ProxyActionClient
 from chores.msg import DoDishesAction, DoDishesGoal
 
 
-class ExampleActionState(EventState):
+class MMExampleActionState(EventState):
 	'''
 	Actionlib actions are the most common basis for state implementations
 	since they provide a non-blocking, high-level interface for robot capabilities.
@@ -27,7 +27,7 @@ class ExampleActionState(EventState):
 
 	def __init__(self, dishes_to_do):
 		# See example_state.py for basic explanations.
-		super(ExampleActionState, self).__init__(outcomes = ['cleaned_some', 'cleaned_enough', 'command_error'],
+		super(MMExampleActionState, self).__init__(outcomes = ['cleaned_some', 'cleaned_enough', 'command_error'],
 												 input_keys = ['dishwasher'],
 												 output_keys = ['cleaned'])
 		self._dishes_to_do = dishes_to_do
@@ -37,7 +37,7 @@ class ExampleActionState(EventState):
 		# and will trigger a timeout error if it is not available.
 		# Using the proxy client provides asynchronous access to the result and status
 		# and makes sure only one client is used, no matter how often this state is used in a behavior.
-		ProxyActionClient._initialize(ExampleActionState._node)
+		ProxyActionClient._initialize(MMExampleActionState._node)
 		self._topic = 'do_dishes'
 		self._client = ProxyActionClient({self._topic: DoDishesAction}) # pass required clients as dict (topic: type)
 
