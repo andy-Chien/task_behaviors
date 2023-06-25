@@ -8,7 +8,7 @@ from ur_msgs.srv import SetIO, SetIORequest
 from flexbe_core import EventState, Logger
 from flexbe_core.proxy.proxy_service_caller import ProxyServiceCaller
 
-class SetDIOState(EventState):
+class MMSetDIOState(EventState):
     '''
     Set digital IO state
 
@@ -26,7 +26,7 @@ class SetDIOState(EventState):
         '''
         Constructor
         '''
-        super(SetDIOState, self).__init__(outcomes=['done', 'failed'],
+        super(MMSetDIOState, self).__init__(outcomes=['done', 'failed'],
                                           input_keys=['pins', 'vals'])
         self._sim = sim
         self._io_service = io_service

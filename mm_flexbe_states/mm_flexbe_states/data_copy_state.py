@@ -4,7 +4,7 @@ Created on 04/19/2022
 ''' 
 from flexbe_core import EventState
 
-class DataCopyState(EventState):
+class MMDataCopyState(EventState):
     '''
     set initial robot collision objects to robot scene
 
@@ -13,7 +13,7 @@ class DataCopyState(EventState):
 
     def __init__(self):
         '''Constructor'''
-        super(DataCopyState, self).__init__(outcomes = ['done'],
+        super(MMDataCopyState, self).__init__(outcomes = ['done'],
                                             input_keys = ['data_in'],
                                             output_keys = ['data_out'])
 

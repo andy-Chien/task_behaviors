@@ -8,11 +8,11 @@
 ###########################################################
 
 from flexbe_core import Behavior, Autonomy, OperatableStateMachine, ConcurrencyContainer, PriorityContainer, Logger
-from task_flexbe_states.get_current_joints import GetCurrentJoints as task_flexbe_states__GetCurrentJoints
+from task_flexbe_states.get_current_joints import GetCurrentJoints
 from task_flexbe_states.hiwin_xeg32_gripper_api import HiwinXeg32GripperApi
-from task_flexbe_states.moveit_async_execute_trajectory import MoveItAsyncExecuteTrajectory as task_flexbe_states__MoveItAsyncExecuteTrajectory
-from task_flexbe_states.moveit_joint_plan_state import MoveItJointsPlanState as task_flexbe_states__MoveItJointsPlanState
-from task_flexbe_states.moveit_wait_for_execute_state import WaitForRunningState as task_flexbe_states__WaitForRunningState
+from task_flexbe_states.moveit_async_execute_trajectory import MoveItAsyncExecuteTrajectory
+from task_flexbe_states.moveit_joint_plan_state import MoveItJointsPlanState
+from task_flexbe_states.moveit_wait_for_execute_state import WaitForRunningState
 # Additional imports can be added inside the following tags
 # [MANUAL_IMPORT]
 
@@ -43,11 +43,11 @@ class ChangeToolTaskSM(Behavior):
 		ConcurrencyContainer.initialize_ros(node)
 		PriorityContainer.initialize_ros(node)
 		Logger.initialize(node)
-		task_flexbe_states__GetCurrentJoints.initialize_ros(node)
+		GetCurrentJoints.initialize_ros(node)
 		HiwinXeg32GripperApi.initialize_ros(node)
-		task_flexbe_states__MoveItAsyncExecuteTrajectory.initialize_ros(node)
-		task_flexbe_states__MoveItJointsPlanState.initialize_ros(node)
-		task_flexbe_states__WaitForRunningState.initialize_ros(node)
+		MoveItAsyncExecuteTrajectory.initialize_ros(node)
+		MoveItJointsPlanState.initialize_ros(node)
+		WaitForRunningState.initialize_ros(node)
 
 		# Additional initialization code can be added inside the following tags
 		# [MANUAL_INIT]
@@ -90,21 +90,21 @@ class ChangeToolTaskSM(Behavior):
 		with _state_machine:
 			# x:30 y:40
 			OperatableStateMachine.add('get_current_joint',
-										task_flexbe_states__GetCurrentJoints(joint_names=self.joint_names, namespace=self.namespace),
+										GetCurrentJoints(joint_names=self.joint_names, namespace=self.namespace),
 										transitions={'done': 'move_to_sucker_front', 'no_msg': 'get_current_joint'},
 										autonomy={'done': Autonomy.Off, 'no_msg': Autonomy.Off},
 										remapping={'curr_joints': 'curr_joints'})
 
 			# x:443 y:354
 			OperatableStateMachine.add('execute_plan2',
-										task_flexbe_states__MoveItAsyncExecuteTrajectory(group_name=self.group_name, namespace=''),
+										MoveItAsyncExecuteTrajectory(group_name=self.group_name, namespace=''),
 										transitions={'done': 'wait_for_arrive', 'failed': 'get_curr_joint'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'joint_trajectory': 'joint_trajectory', 'exe_client': 'exe_client'})
 
 			# x:279 y:279
 			OperatableStateMachine.add('get_curr_joint',
-										task_flexbe_states__GetCurrentJoints(joint_names=self.joint_names, namespace=self.namespace),
+										GetCurrentJoints(joint_names=self.joint_names, namespace=self.namespace),
 										transitions={'done': 'move_to_sucker_spot', 'no_msg': 'get_curr_joint'},
 										autonomy={'done': Autonomy.Off, 'no_msg': Autonomy.Off},
 										remapping={'curr_joints': 'curr_joints'})
@@ -132,56 +132,56 @@ class ChangeToolTaskSM(Behavior):
 
 			# x:678 y:400
 			OperatableStateMachine.add('move_back',
-										task_flexbe_states__MoveItAsyncExecuteTrajectory(group_name=self.group_name, namespace=''),
+										MoveItAsyncExecuteTrajectory(group_name=self.group_name, namespace=''),
 										transitions={'done': 'wait_for_arm', 'failed': 'plan_back'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'joint_trajectory': 'joint_trajectory', 'exe_client': 'exe_client'})
 
 			# x:282 y:119
 			OperatableStateMachine.add('move_to_sucker_front',
-										task_flexbe_states__MoveItJointsPlanState(group_name=self.group_name, joint_names=self.joint_names, retry_cnt=5, namespace=self.namespace, planner='RRTConnectkConfigDefault', time_out=0.5, attempts=10),
+										MoveItJointsPlanState(group_name=self.group_name, joint_names=self.joint_names, retry_cnt=5, namespace=self.namespace, planner='RRTConnectkConfigDefault', time_out=0.5, attempts=10),
 										transitions={'failed': 'get_current_joint', 'done': 'excute_paln', 'retriable': 'move_to_sucker_front'},
 										autonomy={'failed': Autonomy.Off, 'done': Autonomy.Off, 'retriable': Autonomy.Off},
 										remapping={'start_joints': 'curr_joints', 'target_joints': 'infront_sucker', 'velocity': 'velocity', 'planner': 'planner', 'joint_trajectory': 'joint_trajectory', 'planning_time': 'planning_time', 'planning_error_code': 'planning_error_code'})
 
 			# x:28 y:419
 			OperatableStateMachine.add('move_to_sucker_spot',
-										task_flexbe_states__MoveItJointsPlanState(group_name=self.group_name, joint_names=self.joint_names, retry_cnt=5, namespace=self.namespace, planner='RRTConnectkConfigDefault', time_out=0.5, attempts=10),
+										MoveItJointsPlanState(group_name=self.group_name, joint_names=self.joint_names, retry_cnt=5, namespace=self.namespace, planner='RRTConnectkConfigDefault', time_out=0.5, attempts=10),
 										transitions={'failed': 'get_curr_joint', 'done': 'execute_plan2', 'retriable': 'move_to_sucker_spot'},
 										autonomy={'failed': Autonomy.Off, 'done': Autonomy.Off, 'retriable': Autonomy.Off},
 										remapping={'start_joints': 'curr_joints', 'target_joints': 'sucker_spot', 'velocity': 'velocity', 'planner': 'planner', 'joint_trajectory': 'joint_trajectory', 'planning_time': 'planning_time', 'planning_error_code': 'planning_error_code'})
 
 			# x:253 y:610
 			OperatableStateMachine.add('plan_back',
-										task_flexbe_states__MoveItJointsPlanState(group_name=self.group_name, joint_names=self.joint_names, retry_cnt=5, namespace='', planner='RRTConnectkConfigDefault', time_out=0.5, attempts=10),
+										MoveItJointsPlanState(group_name=self.group_name, joint_names=self.joint_names, retry_cnt=5, namespace='', planner='RRTConnectkConfigDefault', time_out=0.5, attempts=10),
 										transitions={'failed': 'failed', 'done': 'move_back', 'retriable': 'plan_back'},
 										autonomy={'failed': Autonomy.Off, 'done': Autonomy.Off, 'retriable': Autonomy.Off},
 										remapping={'start_joints': 'sucker_spot', 'target_joints': 'infront_sucker', 'velocity': 'velocity', 'planner': 'planner', 'joint_trajectory': 'joint_trajectory', 'planning_time': 'planning_time', 'planning_error_code': 'planning_error_code'})
 
 			# x:809 y:511
 			OperatableStateMachine.add('wait_for_arm',
-										task_flexbe_states__WaitForRunningState(wait_until_complete_rate=0, wait_until_points_left=0, namespace=''),
+										WaitForRunningState(wait_until_complete_rate=0, wait_until_points_left=0, namespace=''),
 										transitions={'waiting': 'wait_for_arm', 'done': 'hold_or_release_2_check', 'collision': 'plan_back', 'failed': 'hold_or_release_2_check'},
 										autonomy={'waiting': Autonomy.Off, 'done': Autonomy.Off, 'collision': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'exe_client': 'exe_client'})
 
 			# x:275 y:495
 			OperatableStateMachine.add('wait_for_arrive',
-										task_flexbe_states__WaitForRunningState(wait_until_complete_rate=0, wait_until_points_left=0, namespace=self.namespace),
+										WaitForRunningState(wait_until_complete_rate=0, wait_until_points_left=0, namespace=self.namespace),
 										transitions={'waiting': 'wait_for_arrive', 'done': 'hold_or_release_sucker', 'collision': 'get_curr_joint', 'failed': 'get_curr_joint'},
 										autonomy={'waiting': Autonomy.Off, 'done': Autonomy.Off, 'collision': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'exe_client': 'exe_client'})
 
 			# x:0 y:277
 			OperatableStateMachine.add('wait_for_running',
-										task_flexbe_states__WaitForRunningState(wait_until_complete_rate=0, wait_until_points_left=0, namespace=self.namespace),
+										WaitForRunningState(wait_until_complete_rate=0, wait_until_points_left=0, namespace=self.namespace),
 										transitions={'waiting': 'wait_for_running', 'done': 'get_curr_joint', 'collision': 'get_current_joint', 'failed': 'get_current_joint'},
 										autonomy={'waiting': Autonomy.Off, 'done': Autonomy.Off, 'collision': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'exe_client': 'exe_client'})
 
 			# x:87 y:159
 			OperatableStateMachine.add('excute_paln',
-										task_flexbe_states__MoveItAsyncExecuteTrajectory(group_name=self.group_name, namespace=''),
+										MoveItAsyncExecuteTrajectory(group_name=self.group_name, namespace=''),
 										transitions={'done': 'wait_for_running', 'failed': 'get_current_joint'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'joint_trajectory': 'joint_trajectory', 'exe_client': 'exe_client'})

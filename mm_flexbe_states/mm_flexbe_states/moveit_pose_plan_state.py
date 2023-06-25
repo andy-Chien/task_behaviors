@@ -20,7 +20,7 @@ Created on 23.02.2022
 @author: Andy Chien
 '''
 
-class MoveItPosePlanState(EventState):
+class MMMoveItPosePlanState(EventState):
 	'''
 	Uses MoveIt to plan the trajectory of target pose.
 
@@ -46,7 +46,7 @@ class MoveItPosePlanState(EventState):
 		'''
 		Constructor
 		'''
-		super(MoveItPosePlanState, self).__init__(outcomes=['failed', 'done'],
+		super(MMMoveItPosePlanState, self).__init__(outcomes=['failed', 'done'],
 										 input_keys=['prestart_length', 'prestart_vector',
 											 		 'pretarget_length', 'pretarget_vector',
 										 			 'start_joints', 'position', 'quaternion'],

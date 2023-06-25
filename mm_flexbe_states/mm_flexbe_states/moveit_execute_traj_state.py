@@ -11,7 +11,7 @@ Created on 24.02.2022
 @author: Andy Chien
 '''
 
-class MoveItExecuteTrajectoryState(EventState):
+class MMMoveItExecuteTrajectoryState(EventState):
     '''
     Use MoveIt to move robot by planned trajectory.
 
@@ -32,7 +32,7 @@ class MoveItExecuteTrajectoryState(EventState):
         '''
         Constructor
         '''
-        super(MoveItExecuteTrajectoryState, self).__init__(outcomes=['done', 'failed', 'collision', 'running'],
+        super(MMMoveItExecuteTrajectoryState, self).__init__(outcomes=['done', 'failed', 'collision', 'running'],
                                             input_keys=['joint_trajectory', 'block_execute', 'exe_client'],
                                             output_keys=['is_running', 'exe_client'])
         self._group_name = group_name

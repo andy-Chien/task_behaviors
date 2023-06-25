@@ -5,7 +5,7 @@ Created on 08/16/2021
 '''
 from flexbe_core import EventState, Logger
 
-class SetDataByDataState(EventState):
+class MMSetDataByDataState(EventState):
     '''
     Set/create userdata value from input userdata. (userdata_src_names and userdata_dst_names must be same size.)
 
@@ -18,7 +18,7 @@ class SetDataByDataState(EventState):
         '''
         Constructor
         '''
-        super(SetDataByDataState, self).__init__(outcomes=['done'],
+        super(MMSetDataByDataState, self).__init__(outcomes=['done'],
                                                 input_keys=userdata_src_names,
                                                 output_keys=userdata_dst_names)
         self._keys_src = userdata_src_names
