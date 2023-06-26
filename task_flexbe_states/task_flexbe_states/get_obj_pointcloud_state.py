@@ -9,6 +9,7 @@ import rclpy
 from cv_bridge import CvBridge, CvBridgeError
 import open3d as o3d
 import numpy as np
+import quaternion as qtn
 from tf2_ros import TransformException
 from tf2_ros.buffer import Buffer
 from tf2_ros.transform_listener import TransformListener
@@ -31,11 +32,11 @@ class GetObjPointCloudState(EventState):
     <= failed 						Robot move failed.
     '''
 
-    def __init__(self, depth_camera_info, depth_image_topic, tip_link):
+    def __init__(self, depth_camera_info, depth_image_topic, tip_link, camera_frame):
         '''
         Constructor
         '''
-        super(GetObjPointCloudState, self).__init__(outcomes=['done', 'failed', 'next'],
+        super(GetObjPointCloudState, self).__init__(outcomes=['done', 'failed', 'second', 'third'],
                                                     output_keys=['obj_pointcloud'])
         
         self._node = GetObjPointCloudState._node
@@ -53,6 +54,7 @@ class GetObjPointCloudState(EventState):
         self.info_received = False
         self.color_image_received = False
         self.depth_image_received = False
+        self.camera_frame = camera_frame
         self.bridge = CvBridge()
 
         self.depth_camera_info = None
@@ -72,12 +74,17 @@ class GetObjPointCloudState(EventState):
             self.cnt_depth_img = 0
             return 'failed'
         
-        if self.cnt_depth_img != 3:
+        if self.cnt_depth_img == 1:
             self.info_received = False
             self.depth_image_received = False
-            return 'next'
+            return 'second'
+        
+        elif self.cnt_depth_img == 2:
+            self.info_received = False
+            self.depth_image_received = False
+            return 'third'
+        
         else:
-
             self.cnt_depth_img = 0
             self.info_received = False
             self.depth_image_received = False
@@ -116,32 +123,61 @@ class GetObjPointCloudState(EventState):
             
             try:
                 camera_trans_tip = self.tf_buffer.lookup_transform(
-                    'camera_depth_optical',
+                    'world',
                     self.tip_link,
                     rclpy.time.Time())
+                world_trans_camera = self.tf_buffer.lookup_transform(
+                    'world',
+                    self.camera_frame,
+                    rclpy.time.Time()
+                )
             except TransformException as ex:
                 Logger.logwarn('lookupTransform for tip failed!')
                 return
-            center = np.array([[camera_trans_tip.transform.translation.x, 
-                                camera_trans_tip.transform.translation.y, 
-                                camera_trans_tip.transform.translation.z]])
+            center = np.array([[camera_trans_tip.transform.translation.x], 
+                                [camera_trans_tip.transform.translation.y], 
+                                [camera_trans_tip.transform.translation.z]])
             # center = np.array([[0.05], 
             #                     [0.05], 
             #                     [0.46]])
+
+            cam_2_tip = qtn.as_rotation_matrix(np.quaternion(camera_trans_tip.transform.rotation.w, 
+                                                             camera_trans_tip.transform.rotation.x, 
+                                                             camera_trans_tip.transform.rotation.y, 
+                                                             camera_trans_tip.transform.rotation.z))
+            world_2_camera = np.identity(4)
+            world_2_camera[:3, :3] = qtn.as_rotation_matrix(
+                np.quaternion(world_trans_camera.transform.rotation.w, 
+                                world_trans_camera.transform.rotation.x, 
+                                world_trans_camera.transform.rotation.y, 
+                                world_trans_camera.transform.rotation.z)
+            )
+            world_2_camera[:3, 3] = np.array([world_trans_camera.transform.translation.x, 
+                                                world_trans_camera.transform.translation.y, 
+                                                world_trans_camera.transform.translation.z])
+            
+            rot_vec = cam_2_tip[:3, 2]
+                        
+
             if self.cnt_depth_img == 1:
                 R = np.array([[1., 0., 0.], [0., 1., 0.], [0., 0., 1.]])
-            elif self.cnt_depth_img == 2:#rotate degree 120
-                R = np.array([[-0.5, -0.8660254, 0.], [0.8660254, -0.5, 0.], [0., 0., 1.]])
-            elif self.cnt_depth_img == 3:#rotate degree 240
+
+            elif self.cnt_depth_img == 2:#rotate degree -120
                 R = np.array([[-0.5, 0.8660254, 0.], [-0.8660254, -0.5, 0.], [0., 0., 1.]])
 
+            elif self.cnt_depth_img == 3:#rotate degree -240
+
+                R = np.array([[-0.5, -0.8660254, 0.], [0.8660254, -0.5, 0.], [0., 0., 1.]])
+ 
 
 
-
-            depthpcd = o3d.open3d.geometry.PointCloud.create_from_depth_image(o3d.geometry.Image(self.depth_img.astype(np.float32)), 
+            # R = cam_2_tip
+            depthpcd = o3d.open3d.geometry.PointCloud.create_from_depth_image(o3d.geometry.Image(self.depth_img.astype(np.float32) * 0.001), 
                                                                               cam.intrinsic, 
                                                                               depth_trunc=0)
-            # depthpcd.rotate(R, center)
+
+            depthpcd = depthpcd.transform(world_2_camera)
+            depthpcd = depthpcd.rotate(R, center)
             self.depthpcd.append(depthpcd)
 
     def on_stop(self):
@@ -159,6 +195,6 @@ class GetObjPointCloudState(EventState):
 
     def get_depth_image_Info(self, data):
         depth_image = self.bridge.imgmsg_to_cv2(data, desired_encoding='32FC1')
-        depth_image = np.array([[x if x < 450 and 380<j<480 and 150<i<330 else np.nan for j, x in enumerate(row)] for i, row in enumerate(depth_image)])
+        depth_image = np.array([[x if x < 450 and 320<j<555 and 180<i<410 else np.nan for j, x in enumerate(row)] for i, row in enumerate(depth_image)])
         self.depth_img = depth_image
         self.depth_image_received = True
