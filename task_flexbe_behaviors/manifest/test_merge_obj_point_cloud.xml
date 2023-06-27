@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<behavior name="Test Merge Obj Point Cloud">
+
+	<executable package_path="task_flexbe_behaviors.test_merge_obj_point_cloud_sm" class="TestMergeObjPointCloudSM" />
+	<tagstring>v01</tagstring>
+	<author>TaiTing Tsai</author>
+	<date>Wed Jun 26 2023</date>
+	<description>
+		test merge obj point cloud
+	</description>
+
+
+	<!-- Contained Behaviors -->
+
+	<!-- Available Parameters -->
+	<params>
+
+		<param type="text" name="namespace" default="" label="namespace" hint="Sets the namespace" />
+
+		<param type="text" name="group_name" default="ur_manipulator" label="group_name" hint="Sets the group_name" />
+
+		<param type="yaml" name="joint_names" default="task_flexbe_behaviors/config/joint_names.yaml" label="joint_names" hint="Sets the joint_names">
+			<key name="joint_names" />
+		</param>
+
+	</params>
+
+
+</behavior>

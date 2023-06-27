@@ -108,6 +108,8 @@ class GetIkJointState(EventState):
         self._req.ik_request.robot_state = \
             self.generate_robot_state(self._joint_names, userdata.start_joints)
 
+        self._logger.info('-------------poseeeeeeeeeeeeeeeeeeeeeeeeeee------------------{}'.format(userdata.goal_pos))
+        self._logger.info('-------------poseeeeeeeeeeeeeeeeeeeeeeeeeee------------------{}'.format(userdata.goal_rot))
         self._req.ik_request.pose_stamped.header.stamp = self._time_now.to_msg()
         self._req.ik_request.pose_stamped.header.frame_id = 'world'
         self._req.ik_request.pose_stamped.pose.position.x = goal_trans[0]
