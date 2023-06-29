@@ -32,41 +32,30 @@ class GQCNNGraspPlanState(EventState):
     <= failed 						Robot move failed.
     '''
 
-    def __init__(self, grasp_service, depth_camera_info):
+    def __init__(self, pj_grasp_service='/gqcnn_pj/grasp_planner_segmask', 
+                 suc_grasp_service='/gqcnn_suc/grasp_planner_segmask'):
         '''
         Constructor
         '''
         super(GQCNNGraspPlanState, self).__init__(outcomes=['done', 'failed', 'retry'],
                                                   input_keys=['mask_img_msg', 'camera_info_msg'],
-                                                  output_keys=['grasp_pos'])
+                                                  output_keys=['pj_pose', 'suc_pose'])
         
         self._node = GQCNNGraspPlanState._node
         ProxyServiceCaller._initialize(self._node)
-        # ProxySubscriberCached._initialize(self._node)
         self._logger = self._node.get_logger().info
         
-        self._grasp_service = grasp_service
-        self._depth_camera_info = depth_camera_info #'/depth_to_rgb/camera_info'
-        # self._color_image_topic = color_image_topic #'/rgb/image_raw'
-        # self._depth_image_topic = depth_image_topic #'/depth_to_rgb/image_raw'
+        self._pj_grasp_service = pj_grasp_service
+        self._suc_grasp_service = suc_grasp_service
         
         self.gqcnn_req = GQCNNGraspPlannerSegmask.Request()
-        self._gqcnn_client = ProxyServiceCaller({self._grasp_service: GQCNNGraspPlannerSegmask})
-        # self._depth_camera_info_subscriber_ = ProxySubscriberCached({self._depth_camera_info : CameraInfo})
-        # self._color_image_subscriber_ = ProxySubscriberCached({self._color_image_topic : Image})
-        # self._depth_image_subscriber_ = ProxySubscriberCached({self._depth_image_topic : Image})
-        self.info_received = False
-        self.color_image_received = False
-        self.depth_image_received = False
+        self._gqcnn_pj_client = ProxyServiceCaller({self._pj_grasp_service: GQCNNGraspPlannerSegmask})
+        self._gqcnn_suc_client = ProxyServiceCaller({self._suc_grasp_service: GQCNNGraspPlannerSegmask})
         self.bridge = CvBridge()
 
-        self.depth_camera_info = None
-        # self.color_img = Image()
-        # self.depth_img = Image()
-        self.color_img = None
-        self.depth_img = None
+        self.has_pj_server = False
+        self.has_suc_server = False
 
-        self._result = None
         self._fail_count = 0
         
     def stop(self):
@@ -77,22 +66,29 @@ class GQCNNGraspPlanState(EventState):
         Execute this state
         '''
 
-        # if not self.info_received or not self.color_image_received or not self.depth_image_received:
-        #     return 'retry'
-        
-        if not self._gqcnn_client.done(self._grasp_service):
-            # self._gqcnn_client.call_async(self._grasp_service, self.gqcnn_req) 
+        if not self.has_pj_server and not self.has_suc_server:
+            return 'failed'
+
+        if (self.has_suc_server and not self._gqcnn_suc_client.done(self._suc_grasp_service))\
+            or (self.has_pj_server and not self._gqcnn_pj_client.done(self._pj_grasp_service)):
             self._logger('waiting GQCNN')
             return
+        result = []
+        if self.has_pj_server:
+            result.append(self._gqcnn_pj_client.result(self._pj_grasp_service))
+        if self.has_suc_server:
+            result.append(self._gqcnn_suc_client.result(self._suc_grasp_service))
 
-        self._result = self._gqcnn_client.result(self._grasp_service)
-        img = self.bridge.imgmsg_to_cv2(self._result.grasp.thumbnail, desired_encoding='32FC1')
-        center_px = np.array(self._result.grasp.center_px, dtype=np.int32)
-        self._logger('self._result.grasp.center_px = {}'.format(center_px))
-        cv2.circle(img, center_px, 5, (255), -1)
-        plt.imshow(img, cmap='gray', vmin=0, vmax=2)
-        plt.show()
-        if self._result.grasp.q_value < 0.1:
+        for r in result:
+            img = self.bridge.imgmsg_to_cv2(r.grasp.thumbnail, desired_encoding='32FC1')
+            self._logger('center_px = {}, q_value = {}'.format(
+                r.grasp.center_px, r.grasp.q_value))
+            cv2.circle(img, np.array(r.grasp.center_px, dtype=np.uint32), 5, (255), -1)
+            plt.imshow(img, cmap='gray', vmin=0, vmax=2)
+            plt.show()
+
+        qv = [r.grasp.q_value for r in result]
+        if np.all(np.array(qv) < 0.1):
             self._fail_count += 1
             if self._fail_count > 10:
                 self._logger('[GQCNN Grasp Plan State]: Grasp plan failed')
@@ -100,59 +96,40 @@ class GQCNNGraspPlanState(EventState):
             else:
                 return 'retry'					
         else:
-            p, q = self._result.grasp.pose.position, self._result.grasp.pose.orientation
-
+            for r in result:
+                p, q = r.grasp.pose.position, r.grasp.pose.orientation
+                self._logger('grasp_pos = {}, {}, {}, qtn = {}, {}, {}, {}'.format(
+                    p.x, p.y, p.z, q.w, q.x, q.y, q.z))
             
-            grasp_pos = Pose()
-            grasp_pos.position.x = p.x
-            grasp_pos.position.y = p.y
-            grasp_pos.position.z = p.z
-            grasp_pos.orientation.w = q.w
-            grasp_pos.orientation.x = q.x
-            grasp_pos.orientation.y = q.y
-            grasp_pos.orientation.y = q.z
-            userdata.grasp_pos = grasp_pos
-            self._logger('grasp_pos = {}'.format(userdata.grasp_pos))
+            if self.has_pj_server and self.has_suc_server:
+                userdata.pj_pose = result[0].grasp.pose
+                userdata.suc_pose = result[1].grasp.pose
+            elif self.has_pj_server:
+                userdata.suc_pose = None
+                userdata.pj_pose = result[0].grasp.pose
+            elif self.has_suc_server:
+                userdata.pj_pose = None
+                userdata.suc_pose = result[0].grasp.pose
+            else:
+                userdata.pj_pose = None
+                userdata.suc_pose = None
+
             return 'done'
 
 
     def on_enter(self, userdata):
-        # self.info_received = False
-        # self.color_image_received = False
-        # self.depth_image_received = False
-        # # if self._depth_camera_info_subscriber_.has_msg(self._depth_camera_info):
-        # #     self.get_depth_camera_Info(self._depth_camera_info_subscriber_.get_last_msg(self._depth_camera_info))
-        # # if self._color_image_subscriber_.has_msg(self._color_image_topic):
-        # #     self.get_color_image_Info(self._color_image_subscriber_.get_last_msg(self._color_image_topic))
-        # # if self._depth_image_subscriber_.has_msg(self._depth_image_topic):
-        # #     self.get_depth_image_Info(self._depth_image_subscriber_.get_last_msg(self._depth_image_topic))
-        # if self._depth_camera_info_subscriber_.has_msg(self._depth_camera_info):
-        #     self.get_depth_camera_Info(self._depth_camera_info_subscriber_.get_last_msg(self._depth_camera_info))
-        #     self.get_color_image_Info(userdata)
-        #     self.get_depth_image_Info(userdata)
-
-
-        # if self.info_received and self.color_image_received and self.depth_image_received:
-        #     # np.save(os.getcwd()+"/depth_npy.npy",self.depth_img)
-
-
-        #     # depth_npy = os.getcwd()+"/depth_npy.npy"
-        #     # depth_img = DepthImage.open(depth_npy, frame=self.depth_camera_info.header.frame_id)
-        #     # camera_intr = CameraIntrinsics(self.depth_camera_info.header.frame_id, self.depth_camera_info.k[0],
-        #     #                                 self.depth_camera_info.k[4], self.depth_camera_info.k[2],
-        #     #                                 self.depth_camera_info.k[5], 0.0, self.depth_camera_info.height,
-        #     #                                 self.depth_camera_info.width,)
-        #     # self.gqcnn_req = GQCNNGraspPlannerSegmask.Request()
         self.gqcnn_req.color_image = userdata.mask_img_msg[0]
         self.gqcnn_req.depth_image = userdata.mask_img_msg[1]
         self.gqcnn_req.segmask = userdata.mask_img_msg[2]
         self.gqcnn_req.camera_info = userdata.camera_info_msg[1]
-        plt.imshow(self.bridge.imgmsg_to_cv2(userdata.mask_img_msg[2], desired_encoding='mono8'), cmap='gray', vmin=0, vmax=255)
-        plt.show()
-        self._logger('------------------------------ = {}'.format(self.gqcnn_req.color_image.encoding))
-        self._logger('------------------------------ = {}'.format(self.gqcnn_req.depth_image.encoding))
 
-        self._gqcnn_client.call_async(self._grasp_service, self.gqcnn_req)    
+        self.has_pj_server = self._gqcnn_pj_client.is_available(self._pj_grasp_service)
+        self.has_suc_server = self._gqcnn_suc_client.is_available(self._suc_grasp_service)
+
+        if self.has_pj_server:
+            self._gqcnn_pj_client.call_async(self._pj_grasp_service, self.gqcnn_req)
+        if self.has_suc_server:
+            self._gqcnn_suc_client.call_async(self._suc_grasp_service, self.gqcnn_req)
 
     def on_stop(self):
         pass
@@ -162,57 +139,3 @@ class GQCNNGraspPlanState(EventState):
 
     def on_resume(self, userdata):
         self.on_enter(userdata)
-
-    # def get_depth_camera_Info(self, data):
-    #     self.depth_camera_info = data
-    #     self.info_received = True
-
-    # def get_color_image_Info(self, data):
-    #     color_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
-    #     color_image = cv2.resize(color_image, (516, 386))
-    #     color_imagemm = self.bridge.cv2_to_imgmsg(color_image,"bgr8")
-    #     self.color_img = color_imagemm
-    #     self.color_image_received = True
-
-    # def get_depth_image_Info(self, data):
-    #     depth_image = self.bridge.imgmsg_to_cv2(data, desired_encoding='32FC1')
-    #     depth_image = cv2.resize(depth_image*0.001, (516, 386))
-    #     self.depth_img = depth_image
-    #     self.depth_image_received = True
-    def get_depth_camera_Info(self, data):
-        self.depth_camera_info = data
-        self.info_received = True
-
-    # def get_color_image_Info(self, data):
-    #     # color_image = self.bridge.imgmsg_to_cv2(data.mask_img_msg[0], "passthrough")
-    #     # color_image = cv2.resize(color_image, (516, 386))
-    #     # # cv2.imshow('colorImage', color_image)
-    #     # # cv2.waitKey(0)
-    #     # # cv2.destroyAllWindows()
-    #     # color_imagemm = self.bridge.cv2_to_imgmsg(color_image,encoding="bgr8")
-    #     # # self._logger('------------color----------------------- = {}'.format(color_imagemm.encoding))
-    #     # # color_imagemm = self.bridge.imgmsg_to_cv2(color_imagemm, desired_encoding="rgb8")
-    #     # # cv2.imshow('colorImage', color_image)
-    #     # # cv2.waitKey(0)
-    #     # # cv2.destroyAllWindows()
-    #     # # color_imagemm.encoding = "bgr8"
-    #     # self.color_img = color_imagemm
-    #     self.color_img = data.mask_img_msg[0]
-    #     self.color_image_received = True
-
-    # def get_depth_image_Info(self, data):
-    #     # depth_image = self.bridge.imgmsg_to_cv2(data.mask_img_msg[1], desired_encoding='passthrough')
-    #     # depth_image = cv2.resize(depth_image*0.00001, (516, 386))
-    #     # # cv2.imshow('depthImage', depth_image)
-    #     # # cv2.waitKey(0)
-    #     # # cv2.destroyAllWindows()
-    #     # depth_image = self.bridge.cv2_to_imgmsg(depth_image, encoding="64FC1")
-    #     # # self._logger('---------depth-------------------------- = {}'.format(depth_image.encoding))
-    #     # # depth_image = self.bridge.imgmsg_to_cv2(depth_image, desired_encoding="passthrough")
-    #     # # cv2.imshow('depthImage', depth_image)
-    #     # # cv2.waitKey(0)
-    #     # # cv2.destroyAllWindows()
-    #     # # depth_image.encoding = "32FC1"
-    #     # self.depth_img = depth_image
-    #     self.depth_img = data.mask_img_msg[1]
-    #     self.depth_image_received = True
