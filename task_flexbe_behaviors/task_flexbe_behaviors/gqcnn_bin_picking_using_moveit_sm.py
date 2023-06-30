@@ -10,7 +10,7 @@
 from flexbe_core import Behavior, Autonomy, OperatableStateMachine, ConcurrencyContainer, PriorityContainer, Logger
 from task_flexbe_behaviors.go_to_initial_pose_sm import GoToInitialPoseSM
 from task_flexbe_behaviors.grasp_plan_sm import GraspPlanSM
-from task_flexbe_behaviors.move_to_pick_old_sm import MoveToPickOLDSM
+from task_flexbe_behaviors.move_to_pick_sm import MoveToPickSM
 from task_flexbe_behaviors.move_to_place_sm import MoveToPlaceSM
 # Additional imports can be added inside the following tags
 # [MANUAL_IMPORT]
@@ -42,7 +42,7 @@ class GQCNNBinPickingUsingMoveItSM(Behavior):
 		# references to used behaviors
 		self.add_behavior(GoToInitialPoseSM, 'Go To Initial Pose')
 		self.add_behavior(GraspPlanSM, 'Grasp Plan')
-		self.add_behavior(MoveToPickOLDSM, 'Move To Pick OLD')
+		self.add_behavior(MoveToPickSM, 'Move To Pick')
 		self.add_behavior(MoveToPlaceSM, 'Move To Place')
 
 		# Additional initialization code can be added inside the following tags
@@ -92,13 +92,13 @@ class GQCNNBinPickingUsingMoveItSM(Behavior):
 			OperatableStateMachine.add('Grasp Plan',
 										self.use_behavior(GraspPlanSM, 'Grasp Plan',
 											parameters={'grasp_service': self.grasp_service}),
-										transitions={'finished': 'Move To Pick OLD', 'failed': 'failed', 'no_object': 'finished'},
+										transitions={'finished': 'Move To Pick', 'failed': 'failed', 'no_object': 'finished'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit, 'no_object': Autonomy.Inherit},
 										remapping={'trans_position': 'trans_position', 'trans_quaternion': 'trans_quaternion', 'obj_quat_tool': 'obj_quat_tool', 'target_position': 'target_position', 'target_quaternion': 'target_quaternion'})
 
 			# x:399 y:67
-			OperatableStateMachine.add('Move To Pick OLD',
-										self.use_behavior(MoveToPickOLDSM, 'Move To Pick OLD',
+			OperatableStateMachine.add('Move To Pick',
+										self.use_behavior(MoveToPickSM, 'Move To Pick',
 											parameters={'robot_name': self.robot_name, 'velocity': self.velocity, 'io_service': self.io_service, 'sim': self.sim}),
 										transitions={'finished': 'Move To Place', 'failed': 'Grasp Plan'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
