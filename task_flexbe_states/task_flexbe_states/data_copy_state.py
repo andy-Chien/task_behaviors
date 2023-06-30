@@ -2,6 +2,7 @@
 Created on 04/19/2022
 @author: Andy Chien
 ''' 
+import copy
 from flexbe_core import EventState
 
 class DataCopyState(EventState):
@@ -18,5 +19,5 @@ class DataCopyState(EventState):
                                             output_keys = ['data_out'])
 
     def execute(self, userdata):
-        userdata.data_out = userdata.data_in.copy()
+        userdata.data_out = copy.deepcopy(userdata.data_in)
         return 'done'

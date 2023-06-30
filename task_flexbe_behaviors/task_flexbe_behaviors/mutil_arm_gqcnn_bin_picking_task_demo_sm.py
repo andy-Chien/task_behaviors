@@ -8,11 +8,11 @@
 ###########################################################
 
 from flexbe_core import Behavior, Autonomy, OperatableStateMachine, ConcurrencyContainer, PriorityContainer, Logger
-from mm_flexbe_behaviors.move_arm_to_pose_sm import MoveArmToPoseSM
+from task_flexbe_behaviors.move_arm_to_pose_sm import MoveArmToPoseSM
 from task_flexbe_states.get_DIO_state import GetDIOState as task_flexbe_states__GetDIOState
 from task_flexbe_states.get_current_joints import GetCurrentJoints as task_flexbe_states__GetCurrentJoints
 from task_flexbe_states.get_ik_joint_state import GetIkJointState
-from task_flexbe_states.get_mask_image_state import GetMaskImageState
+from task_flexbe_states.get_mask_image_state import ImgMaskingClientState
 from task_flexbe_states.gqcnn_grasp_plan_state import GQCNNGraspPlanState
 from task_flexbe_states.moveit_async_execute_trajectory import MoveItAsyncExecuteTrajectory as task_flexbe_states__MoveItAsyncExecuteTrajectory
 from task_flexbe_states.moveit_joint_plan_state import MoveItJointsPlanState as task_flexbe_states__MoveItJointsPlanState
@@ -49,7 +49,7 @@ class MutilArmGqcnnBinPickingTaskDemoSM(Behavior):
 		GetCurrentJoints.initialize_ros(node)
 		GetDIOState.initialize_ros(node)
 		GetIkJointState.initialize_ros(node)
-		GetMaskImageState.initialize_ros(node)
+		ImgMaskingClientState.initialize_ros(node)
 		MoveItAsyncExecuteTrajectory.initialize_ros(node)
 		MoveItJointsPlanState.initialize_ros(node)
 		SetDIOState.initialize_ros(node)
@@ -86,7 +86,7 @@ class MutilArmGqcnnBinPickingTaskDemoSM(Behavior):
 		with _state_machine:
 			# x:180 y:52
 			OperatableStateMachine.add('get_mask_image',
-										GetMaskImageState(mask_service='image_masking'),
+										ImgMaskingClientState(mask_service='image_masking'),
 										transitions={'done': 'get_grasping_pose', 'failed': 'failed', 'retry': 'get_mask_image'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off, 'retry': Autonomy.Off},
 										remapping={'mask_imgmsg': 'mask_imgmsg'})

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<behavior name="Tool Selection based on GQCNN">
+
+	<executable package_path="task_flexbe_behaviors.tool_selection_based_on_gqcnn_sm" class="ToolSelectionbasedonGQCNNSM" />
+	<tagstring>v1</tagstring>
+	<author>Andy Chien</author>
+	<date>Sat Jul 01 2023</date>
+	<description>
+		Using FC pj and suc gqcnn to decide a tool and the grasp pose
+	</description>
+
+
+	<!-- Contained Behaviors -->
+
+	<!-- Available Parameters -->
+
+</behavior>

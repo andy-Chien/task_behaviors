@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<behavior name="Multiple Tools Bin Picking Task">
+
+	<executable package_path="task_flexbe_behaviors.multiple_tools_bin_picking_task_sm" class="MultipleToolsBinPickingTaskSM" />
+	<tagstring>v0</tagstring>
+	<author>Andy Chien</author>
+	<date>Sat Jul 01 2023</date>
+	<description>
+		Bin picking using multiple tools depend on GQCNN
+	</description>
+
+
+	<!-- Contained Behaviors -->
+	<contains name="Move Arm To Pose Async" />
+	<contains name="Change Tool Task" />
+	<contains name="Move To Pick" />
+	<contains name="Move To Place" />
+	<contains name="Tool Selection based on GQCNN" />
+
+	<!-- Available Parameters -->
+	<params>
+
+		<param type="text" name="group_name" default="ur_manipulator" label="group_name" hint="Sets the group_name" />
+
+		<param type="text" name="namespace" default="" label="namespace" hint="Sets the namespace" />
+
+		<param type="boolean" name="sim" default="False" label="sim" hint="Sets the sim" />
+
+	</params>
+
+
+</behavior>

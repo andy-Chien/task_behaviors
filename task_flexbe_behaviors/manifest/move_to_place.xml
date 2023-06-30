@@ -12,20 +12,26 @@
 
 
 	<!-- Contained Behaviors -->
+	<contains name="Move Arm To Pose Async" />
 
 	<!-- Available Parameters -->
 	<params>
-
-		<param type="text" name="robot_name" default="" label="robot_name" hint="Sets the robot_name" />
 
 		<param type="text" name="io_service" default="/ur_hardware_interface/set_io" label="io_service" hint="Sets the io_service" />
 
 		<param type="boolean" name="sim" default="True" label="sim" hint="Sets the sim" />
 
-		<param type="numeric" name="velocity" default="10" label="velocity" hint="Sets the velocity">
-			<min value="0" />
-			<max value="100" />
+		<param type="boolean" name="place_in_random_area" default="False" label="place_in_random_area" hint="Sets the place_in_random_area" />
+
+		<param type="yaml" name="joint_names" default="task_flexbe_behaviors/config/joint_names.yaml" label="joint_names" hint="Sets the joint_names">
+			<key name="joint_names" />
 		</param>
+
+		<param type="boolean" name="select_tool_by_input" default="False" label="select_tool_by_input" hint="Sets the select_tool_by_input" />
+
+		<param type="text" name="namespace" default="" label="namespace" hint="Sets the namespace" />
+
+		<param type="text" name="group_name" default="ur_manipulator" label="group_name" hint="Sets the group_name" />
 
 	</params>
 

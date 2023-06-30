@@ -20,7 +20,7 @@ class GetDIOState(EventState):
     <= done                  Set io finished.
     '''
 
-    def __init__(self, io_topic, sim=False):
+    def __init__(self, io_topic, namespace='', sim=False):
         '''
         Constructor
         '''
@@ -28,7 +28,16 @@ class GetDIOState(EventState):
                                           input_keys=['pins'],
                                           output_keys=['vals'])
         self._sim = sim
-        self._io_topic = io_topic
+
+        if not io_topic.startswith('/'): 
+            io_topic = '/' + io_topic 
+
+        if len(namespace) > 1 or (len(namespace) == 1 and namespace.startswith('/')):
+            namespace = namespace[1:] if namespace[0] == '/' else namespace
+            self._io_topic = '/' + namespace + io_topic
+        else:
+            self._io_topic = namespace + io_topic
+
         if not sim:
             self._io_sub = ProxySubscriberCached({self._io_topic: IOStates})
 

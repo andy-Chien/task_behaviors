@@ -7,6 +7,7 @@ from flexbe_core import EventState, Logger
 from moveit_msgs.msg import MoveItErrorCodes, RobotState
 from moveit_msgs.srv import GetPositionIK
 from flexbe_core.proxy import ProxyServiceCaller
+from geometry_msgs.msg import Pose, PoseStamped
 from sensor_msgs.msg import JointState
 
 class MoveItComputeIK(EventState):
@@ -18,7 +19,7 @@ class MoveItComputeIK(EventState):
     -- joint_names      string[]     joints name of robot
 
     ># start_joints     float[]      start position of joints for IK compute
-    ># target_pose      geometry_msgs/Pose target pose
+    ># target_pose      multiple     can be geometry_msgs Pose PoseStamped or list of xyzwxyz
     ># translation_list float[]      translation list for target_pose x, y, z
 
     #> target_joints    float[]      target joints
@@ -27,7 +28,7 @@ class MoveItComputeIK(EventState):
     <= failed
     '''
 
-    def __init__(self, group_name, joint_names, namespace=''):
+    def __init__(self, group_name, joint_names, namespace='', from_frame='base_link', to_frame='tool_tip'):
         '''Constructor'''
         super(MoveItComputeIK, self).__init__(outcomes = ['done', 'failed'],
                                             input_keys = ['start_joints', 'target_pose','translation_list'],
@@ -40,15 +41,17 @@ class MoveItComputeIK(EventState):
         self._req = GetPositionIK.Request()
         self._req.ik_request.group_name = group_name
 
+        self._from_frame = from_frame
+
         if len(namespace) > 1 or (len(namespace) == 1 and namespace.startswith('/')):
             namespace = namespace[1:] if namespace[0] == '/' else namespace
             self._ik_service = '/' + namespace + '/compute_ik'
             self._joint_names = [namespace + '_' + jn for jn in joint_names]
-            self._req.ik_request.ik_link_name = namespace + '_tool_tip'
+            self._req.ik_request.ik_link_name = namespace + '_' + to_frame
         else:
             self._ik_service = '/compute_ik'
             self._joint_names = joint_names
-            self._req.ik_request.ik_link_name = 'tool_tip'
+            self._req.ik_request.ik_link_name = to_frame
 
         self._ik_client = ProxyServiceCaller({self._ik_service: GetPositionIK})
 
@@ -77,24 +80,39 @@ class MoveItComputeIK(EventState):
             self.generate_robot_state(self._joint_names, userdata.start_joints)
 
         self._logger.warn('userdata.target_pose = {}'.format(userdata.target_pose))
-        self._req.ik_request.pose_stamped = userdata.target_pose
+        ps = PoseStamped()
+        if isinstance(userdata.target_pose, PoseStamped):
+            ps = userdata.target_pose
+        elif isinstance(userdata.target_pose, Pose):
+            ps.pose = userdata.target_pose
+        elif isinstance(userdata.target_pose, (list, np.ndarray)):
+            tp = userdata.target_pose
+            assert len(tp) == 7
+            ppp, ppo = ps.pose.position, ps.pose.orientation
+            (ppp.x, ppp.y, ppp.z) = tp[:3]
+            (ppo.w, ppo.x, ppo.y, ppo.z) = tp[3:]
 
-        userdata.translation_list
+        ps.header.stamp = self._node.get_clock().now().to_msg()
+        if ps.header.frame_id == '':
+            ps.header.frame_id = self._from_frame
 
-        self._req.ik_request.pose_stamped.header.stamp = self._time_now.to_msg()
-        self._req.ik_request.pose_stamped.pose.position.x += userdata.translation_list[0]
-        self._req.ik_request.pose_stamped.pose.position.y += userdata.translation_list[1]
-        self._req.ik_request.pose_stamped.pose.position.z += userdata.translation_list[2]
-        self._logger.info('-------------------------------{}'.format(self._req.ik_request.pose_stamped))
+        tl = userdata.translation_list
+        if not tl is None and len(tl) == 3 and np.linalg.norm(tl) > 0.001:
+            ps.pose.position.x += tl[0]
+            ps.pose.position.y += tl[1]
+            ps.pose.position.z += tl[2]
+        self._logger.info('Pose of ik request is {}'.format(ps))
+
+        self._req.ik_request.pose_stamped = ps
         self._ik_client.call_async(self._ik_service, self._req)
 
     def generate_robot_state(self, joint_names, start_joints):
         state = RobotState()
-        if type(start_joints) == JointState:
+        if isinstance(start_joints, JointState):
             state.joint_state = start_joints
         else:
             sj = np.array(start_joints, dtype=float)
-            if np.any(np.absolute(sj) > np.pi * 2):
+            if np.any(np.abs(sj) > np.pi * 2):
                 sj = sj * np.pi / 180
             state.joint_state.name = joint_names
             state.joint_state.position = list(sj)

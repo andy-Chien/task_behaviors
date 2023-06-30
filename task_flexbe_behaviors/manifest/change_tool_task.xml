@@ -24,6 +24,8 @@
 			<key name="joint_names" />
 		</param>
 
+		<param type="boolean" name="sim" default="False" label="sim" hint="Sets the sim" />
+
 	</params>
 
 

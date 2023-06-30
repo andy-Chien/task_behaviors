@@ -22,7 +22,7 @@ class SetDIOState(EventState):
     <= failed       bool     Set io failed.
     '''
 
-    def __init__(self, io_service, sim=False):
+    def __init__(self, io_service, namespace='', sim=False):
         '''
         Constructor
         '''
@@ -30,6 +30,16 @@ class SetDIOState(EventState):
                                           input_keys=['pins', 'vals'])
         self._sim = sim
         self._io_service = io_service
+
+        if not io_service.startswith('/'): 
+            io_service = '/' + io_service 
+
+        if len(namespace) > 1 or (len(namespace) == 1 and namespace.startswith('/')):
+            namespace = namespace[1:] if namespace[0] == '/' else namespace
+            self._io_service = '/' + namespace + io_service
+        else:
+            self._io_service = namespace + io_service
+        
         if not sim:
             self._set_io = ProxyServiceCaller({self._io_service: SetIO})
 

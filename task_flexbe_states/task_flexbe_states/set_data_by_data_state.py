@@ -4,6 +4,7 @@ Created on 08/16/2021
 @author: Frank Lyu
 '''
 from flexbe_core import EventState, Logger
+import copy
 
 class SetDataByDataState(EventState):
     '''
@@ -35,7 +36,7 @@ class SetDataByDataState(EventState):
                 raise Exception('[SetDataByDataState] src names and dst names must be same size.')
 
             for key_src, key_dst in zip(self._keys_src, self._keys_dst):
-                userdata[key_dst] = userdata[key_src]
+                userdata[key_dst] = copy.deepcopy(userdata[key_src])
             self.success = True
         except Exception as e:
             Logger.logerr('Failed to create userdata value:\n%s ' % str(e))
