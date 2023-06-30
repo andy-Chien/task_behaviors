@@ -2,7 +2,7 @@
 
 <behavior name="Move Arm To Pose">
 
-	<executable package_path="mm_flexbe_behaviors.move_arm_to_pose_sm" class="MoveArmToPoseSM" />
+	<executable package_path="task_flexbe_behaviors.move_arm_to_pose_sm" class="MoveArmToPoseSM" />
 	<tagstring>v1</tagstring>
 	<author>Andy Chien</author>
 	<date>Tue Mar 14 2023</date>
@@ -18,11 +18,13 @@
 
 		<param type="text" name="group_name" default="mobile_manipulator" label="group_name" hint="Sets the group_name" />
 
-		<param type="yaml" name="joint_names" default="mm_flexbe_behaviors/config/mvp1_config.yaml" label="joint_names" hint="Sets the joint_names">
+		<param type="yaml" name="joint_names" default="task_flexbe_behaviors/config/mvp1_config.yaml" label="joint_names" hint="Sets the joint_names">
 			<key name="joint_names" />
 		</param>
 
 		<param type="text" name="namespace" default="" label="namespace" hint="Sets the namespace" />
+
+		<param type="text" name="planner" default="BiTRRT" label="planner" hint="Sets the planner" />
 
 	</params>
 

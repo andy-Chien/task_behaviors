@@ -26,7 +26,6 @@ setup(
             'gqcnn_bin_picking_using_moveit_sm = task_flexbe_behaviors.gqcnn_bin_picking_using_moveit_sm',
             'gqcnn_picking_task_sm = task_flexbe_behaviors.gqcnn_picking_task_sm',
             'grasp_plan_sm = task_flexbe_behaviors.grasp_plan_sm',
-            'move_to_pick_sm = task_flexbe_behaviors.move_to_pick_sm',
             'move_to_place_sm = task_flexbe_behaviors.move_to_place_sm',
             'single_arm_random_sampled_planning_sm = task_flexbe_behaviors.single_arm_random_sampled_planning_sm'
             'multi_robot_roadmap_sampler_sm = task_flexbe_behaviors.multi_robot_roadmap_sampler_sm',

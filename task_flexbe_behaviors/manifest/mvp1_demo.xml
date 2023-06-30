@@ -2,7 +2,7 @@
 
 <behavior name="Mvp1 Demo">
 
-	<executable package_path="mm_flexbe_behaviors.mvp1_demo_sm" class="Mvp1DemoSM" />
+	<executable package_path="task_flexbe_behaviors.mvp1_demo_sm" class="Mvp1DemoSM" />
 	<tagstring>v0</tagstring>
 	<author>Andy Chien</author>
 	<date>Mon Mar 13 2023</date>
@@ -19,7 +19,7 @@
 	<!-- Available Parameters -->
 	<params>
 
-		<param type="yaml" name="painting_areas" default="mm_flexbe_behaviors/config/mvp1_config.yaml" label="painting_areas" hint="Sets the painting_areas">
+		<param type="yaml" name="painting_areas" default="task_flexbe_behaviors/config/mvp1_config.yaml" label="painting_areas" hint="Sets the painting_areas">
 			<key name="painting_areas" />
 		</param>
 
@@ -28,11 +28,11 @@
 			<max value="5" />
 		</param>
 
-		<param type="yaml" name="image_paths" default="mm_flexbe_behaviors/config/mvp1_config.yaml" label="image_paths" hint="Sets the image_paths">
+		<param type="yaml" name="image_paths" default="task_flexbe_behaviors/config/mvp1_config.yaml" label="image_paths" hint="Sets the image_paths">
 			<key name="image_paths" />
 		</param>
 
-		<param type="yaml" name="area_index_of_image" default="mm_flexbe_behaviors/config/mvp1_config.yaml" label="area_index_of_image" hint="Sets the area_index_of_image">
+		<param type="yaml" name="area_index_of_image" default="task_flexbe_behaviors/config/mvp1_config.yaml" label="area_index_of_image" hint="Sets the area_index_of_image">
 			<key name="area_index_of_image" />
 		</param>
 

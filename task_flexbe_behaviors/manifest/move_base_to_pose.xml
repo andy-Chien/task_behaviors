@@ -2,7 +2,7 @@
 
 <behavior name="Move Base To Pose">
 
-	<executable package_path="mm_flexbe_behaviors.move_base_to_pose_sm" class="MoveBaseToPoseSM" />
+	<executable package_path="task_flexbe_behaviors.move_base_to_pose_sm" class="MoveBaseToPoseSM" />
 	<tagstring>v1</tagstring>
 	<author>Andy Chien</author>
 	<date>Mon Mar 13 2023</date>

@@ -8,9 +8,9 @@
 ###########################################################
 
 from flexbe_core import Behavior, Autonomy, OperatableStateMachine, ConcurrencyContainer, PriorityContainer, Logger
-from mm_flexbe_behaviors.move_arm_to_pose_sm import MoveArmToPoseSM
-from mm_flexbe_behaviors.move_base_to_pose_sm import MoveBaseToPoseSM
-from mm_flexbe_behaviors.move_mm_to_pose_sm import MoveMMToPoseSM
+from task_flexbe_behaviors.move_arm_to_pose_sm import MoveArmToPoseSM
+from task_flexbe_behaviors.move_base_to_pose_sm import MoveBaseToPoseSM
+from task_flexbe_behaviors.move_mm_to_pose_sm import MoveMMToPoseSM
 from mm_flexbe_states.get_capture_pose import GetCapturePose
 from mm_flexbe_states.get_painting_params import GetPaintingParams
 from mm_flexbe_states.painting_path_planning import PaintingPathPlanning
