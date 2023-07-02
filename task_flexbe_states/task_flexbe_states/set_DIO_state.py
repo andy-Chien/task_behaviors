@@ -4,7 +4,7 @@ Created on 26/02/2022
 @author: Andy Chien
 '''
 from ur_msgs.msg import IOStates
-from ur_msgs.srv import SetIO, SetIORequest
+from ur_msgs.srv import SetIO
 from flexbe_core import EventState, Logger
 from flexbe_core.proxy.proxy_service_caller import ProxyServiceCaller
 
@@ -51,5 +51,8 @@ class SetDIOState(EventState):
             self.result = True
         else:    
             for p, v in zip(userdata.pins, userdata.vals):
-                req = SetIORequest(SetIORequest.FUN_SET_DIGITAL_OUT, p, v)
+                req = SetIO.Request()
+                req.fun = SetIO.Request.FUN_SET_DIGITAL_OUT
+                req.pin = p
+                req.state = v
                 self.result = self._set_io.call(self._io_service, req)

@@ -2,3 +2,18 @@ random_place_pose:
   pos_min: [0, 0, 0]
   pos_max: [0, 0, 0]
   quat: [1, 0, 0, 0]
+
+place_pos_min: [0.0, 0.0, 0.0]
+place_pos_max: [0.1, 0.1, 0.1]
+
+vacuum_io_pins: [2]
+pressure_sensor_pin: [3]
+
+infront_sucker: [38.81, -84.56, 63.86, -69.23, -89.29, -5.65]
+sucker_spot: [0.6200551986694336, -1.38384706178774058, 1.0053377151489258, -1.1916464010821741, -1.5656312147723597, -0.16830856004823858]
+
+io_service: io_service
+io_topic: io_topic
+
+init_pose: [0.7, 0.0, 0.7, 0.0, 1.0, 0.0, 0.0]
+init_joints: [40., -80., 64., -70., -90., 0.]

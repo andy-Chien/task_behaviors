@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<behavior name="Move Arm To Joints Async">
+
+	<executable package_path="task_flexbe_behaviors.move_arm_to_joints_async_sm" class="MoveArmToJointsAsyncSM" />
+	<tagstring>v1</tagstring>
+	<author>Andy Chien</author>
+	<date>Tue Jun 30 2023</date>
+	<description>
+		Move arm to target joints using MoveIt and mm trajectory controller.
+In case of using current joint as start joints, just set the input start joints to any
+	</description>
+
+
+	<!-- Contained Behaviors -->
+
+	<!-- Available Parameters -->
+	<params>
+
+		<param type="text" name="group_name" default="mobile_manipulator" label="group_name" hint="Sets the group_name" />
+
+		<param type="yaml" name="joint_names" default="task_flexbe_behaviors/config/mvp1_config.yaml" label="joint_names" hint="Sets the joint_names">
+			<key name="joint_names" />
+		</param>
+
+		<param type="text" name="namespace" default="" label="namespace" hint="Sets the namespace" />
+
+		<param type="text" name="planner" default="BiTRRT" label="planner" hint="Sets the planner" />
+
+		<param type="boolean" name="wait" default="True" label="wait" hint="Sets the wait" />
+
+		<param type="boolean" name="use_curr_as_start" default="False" label="use_curr_as_start" hint="Sets the use_curr_as_start" />
+
+	</params>
+
+
+</behavior>

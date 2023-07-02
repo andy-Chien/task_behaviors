@@ -8,7 +8,6 @@
 ###########################################################
 
 from flexbe_core import Behavior, Autonomy, OperatableStateMachine, ConcurrencyContainer, PriorityContainer, Logger
-from mm_flexbe_states.moveit_compute_ik import MoveItComputeIK
 from task_flexbe_states.decision_by_param_state import DecisionByParam
 from task_flexbe_states.get_current_joints import GetCurrentJoints
 from task_flexbe_states.moveit_async_execute_trajectory import MoveItAsyncExecuteTrajectory
@@ -24,16 +23,16 @@ from task_flexbe_states.moveit_wait_for_execute_state import WaitForRunningState
 Created on Tue Jun 30 2023
 @author: Andy Chien
 '''
-class MoveArmToPoseAsyncSM(Behavior):
+class MoveArmToJointsAsyncSM(Behavior):
     '''
-    Move arm to target pose using MoveIt and mm trajectory controller.
+    Move arm to target joints using MoveIt and mm trajectory controller.
 In case of using current joint as start joints, just set the input start joints to any
     '''
 
 
     def __init__(self, node):
-        super(MoveArmToPoseAsyncSM, self).__init__()
-        self.name = 'Move Arm To Pose Async'
+        super(MoveArmToJointsAsyncSM, self).__init__()
+        self.name = 'Move Arm To Joints Async'
 
         # parameters of this behavior
         self.add_parameter('group_name', 'mobile_manipulator')
@@ -42,8 +41,6 @@ In case of using current joint as start joints, just set the input start joints 
         self.add_parameter('planner', 'BiTRRT')
         self.add_parameter('wait', True)
         self.add_parameter('use_curr_as_start', False)
-        self.add_parameter('from_frame', 'base_link')
-        self.add_parameter('to_frame', 'tool_tip')
 
         # references to used behaviors
         OperatableStateMachine.initialize_ros(node)
@@ -53,7 +50,6 @@ In case of using current joint as start joints, just set the input start joints 
         DecisionByParam.initialize_ros(node)
         GetCurrentJoints.initialize_ros(node)
         MoveItAsyncExecuteTrajectory.initialize_ros(node)
-        MoveItComputeIK.initialize_ros(node)
         MoveItJointsPlanState.initialize_ros(node)
         WaitForRunningState.initialize_ros(node)
 
@@ -68,11 +64,9 @@ In case of using current joint as start joints, just set the input start joints 
 
     def create(self):
         # x:562 y:450, x:314 y:219
-        _state_machine = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['target_pose', 'translation_list', 'start_joints', 'velocity', 'exe_client'], output_keys=['target_joints'])
+        _state_machine = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['start_joints', 'velocity', 'target_joints', 'exe_client'], output_keys=['target_joints'])
         _state_machine.userdata.exe_client = None
         _state_machine.userdata.velocity = 10
-        _state_machine.userdata.target_pose = None
-        _state_machine.userdata.translation_list = [0.0 ,0.0 ,0.0]
         _state_machine.userdata.planner = None
         _state_machine.userdata.start_joints = None
         _state_machine.userdata.target_joints = None
@@ -104,13 +98,6 @@ In case of using current joint as start joints, just set the input start joints 
                                         autonomy={'done': Autonomy.Off, 'no_msg': Autonomy.Off},
                                         remapping={'curr_joints': 'start_joints'})
 
-            # x:94 y:45
-            OperatableStateMachine.add('ik',
-                                        MoveItComputeIK(group_name=self.group_name, joint_names=self.joint_names, namespace=self.namespace, from_frame=self.from_frame, to_frame=self.to_frame),
-                                        transitions={'done': 'plan', 'failed': 'failed'},
-                                        autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off},
-                                        remapping={'start_joints': 'start_joints', 'target_pose': 'target_pose', 'translation_list': 'translation_list', 'target_joints': 'target_joints'})
-
             # x:303 y:66
             OperatableStateMachine.add('plan',
                                         MoveItJointsPlanState(group_name=self.group_name, joint_names=self.joint_names, retry_cnt=3, namespace=self.namespace, planner='RRTConnectkConfigDefault', time_out=0.5, attempts=10),
@@ -125,10 +112,10 @@ In case of using current joint as start joints, just set the input start joints 
                                         autonomy={'waiting': Autonomy.Off, 'done': Autonomy.Off, 'collision': Autonomy.Off, 'failed': Autonomy.Off},
                                         remapping={'exe_client': 'exe_client'})
 
-            # x:86 y:146
+            # x:82 y:69
             OperatableStateMachine.add('wait_until',
                                         WaitForRunningState(wait_until_complete_rate=70, wait_until_points_left=0, namespace=self.namespace),
-                                        transitions={'waiting': 'wait_until', 'done': 'ik', 'collision': 'failed', 'failed': 'failed'},
+                                        transitions={'waiting': 'wait_until', 'done': 'plan', 'collision': 'failed', 'failed': 'failed'},
                                         autonomy={'waiting': Autonomy.Off, 'done': Autonomy.Off, 'collision': Autonomy.Off, 'failed': Autonomy.Off},
                                         remapping={'exe_client': 'exe_client'})
 

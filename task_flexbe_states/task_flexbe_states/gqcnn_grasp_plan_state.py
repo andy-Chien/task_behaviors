@@ -37,9 +37,9 @@ class GQCNNGraspPlanState(EventState):
         '''
         Constructor
         '''
-        super(GQCNNGraspPlanState, self).__init__(outcomes=['done', 'failed', 'retry'],
+        super(GQCNNGraspPlanState, self).__init__(outcomes=['done', 'failed', 'retry', 'nothing'],
                                                   input_keys=['mask_img_msg', 'camera_info_msg'],
-                                                  output_keys=['pj_pose', 'suc_pose'])
+                                                  output_keys=['pj_pose', 'suc_pose', 'frame', 'pj_qv', 'suc_qv'])
         
         self._node = GQCNNGraspPlanState._node
         ProxyServiceCaller._initialize(self._node)
@@ -122,6 +122,7 @@ class GQCNNGraspPlanState(EventState):
         self.gqcnn_req.depth_image = userdata.mask_img_msg[1]
         self.gqcnn_req.segmask = userdata.mask_img_msg[2]
         self.gqcnn_req.camera_info = userdata.camera_info_msg[1]
+        self.image_frame = self.gqcnn_req.depth_image.header.frame_id
 
         self.has_pj_server = self._gqcnn_pj_client.is_available(self._pj_grasp_service)
         self.has_suc_server = self._gqcnn_suc_client.is_available(self._suc_grasp_service)

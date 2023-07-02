@@ -36,12 +36,16 @@ class MoveToPickSM(Behavior):
         self.name = 'Move To Pick'
 
         # parameters of this behavior
-        self.add_parameter('io_service', '/ur_hardware_interface/set_io')
+        self.add_parameter('io_service', dict())
         self.add_parameter('sim', True)
         self.add_parameter('joint_names', dict())
         self.add_parameter('select_tool_by_input', False)
         self.add_parameter('namespace', '')
         self.add_parameter('group_name', 'ur_manipulator')
+        self.add_parameter('vacuum_io_pins', dict())
+        self.add_parameter('pressure_sensor_pin', dict())
+        self.add_parameter('io_topic', dict())
+        self.add_parameter('tool_name', 'suction')
 
         # references to used behaviors
         OperatableStateMachine.initialize_ros(node)
@@ -70,9 +74,9 @@ class MoveToPickSM(Behavior):
 
     def create(self):
         # x:1041 y:339, x:765 y:293
-        _state_machine = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['vacuum_io_pins', 'vacuum_io_vals', 'start_joints', 'pick_pose', 'pick_pose', 'pressure_sensor_pin', 'velocity'], output_keys=['target_joints'])
-        _state_machine.userdata.vacuum_io_pins = [1]
-        _state_machine.userdata.vacuum_io_vals = [0]
+        _state_machine = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['start_joints', 'velocity', 'exe_client', 'pick_pose'], output_keys=['target_joints'])
+        _state_machine.userdata.vacuum_io_pins = self.vacuum_io_pins
+        _state_machine.userdata.vacuum_io_vals = [1]
         _state_machine.userdata.exe_client = None
         _state_machine.userdata.translation_list = [.0, .0, 0.1]
         _state_machine.userdata.start_joints = None
@@ -80,7 +84,7 @@ class MoveToPickSM(Behavior):
         _state_machine.userdata.pick_pose = None
         _state_machine.userdata.tool_name = None
         _state_machine.userdata.translation_zero = [.0, .0, .0]
-        _state_machine.userdata.pressure_sensor_pin = [2]
+        _state_machine.userdata.pressure_sensor_pin = self.pressure_sensor_pin
         _state_machine.userdata.velocity = 10
 
         # Additional creation code can be added inside the following tags
@@ -96,7 +100,7 @@ class MoveToPickSM(Behavior):
                                             parameters={'wait': False}),
                                         transitions={'finished': 'select_tool_depend_on_input', 'failed': 'failed'},
                                         autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
-                                        remapping={'target_pose': 'pick_pose', 'translation_list': 'translation_list', 'start_joints': 'start_joints', 'velocity': 'velocity', 'target_joints': 'target_joints'})
+                                        remapping={'target_pose': 'pick_pose', 'translation_list': 'translation_list', 'start_joints': 'start_joints', 'velocity': 'velocity', 'exe_client': 'exe_client', 'target_joints': 'target_joints'})
 
             # x:521 y:215
             OperatableStateMachine.add('Move Arm To Obj Pose Async 2',
@@ -104,7 +108,7 @@ class MoveToPickSM(Behavior):
                                             parameters={'group_name': self.group_name, 'joint_names': self.joint_names, 'namespace': self.namespace, 'wait': False}),
                                         transitions={'finished': 'suc', 'failed': 'failed'},
                                         autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
-                                        remapping={'target_pose': 'pick_pose', 'translation_list': 'translation_zero', 'start_joints': 'start_joints', 'velocity': 'velocity', 'target_joints': 'target_joints'})
+                                        remapping={'target_pose': 'pick_pose', 'translation_list': 'translation_zero', 'start_joints': 'start_joints', 'velocity': 'velocity', 'exe_client': 'exe_client', 'target_joints': 'target_joints'})
 
             # x:854 y:228
             OperatableStateMachine.add('Move Arm To Obj Up Pose Async 2',
@@ -112,7 +116,7 @@ class MoveToPickSM(Behavior):
                                             parameters={'group_name': self.group_name, 'joint_names': self.joint_names, 'namespace': self.namespace, 'wait': False}),
                                         transitions={'finished': 'finished', 'failed': 'failed'},
                                         autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
-                                        remapping={'target_pose': 'pick_pose', 'translation_list': 'translation_list', 'start_joints': 'start_joints', 'velocity': 'velocity', 'target_joints': 'target_joints'})
+                                        remapping={'target_pose': 'pick_pose', 'translation_list': 'translation_list', 'start_joints': 'start_joints', 'velocity': 'velocity', 'exe_client': 'exe_client', 'target_joints': 'target_joints'})
 
             # x:907 y:409
             OperatableStateMachine.add('cancel_execution',
@@ -123,7 +127,7 @@ class MoveToPickSM(Behavior):
 
             # x:551 y:419
             OperatableStateMachine.add('check_suc',
-                                        GetDIOState(io_topic=self.io_topic, namespace=self.namespace, sim=self.sim),
+                                        GetDIOState(io_topic='dfdfdf', namespace=self.namespace, sim=self.sim),
                                         transitions={'done': 'succked'},
                                         autonomy={'done': Autonomy.Off},
                                         remapping={'pins': 'pressure_sensor_pin', 'vals': 'pressure_sensor_val'})
@@ -173,7 +177,7 @@ class MoveToPickSM(Behavior):
                                             parameters={'group_name': self.group_name, 'joint_names': self.joint_names, 'namespace': self.namespace}),
                                         transitions={'finished': 'grasp', 'failed': 'failed'},
                                         autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
-                                        remapping={'target_pose': 'pick_pose', 'translation_list': 'translation_zero', 'start_joints': 'start_joints', 'velocity': 'velocity', 'target_joints': 'target_joints'})
+                                        remapping={'target_pose': 'pick_pose', 'translation_list': 'translation_zero', 'start_joints': 'start_joints', 'velocity': 'velocity', 'exe_client': 'exe_client', 'target_joints': 'target_joints'})
 
 
         return _state_machine

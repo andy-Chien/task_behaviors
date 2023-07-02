@@ -17,7 +17,9 @@
 	<!-- Available Parameters -->
 	<params>
 
-		<param type="text" name="io_service" default="/ur_hardware_interface/set_io" label="io_service" hint="Sets the io_service" />
+		<param type="yaml" name="io_service" default="task_flexbe_behaviors/config/pick_and_place.yaml" label="io_service" hint="Sets the io_service">
+			<key name="io_service" />
+		</param>
 
 		<param type="boolean" name="sim" default="True" label="sim" hint="Sets the sim" />
 
@@ -30,6 +32,20 @@
 		<param type="text" name="namespace" default="" label="namespace" hint="Sets the namespace" />
 
 		<param type="text" name="group_name" default="ur_manipulator" label="group_name" hint="Sets the group_name" />
+
+		<param type="yaml" name="vacuum_io_pins" default="task_flexbe_behaviors/config/pick_and_place.yaml" label="vacuum_io_pins" hint="Sets the vacuum_io_pins">
+			<key name="vacuum_io_pins" />
+		</param>
+
+		<param type="yaml" name="pressure_sensor_pin" default="task_flexbe_behaviors/config/pick_and_place.yaml" label="pressure_sensor_pin" hint="Sets the pressure_sensor_pin">
+			<key name="pressure_sensor_pin" />
+		</param>
+
+		<param type="yaml" name="io_topic" default="task_flexbe_behaviors/config/pick_and_place.yaml" label="io_topic" hint="Sets the io_topic">
+			<key name="io_topic" />
+		</param>
+
+		<param type="text" name="tool_name" default="suction" label="tool_name" hint="Sets the tool_name" />
 
 	</params>
 

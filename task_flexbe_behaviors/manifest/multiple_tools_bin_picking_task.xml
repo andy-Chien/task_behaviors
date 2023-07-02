@@ -12,7 +12,7 @@
 
 
 	<!-- Contained Behaviors -->
-	<contains name="Move Arm To Pose Async" />
+	<contains name="Move Arm To Joints Async" />
 	<contains name="Change Tool Task" />
 	<contains name="Move To Pick" />
 	<contains name="Move To Place" />
@@ -25,7 +25,25 @@
 
 		<param type="text" name="namespace" default="" label="namespace" hint="Sets the namespace" />
 
-		<param type="boolean" name="sim" default="False" label="sim" hint="Sets the sim" />
+		<param type="boolean" name="sim" default="True" label="sim" hint="Sets the sim" />
+
+		<param type="yaml" name="init_joints" default="task_flexbe_behaviors/config/pick_and_place.yaml" label="init_joints" hint="Sets the init_joints">
+			<key name="init_joints" />
+		</param>
+
+		<param type="yaml" name="pressure_sensor_pin" default="task_flexbe_behaviors/config/pick_and_place.yaml" label="pressure_sensor_pin" hint="Sets the pressure_sensor_pin">
+			<key name="pressure_sensor_pin" />
+		</param>
+
+		<param type="text" name="pick_and_place_param_file" default="task_flexbe_behaviors/config/pick_and_place.yaml" label="pick_and_place_param_file" hint="Sets the pick_and_place_param_file" />
+
+		<param type="yaml" name="io_topic" default="task_flexbe_behaviors/config/pick_and_place.yaml" label="io_topic" hint="Sets the io_topic">
+			<key name="io_topic" />
+		</param>
+
+		<param type="yaml" name="io_service" default="task_flexbe_behaviors/config/pick_and_place.yaml" label="io_service" hint="Sets the io_service">
+			<key name="io_service" />
+		</param>
 
 	</params>
 

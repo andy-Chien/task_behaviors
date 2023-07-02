@@ -36,13 +36,17 @@ class MoveToPlaceSM(Behavior):
         self.name = 'Move To Place'
 
         # parameters of this behavior
-        self.add_parameter('io_service', '/ur_hardware_interface/set_io')
+        self.add_parameter('io_service', dict())
         self.add_parameter('sim', True)
         self.add_parameter('place_in_random_area', False)
         self.add_parameter('joint_names', dict())
         self.add_parameter('select_tool_by_input', False)
         self.add_parameter('namespace', '')
         self.add_parameter('group_name', 'ur_manipulator')
+        self.add_parameter('place_pos_max', dict())
+        self.add_parameter('place_pos_min', dict())
+        self.add_parameter('vacuum_io_pins', dict())
+        self.add_parameter('tool_name', 'suction')
 
         # references to used behaviors
         OperatableStateMachine.initialize_ros(node)
@@ -70,10 +74,10 @@ class MoveToPlaceSM(Behavior):
 
     def create(self):
         # x:1400 y:157, x:1020 y:449
-        _state_machine = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['vacuum_io_pins', 'vacuum_io_vals', 'place_pos_max', 'place_pos_min', 'start_joints', 'place_pose', 'tool_name', 'velocity'], output_keys=['target_joints'])
-        _state_machine.userdata.place_pos_max = [0, 0, 0]
-        _state_machine.userdata.place_pos_min = [0, 0, 0]
-        _state_machine.userdata.vacuum_io_pins = [1]
+        _state_machine = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['start_joints', 'exe_client', 'place_pose', 'tool_name', 'velocity'], output_keys=['target_joints'])
+        _state_machine.userdata.place_pos_max = self.place_pos_max
+        _state_machine.userdata.place_pos_min = self.place_pos_min
+        _state_machine.userdata.vacuum_io_pins = self.vacuum_io_pins
         _state_machine.userdata.vacuum_io_vals = [0]
         _state_machine.userdata.exe_client = None
         _state_machine.userdata.translation_list = [.0, .0, 0.1]
@@ -103,7 +107,7 @@ class MoveToPlaceSM(Behavior):
                                             parameters={'group_name': self.group_name, 'joint_names': self.joint_names, 'namespace': self.namespace, 'wait': False}),
                                         transitions={'finished': 'Move Arm To Obj Pose Async', 'failed': 'failed'},
                                         autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
-                                        remapping={'target_pose': 'place_pose', 'translation_list': 'translation_list', 'start_joints': 'start_joints', 'velocity': 'velocity', 'target_joints': 'target_joints'})
+                                        remapping={'target_pose': 'place_pose', 'translation_list': 'translation_list', 'start_joints': 'start_joints', 'velocity': 'velocity', 'exe_client': 'exe_client', 'target_joints': 'target_joints'})
 
             # x:1131 y:295
             OperatableStateMachine.add('Move Arm To Pose Async_3',
@@ -111,7 +115,7 @@ class MoveToPlaceSM(Behavior):
                                             parameters={'group_name': self.group_name, 'joint_names': self.joint_names, 'namespace': self.namespace, 'wait': False}),
                                         transitions={'finished': 'finished', 'failed': 'failed'},
                                         autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
-                                        remapping={'target_pose': 'place_pose', 'translation_list': 'translation_list', 'start_joints': 'start_joints', 'velocity': 'velocity', 'target_joints': 'target_joints'})
+                                        remapping={'target_pose': 'place_pose', 'translation_list': 'translation_list', 'start_joints': 'start_joints', 'velocity': 'velocity', 'exe_client': 'exe_client', 'target_joints': 'target_joints'})
 
             # x:23 y:362
             OperatableStateMachine.add('check_trans_list',
@@ -172,7 +176,7 @@ class MoveToPlaceSM(Behavior):
                                             parameters={'group_name': self.group_name, 'joint_names': self.joint_names, 'namespace': self.namespace}),
                                         transitions={'finished': 'select_tool_depend_on_input', 'failed': 'failed'},
                                         autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
-                                        remapping={'target_pose': 'place_pose', 'translation_list': 'translation_zero', 'start_joints': 'start_joints', 'velocity': 'velocity', 'target_joints': 'target_joints'})
+                                        remapping={'target_pose': 'place_pose', 'translation_list': 'translation_zero', 'start_joints': 'start_joints', 'velocity': 'velocity', 'exe_client': 'exe_client', 'target_joints': 'target_joints'})
 
 
         return _state_machine

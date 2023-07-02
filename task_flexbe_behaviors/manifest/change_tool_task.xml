@@ -26,6 +26,14 @@
 
 		<param type="boolean" name="sim" default="False" label="sim" hint="Sets the sim" />
 
+		<param type="yaml" name="infront_sucker" default="task_flexbe_behaviors/config/pick_and_place.yaml" label="infront_sucker" hint="Sets the infront_sucker">
+			<key name="infront_sucker" />
+		</param>
+
+		<param type="yaml" name="sucker_spot" default="task_flexbe_behaviors/config/pick_and_place.yaml" label="sucker_spot" hint="Sets the sucker_spot">
+			<key name="sucker_spot" />
+		</param>
+
 	</params>
 
 
