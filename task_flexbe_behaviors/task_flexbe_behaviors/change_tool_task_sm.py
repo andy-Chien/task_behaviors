@@ -8,6 +8,7 @@
 ###########################################################
 
 from flexbe_core import Behavior, Autonomy, OperatableStateMachine, ConcurrencyContainer, PriorityContainer, Logger
+from task_flexbe_behaviors.change_tool_model_sm import ChangeToolModelSM
 from task_flexbe_states.data_copy_state import DataCopyState
 from task_flexbe_states.get_current_joints import GetCurrentJoints
 from task_flexbe_states.hiwin_xeg32_gripper_api import HiwinXeg32GripperApi
@@ -55,6 +56,7 @@ class ChangeToolTaskSM(Behavior):
         MoveItJointsPlanState.initialize_ros(node)
         SetDataByConditionState.initialize_ros(node)
         WaitForRunningState.initialize_ros(node)
+        self.add_behavior(ChangeToolModelSM, 'Change Tool Model', node)
 
         # Additional initialization code can be added inside the following tags
         # [MANUAL_INIT]
@@ -67,7 +69,7 @@ class ChangeToolTaskSM(Behavior):
 
     def create(self):
         # x:857 y:663, x:1115 y:159
-        _state_machine = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['target_tool_name', 'exe_client'], output_keys=['curr_tool_name', 'infront_sucker'])
+        _state_machine = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['target_tool_name', 'exe_client', 'curr_tool_name'], output_keys=['curr_tool_name', 'expected_joints', 'tool_frame', 'exe_client'])
         _state_machine.userdata.direction_in = 0
         _state_machine.userdata.distance = 600
         _state_machine.userdata.speed = 6000
@@ -89,6 +91,8 @@ class ChangeToolTaskSM(Behavior):
         _state_machine.userdata.holding_force = 80
         _state_machine.userdata.curr_tool_name = 'pj'
         _state_machine.userdata.target_tool_name = 'suction'
+        _state_machine.userdata.tool_frame = 'suction_tool_tip'
+        _state_machine.userdata.expected_joints = None
 
         # Additional creation code can be added inside the following tags
         # [MANUAL_CREATE]
@@ -104,9 +108,16 @@ class ChangeToolTaskSM(Behavior):
                                         autonomy={'done': Autonomy.Off},
                                         remapping={'target_tool_name': 'target_tool_name', 'mode': 'mode'})
 
+            # x:87 y:159
+            OperatableStateMachine.add('excute_paln',
+                                        MoveItAsyncExecuteTrajectory(group_name=self.group_name, namespace=self.namespace),
+                                        transitions={'done': 'wait_for_running', 'failed': 'failed'},
+                                        autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off},
+                                        remapping={'joint_trajectory': 'joint_trajectory', 'exe_client': 'exe_client'})
+
             # x:443 y:354
             OperatableStateMachine.add('execute_plan2',
-                                        MoveItAsyncExecuteTrajectory(group_name=self.group_name, namespace=''),
+                                        MoveItAsyncExecuteTrajectory(group_name=self.group_name, namespace=self.namespace),
                                         transitions={'done': 'wait_for_arrive', 'failed': 'get_curr_joint'},
                                         autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off},
                                         remapping={'joint_trajectory': 'joint_trajectory', 'exe_client': 'exe_client'})
@@ -142,13 +153,13 @@ class ChangeToolTaskSM(Behavior):
             # x:48 y:551
             OperatableStateMachine.add('hold_or_release_sucker',
                                         HiwinXeg32GripperApi(sim=self.sim),
-                                        transitions={'done': 'plan_back', 'failed': 'failed'},
+                                        transitions={'done': 'Change Tool Model', 'failed': 'failed'},
                                         autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off},
                                         remapping={'mode': 'mode', 'direction': 'direction_in', 'distance': 'distance', 'speed': 'speed', 'holding_stroke': 'holding_stroke', 'holding_speed': 'holding_speed', 'holding_force': 'holding_force', 'flag': 'flag'})
 
             # x:678 y:400
             OperatableStateMachine.add('move_back',
-                                        MoveItAsyncExecuteTrajectory(group_name=self.group_name, namespace=''),
+                                        MoveItAsyncExecuteTrajectory(group_name=self.group_name, namespace=self.namespace),
                                         transitions={'done': 'wait_for_arm', 'failed': 'plan_back'},
                                         autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off},
                                         remapping={'joint_trajectory': 'joint_trajectory', 'exe_client': 'exe_client'})
@@ -169,7 +180,7 @@ class ChangeToolTaskSM(Behavior):
 
             # x:253 y:610
             OperatableStateMachine.add('plan_back',
-                                        MoveItJointsPlanState(group_name=self.group_name, joint_names=self.joint_names, retry_cnt=5, namespace='', planner='RRTConnectkConfigDefault', time_out=0.5, attempts=10),
+                                        MoveItJointsPlanState(group_name=self.group_name, joint_names=self.joint_names, retry_cnt=5, namespace=self.namespace, planner='RRTConnectkConfigDefault', time_out=0.5, attempts=10),
                                         transitions={'failed': 'failed', 'done': 'move_back', 'retriable': 'plan_back'},
                                         autonomy={'failed': Autonomy.Off, 'done': Autonomy.Off, 'retriable': Autonomy.Off},
                                         remapping={'start_joints': 'sucker_spot', 'target_joints': 'infront_sucker', 'velocity': 'velocity', 'planner': 'planner', 'joint_trajectory': 'joint_trajectory', 'planning_time': 'planning_time', 'planning_error_code': 'planning_error_code'})
@@ -177,13 +188,20 @@ class ChangeToolTaskSM(Behavior):
             # x:979 y:577
             OperatableStateMachine.add('set_curr_name',
                                         DataCopyState(),
-                                        transitions={'done': 'finished'},
+                                        transitions={'done': 'ste_expected_joints'},
                                         autonomy={'done': Autonomy.Off},
                                         remapping={'data_in': 'target_tool_name', 'data_out': 'curr_tool_name'})
 
+            # x:952 y:706
+            OperatableStateMachine.add('ste_expected_joints',
+                                        DataCopyState(),
+                                        transitions={'done': 'finished'},
+                                        autonomy={'done': Autonomy.Off},
+                                        remapping={'data_in': 'infront_sucker', 'data_out': 'expected_joints'})
+
             # x:809 y:511
             OperatableStateMachine.add('wait_for_arm',
-                                        WaitForRunningState(wait_until_complete_rate=0, wait_until_points_left=0, namespace=''),
+                                        WaitForRunningState(wait_until_complete_rate=0, wait_until_points_left=0, namespace=self.namespace),
                                         transitions={'waiting': 'wait_for_arm', 'done': 'hold_or_release_2_check', 'collision': 'failed', 'failed': 'failed'},
                                         autonomy={'waiting': Autonomy.Off, 'done': Autonomy.Off, 'collision': Autonomy.Off, 'failed': Autonomy.Off},
                                         remapping={'exe_client': 'exe_client'})
@@ -209,12 +227,13 @@ class ChangeToolTaskSM(Behavior):
                                         autonomy={'waiting': Autonomy.Off, 'done': Autonomy.Off, 'collision': Autonomy.Off, 'failed': Autonomy.Off},
                                         remapping={'exe_client': 'exe_client'})
 
-            # x:87 y:159
-            OperatableStateMachine.add('excute_paln',
-                                        MoveItAsyncExecuteTrajectory(group_name=self.group_name, namespace=''),
-                                        transitions={'done': 'wait_for_running', 'failed': 'failed'},
-                                        autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off},
-                                        remapping={'joint_trajectory': 'joint_trajectory', 'exe_client': 'exe_client'})
+            # x:70 y:688
+            OperatableStateMachine.add('Change Tool Model',
+                                        self.use_behavior(ChangeToolModelSM, 'Change Tool Model',
+                                            parameters={'namespace': self.namespace}),
+                                        transitions={'finished': 'plan_back', 'failed': 'failed'},
+                                        autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
+                                        remapping={'curr_tool': 'curr_tool_name', 'target_tool': 'target_tool_name', 'tool_frame': 'tool_frame'})
 
 
         return _state_machine

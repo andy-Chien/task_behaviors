@@ -68,7 +68,7 @@ In case of using current joint as start joints, just set the input start joints 
 
     def create(self):
         # x:562 y:450, x:314 y:219
-        _state_machine = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['target_pose', 'translation_list', 'start_joints', 'velocity', 'exe_client'], output_keys=['target_joints'])
+        _state_machine = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['target_pose', 'translation_list', 'start_joints', 'velocity', 'exe_client', 'ik_target_frame'], output_keys=['target_joints', 'exe_client'])
         _state_machine.userdata.exe_client = None
         _state_machine.userdata.velocity = 10
         _state_machine.userdata.target_pose = None
@@ -76,6 +76,7 @@ In case of using current joint as start joints, just set the input start joints 
         _state_machine.userdata.planner = None
         _state_machine.userdata.start_joints = None
         _state_machine.userdata.target_joints = None
+        _state_machine.userdata.ik_target_frame = 'tool_tip'
 
         # Additional creation code can be added inside the following tags
         # [MANUAL_CREATE]
@@ -109,7 +110,7 @@ In case of using current joint as start joints, just set the input start joints 
                                         MoveItComputeIK(group_name=self.group_name, joint_names=self.joint_names, namespace=self.namespace, from_frame=self.from_frame, to_frame=self.to_frame),
                                         transitions={'done': 'plan', 'failed': 'failed'},
                                         autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off},
-                                        remapping={'start_joints': 'start_joints', 'target_pose': 'target_pose', 'translation_list': 'translation_list', 'target_joints': 'target_joints'})
+                                        remapping={'start_joints': 'start_joints', 'target_pose': 'target_pose', 'target_frame': 'ik_target_frame', 'translation_list': 'translation_list', 'target_joints': 'target_joints'})
 
             # x:303 y:66
             OperatableStateMachine.add('plan',

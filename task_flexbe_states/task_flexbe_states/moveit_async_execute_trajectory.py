@@ -63,10 +63,12 @@ class MoveItAsyncExecuteTrajectory(EventState):
 
     def on_enter(self, userdata):
         if userdata.exe_client is None:
+            self._logger.info("_exe_action is None")
             userdata.exe_client = ProxyActionClient({self._exe_action: ExecuteTrajectory})
 
         if not userdata.exe_client.is_available(self._exe_action) or \
                userdata.exe_client.is_active(self._exe_action):
+            self._logger.info("_exe_action failed")
             self._exe_client_fail = True
         else:
             self._exe_client_fail = False

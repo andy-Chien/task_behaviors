@@ -9,6 +9,7 @@ from moveit_msgs.srv import GetPositionIK
 from flexbe_core.proxy import ProxyServiceCaller
 from geometry_msgs.msg import Pose, PoseStamped
 from sensor_msgs.msg import JointState
+import copy
 
 class MoveItComputeIK(EventState):
     '''
@@ -31,7 +32,7 @@ class MoveItComputeIK(EventState):
     def __init__(self, group_name, joint_names, namespace='', from_frame='base_link', to_frame='tool_tip'):
         '''Constructor'''
         super(MoveItComputeIK, self).__init__(outcomes = ['done', 'failed'],
-                                            input_keys = ['start_joints', 'target_pose','translation_list'],
+                                            input_keys = ['start_joints', 'target_pose', 'target_frame','translation_list'],
                                             output_keys = ['target_joints'])
         self._node = MoveItComputeIK._node
         ProxyServiceCaller._initialize(self._node)
@@ -41,17 +42,25 @@ class MoveItComputeIK(EventState):
         self._req = GetPositionIK.Request()
         self._req.ik_request.group_name = group_name
 
-        self._from_frame = from_frame
-
         if len(namespace) > 1 or (len(namespace) == 1 and namespace.startswith('/')):
             namespace = namespace[1:] if namespace[0] == '/' else namespace
             self._ik_service = '/' + namespace + '/compute_ik'
             self._joint_names = [namespace + '_' + jn for jn in joint_names]
             self._req.ik_request.ik_link_name = namespace + '_' + to_frame
+            self._from_frame = namespace + '_' + from_frame
         else:
             self._ik_service = '/compute_ik'
             self._joint_names = joint_names
             self._req.ik_request.ik_link_name = to_frame
+            self._from_frame = from_frame
+        
+        if to_frame.startswith('/'):
+            self._req.ik_request.ik_link_name = to_frame[1:]
+        if from_frame.startswith('/'):
+            self._from_frame = from_frame[1:]
+
+        # self._req.ik_request.avoid_collisions = True
+        self._namespace = namespace
 
         self._ik_client = ProxyServiceCaller({self._ik_service: GetPositionIK})
 
@@ -78,15 +87,25 @@ class MoveItComputeIK(EventState):
     def on_enter(self, userdata):
         self._req.ik_request.robot_state = \
             self.generate_robot_state(self._joint_names, userdata.start_joints)
+        
+        utf = userdata.target_frame
+        if not (utf is None) and (utf != '')and isinstance(utf, str):
+            if utf.startswith('/'):
+                self._req.ik_request.ik_link_name = utf[1:]
+            elif self._namespace != '' and utf.split('_')[0] != self._namespace:
+                self._req.ik_request.ik_link_name = self._namespace + '_' + utf
+            else:
+                self._req.ik_request.ik_link_name = utf
 
-        self._logger.warn('userdata.target_pose = {}'.format(userdata.target_pose))
+        self._logger.warn('userdata.target_pose = {}\n self._req.ik_request.ik_link_name = {}'.format(
+            userdata.target_pose, self._req.ik_request.ik_link_name))
         ps = PoseStamped()
         if isinstance(userdata.target_pose, PoseStamped):
-            ps = userdata.target_pose
+            ps = copy.deepcopy(userdata.target_pose)
         elif isinstance(userdata.target_pose, Pose):
-            ps.pose = userdata.target_pose
+            ps.pose = copy.deepcopy(userdata.target_pose)
         elif isinstance(userdata.target_pose, (list, np.ndarray)):
-            tp = userdata.target_pose
+            tp = copy.deepcopy(userdata.target_pose)
             assert len(tp) == 7
             ppp, ppo = ps.pose.position, ps.pose.orientation
             (ppp.x, ppp.y, ppp.z) = tp[:3]

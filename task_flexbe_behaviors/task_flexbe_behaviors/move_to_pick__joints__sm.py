@@ -25,15 +25,15 @@ from task_flexbe_states.set_DIO_state import SetDIOState
 Created on Fri Jun 30 2023
 @author: Andy Chien
 '''
-class MoveToPickSM(Behavior):
+class MoveToPickJointsSM(Behavior):
     '''
     Move robot to Pick object
     '''
 
 
     def __init__(self, node):
-        super(MoveToPickSM, self).__init__()
-        self.name = 'Move To Pick'
+        super(MoveToPickJointsSM, self).__init__()
+        self.name = 'Move To Pick (Joints)'
 
         # parameters of this behavior
         self.add_parameter('io_service', dict())

@@ -29,12 +29,16 @@ class HiwinXeg32GripperClient(EventState):
     '''
 
     def __init__(self, mode='open', direction=0, distance=0, speed=0, 
-                 holding_stroke=0, holding_speed=0, holding_force=0, flag=0, namespace=''):
+                 holding_stroke=0, holding_speed=0, holding_force=0, flag=0, namespace='', sim=False):
         '''Constructor'''
         super(HiwinXeg32GripperClient, self).__init__(outcomes = ['done', 'failed'])
         
         ProxyServiceCaller._initialize(EventState._node)
         self._logger = EventState._node.get_logger().info
+
+        self._sim = sim
+        if sim:
+            return
 
         if 'on' in mode:
             cmd_mode=GripperCommand.Request.ON
@@ -67,11 +71,16 @@ class HiwinXeg32GripperClient(EventState):
             self.gripper_service = '/' + namespace + '/execute_gripper'
         else:
             self.gripper_service = '/execute_gripper'
-
+        self.srv_ava = True
         
         self._gripper_client = ProxyServiceCaller({self.gripper_service : GripperCommand})
 
     def execute(self, _):
+        if self._sim:
+            return 'done'
+        if not self.srv_ava:
+            self.srv_ava = True
+            return 'failed'
         if not self._gripper_client.done(self.gripper_service):
             self._logger('waiting gripper')
             return
@@ -86,7 +95,13 @@ class HiwinXeg32GripperClient(EventState):
             return 'failed'
 
     def on_enter(self, _):
-        self._gripper_client.call_async(self.gripper_service, self.req)     
+        if self._sim:
+            return
+        if not self._gripper_client.is_available(self.gripper_service):
+            self.srv_ava = False
+            return
+        self._gripper_client.call_async(self.gripper_service, self.req)
+        
 
     def generate_gripper_request(
             self, 

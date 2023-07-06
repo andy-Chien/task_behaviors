@@ -8,6 +8,7 @@
 ###########################################################
 
 from flexbe_core import Behavior, Autonomy, OperatableStateMachine, ConcurrencyContainer, PriorityContainer, Logger
+from task_flexbe_states.data_copy_state import DataCopyState
 from task_flexbe_states.decision_by_param_state import DecisionByParam
 from task_flexbe_states.get_current_joints import GetCurrentJoints
 from task_flexbe_states.moveit_async_execute_trajectory import MoveItAsyncExecuteTrajectory
@@ -47,6 +48,7 @@ In case of using current joint as start joints, just set the input start joints 
         ConcurrencyContainer.initialize_ros(node)
         PriorityContainer.initialize_ros(node)
         Logger.initialize(node)
+        DataCopyState.initialize_ros(node)
         DecisionByParam.initialize_ros(node)
         GetCurrentJoints.initialize_ros(node)
         MoveItAsyncExecuteTrajectory.initialize_ros(node)
@@ -63,13 +65,14 @@ In case of using current joint as start joints, just set the input start joints 
 
 
     def create(self):
-        # x:562 y:450, x:314 y:219
-        _state_machine = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['start_joints', 'velocity', 'target_joints', 'exe_client'], output_keys=['target_joints'])
+        # x:564 y:507, x:314 y:219
+        _state_machine = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['start_joints', 'velocity', 'target_joints', 'exe_client'], output_keys=['exe_client', 'expected_joints'])
         _state_machine.userdata.exe_client = None
         _state_machine.userdata.velocity = 10
         _state_machine.userdata.planner = None
         _state_machine.userdata.start_joints = None
         _state_machine.userdata.target_joints = None
+        _state_machine.userdata.expected_joints = None
 
         # Additional creation code can be added inside the following tags
         # [MANUAL_CREATE]
@@ -105,10 +108,17 @@ In case of using current joint as start joints, just set the input start joints 
                                         autonomy={'failed': Autonomy.Off, 'done': Autonomy.Off, 'retriable': Autonomy.Off},
                                         remapping={'start_joints': 'start_joints', 'target_joints': 'target_joints', 'velocity': 'velocity', 'planner': 'planner', 'joint_trajectory': 'joint_trajectory', 'planning_time': 'planning_time', 'planning_error_code': 'planning_error_code'})
 
+            # x:520 y:413
+            OperatableStateMachine.add('set_expected_joints',
+                                        DataCopyState(),
+                                        transitions={'done': 'finished'},
+                                        autonomy={'done': Autonomy.Off},
+                                        remapping={'data_in': 'target_joints', 'data_out': 'expected_joints'})
+
             # x:314 y:408
             OperatableStateMachine.add('wait_for_running',
                                         WaitForRunningState(wait_until_complete_rate=0, wait_until_points_left=0, namespace=self.namespace),
-                                        transitions={'waiting': 'wait_for_running', 'done': 'finished', 'collision': 'failed', 'failed': 'failed'},
+                                        transitions={'waiting': 'wait_for_running', 'done': 'set_expected_joints', 'collision': 'failed', 'failed': 'failed'},
                                         autonomy={'waiting': Autonomy.Off, 'done': Autonomy.Off, 'collision': Autonomy.Off, 'failed': Autonomy.Off},
                                         remapping={'exe_client': 'exe_client'})
 
@@ -122,7 +132,7 @@ In case of using current joint as start joints, just set the input start joints 
             # x:520 y:307
             OperatableStateMachine.add('wanna_wait',
                                         DecisionByParam(decided=self.wait, outcomes=['True', 'False']),
-                                        transitions={'True': 'wait_for_running', 'False': 'finished'},
+                                        transitions={'True': 'wait_for_running', 'False': 'set_expected_joints'},
                                         autonomy={'True': Autonomy.Off, 'False': Autonomy.Off})
 
             # x:500 y:61

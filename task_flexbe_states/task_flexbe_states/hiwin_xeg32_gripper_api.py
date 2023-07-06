@@ -56,10 +56,14 @@ class HiwinXeg32GripperApi(EventState):
         self._gripper_client = ProxyServiceCaller({self.gripper_service : GripperCommand})
 
         self._time_now = self._node.get_clock().now()
+        self.srv_ava = True
 
     def execute(self, userdata):
         if self._sim:
             return 'done'
+        if not self.srv_ava:
+            self.srv_ava = True
+            return 'failed'
         # if 'on' in self.mode:
         #     self.req = self.generate_gripper_request(
         #         cmd_mode=GripperCommand.Request.ON,
@@ -110,6 +114,9 @@ class HiwinXeg32GripperApi(EventState):
 
     def on_enter(self, userdata):
         if self._sim:
+            return
+        if not self._gripper_client.is_available(self.gripper_service):
+            self.srv_ava = False
             return
         self.mode = userdata.mode
         if userdata.direction != None:

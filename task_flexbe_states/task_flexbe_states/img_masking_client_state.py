@@ -6,6 +6,7 @@ import cv2
 import rclpy
 from cv_bridge import CvBridge, CvBridgeError
 from ros2_aruco_interfaces.srv import GetMaskImage
+from matplotlib import pyplot as plt
 
 
 '''
@@ -39,7 +40,7 @@ class ImgMaskingClientState(EventState):
         Constructor
         '''
         super(ImgMaskingClientState, self).__init__(outcomes=['done', 'failed', 'retry'],
-                                                output_keys=['mask_img_msg', 'img_info', 'marker_poses'])
+                                                output_keys=['mask_img_msg', 'img_info', 'marker_poses', 'poses_frame'])
         
         self._node = EventState._node
         ProxyServiceCaller._initialize(self._node)
@@ -73,6 +74,7 @@ class ImgMaskingClientState(EventState):
         self._masking_client = ProxyServiceCaller({self._mask_service: GetMaskImage})
         self.bridge = CvBridge()
 
+        self.srv_ava = True
         self._fail_count = 0
         
     def stop(self):
@@ -82,7 +84,9 @@ class ImgMaskingClientState(EventState):
         '''
         Execute this state
         '''
-
+        if not self.srv_ava:
+            self.srv_ava = True
+            return 'failed'
         
         if not self._masking_client.done(self._mask_service):
             self._logger('waiting mask image')
@@ -111,14 +115,26 @@ class ImgMaskingClientState(EventState):
                             pos.x, pos.y, pos.z, quat.w, quat.x, quat.y, quat.z
                         )
                     )
+                img = self.bridge.imgmsg_to_cv2(res.rgb_img, desired_encoding='bgr8')
+                plt.imshow(img, cmap='gray', vmin=0, vmax=255)
+                plt.show()
+                img = self.bridge.imgmsg_to_cv2(res.depth_img, desired_encoding='16UC1')
+                plt.imshow(img, cmap='gray', vmin=750, vmax=1100)
+                plt.show()
+                img = self.bridge.imgmsg_to_cv2(res.segmask, desired_encoding='8UC1')
+                plt.imshow(img, cmap='gray', vmin=0.0, vmax=255)
+                plt.show()
 
             if self.mask_req.mode & (rq.GET_MASKED_IMG | rq.UPDATE_MARK_MASK):
                 userdata.marker_poses = res.marker_poses
-
+                userdata.poses_frame = '/' + res.poses_frame
+                self._logger("userdata.poses_frame = {}".format(userdata.poses_frame))
             return 'done'
 
-
     def on_enter(self, userdata):
+        if not self._masking_client.is_available(self._mask_service):
+            self.srv_ava = False
+            return
         self._masking_client.call_async(self._mask_service, self.mask_req)    
 
     def on_stop(self):

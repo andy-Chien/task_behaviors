@@ -81,14 +81,14 @@ class GQCNNGraspPlanState(EventState):
 
         for r in result:
             img = self.bridge.imgmsg_to_cv2(r.grasp.thumbnail, desired_encoding='32FC1')
-            self._logger('center_px = {}, q_value = {}'.format(
-                r.grasp.center_px, r.grasp.q_value))
+            self._logger('center_px = {}, q_value = {}, z_value = {}'.format(
+                r.grasp.center_px, r.grasp.q_value, img[int(r.grasp.center_px[1]), int(r.grasp.center_px[0])]))
             cv2.circle(img, np.array(r.grasp.center_px, dtype=np.uint32), 5, (255), -1)
-            plt.imshow(img, cmap='gray', vmin=0, vmax=2)
+            plt.imshow(img, cmap='gray', vmin=0.0, vmax=2.0)
             plt.show()
 
         qv = [r.grasp.q_value for r in result]
-        if np.all(np.array(qv) < 0.1):
+        if np.all(np.array(qv) < 0.01):
             self._fail_count += 1
             if self._fail_count > 10:
                 self._logger('[GQCNN Grasp Plan State]: Grasp plan failed')
@@ -100,20 +100,26 @@ class GQCNNGraspPlanState(EventState):
                 p, q = r.grasp.pose.position, r.grasp.pose.orientation
                 self._logger('grasp_pos = {}, {}, {}, qtn = {}, {}, {}, {}'.format(
                     p.x, p.y, p.z, q.w, q.x, q.y, q.z))
+                
+            userdata.frame = self.image_frame
             
             if self.has_pj_server and self.has_suc_server:
                 userdata.pj_pose = result[0].grasp.pose
                 userdata.suc_pose = result[1].grasp.pose
+                userdata.pj_qv = result[0].grasp.q_value
+                userdata.suc_qv = result[1].grasp.q_value
             elif self.has_pj_server:
                 userdata.suc_pose = None
                 userdata.pj_pose = result[0].grasp.pose
+                userdata.pj_qv = result[0].grasp.q_value
             elif self.has_suc_server:
                 userdata.pj_pose = None
                 userdata.suc_pose = result[0].grasp.pose
+                userdata.suc_qv = result[0].grasp.q_value
             else:
                 userdata.pj_pose = None
                 userdata.suc_pose = None
-
+            
             return 'done'
 
 

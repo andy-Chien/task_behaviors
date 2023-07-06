@@ -17,13 +17,14 @@
 	<contains name="Move To Pick" />
 	<contains name="Move To Place" />
 	<contains name="Tool Selection based on GQCNN" />
+	<contains name="Add Box To Scene" />
 
 	<!-- Available Parameters -->
 	<params>
 
 		<param type="text" name="group_name" default="ur_manipulator" label="group_name" hint="Sets the group_name" />
 
-		<param type="text" name="namespace" default="" label="namespace" hint="Sets the namespace" />
+		<param type="text" name="namespace" default="robot_2" label="namespace" hint="Sets the namespace" />
 
 		<param type="boolean" name="sim" default="True" label="sim" hint="Sets the sim" />
 
@@ -43,6 +44,30 @@
 
 		<param type="yaml" name="io_service" default="task_flexbe_behaviors/config/pick_and_place.yaml" label="io_service" hint="Sets the io_service">
 			<key name="io_service" />
+		</param>
+
+		<param type="yaml" name="place_pos_max" default="task_flexbe_behaviors/config/pick_and_place.yaml" label="place_pos_max" hint="Sets the place_pos_max">
+			<key name="place_pos_max" />
+		</param>
+
+		<param type="yaml" name="place_pos_min" default="task_flexbe_behaviors/config/pick_and_place.yaml" label="place_pos_min" hint="Sets the place_pos_min">
+			<key name="place_pos_min" />
+		</param>
+
+		<param type="yaml" name="infront_sucker" default="task_flexbe_behaviors/config/pick_and_place.yaml" label="infront_sucker" hint="Sets the infront_sucker">
+			<key name="infront_sucker" />
+		</param>
+
+		<param type="yaml" name="sucker_spot" default="task_flexbe_behaviors/config/pick_and_place.yaml" label="sucker_spot" hint="Sets the sucker_spot">
+			<key name="sucker_spot" />
+		</param>
+
+		<param type="yaml" name="joint_names" default="task_flexbe_behaviors/config/joint_names.yaml" label="joint_names" hint="Sets the joint_names">
+			<key name="joint_names" />
+		</param>
+
+		<param type="yaml" name="vacuum_io_pins" default="task_flexbe_behaviors/config/pick_and_place.yaml" label="vacuum_io_pins" hint="Sets the vacuum_io_pins">
+			<key name="" />
 		</param>
 
 	</params>

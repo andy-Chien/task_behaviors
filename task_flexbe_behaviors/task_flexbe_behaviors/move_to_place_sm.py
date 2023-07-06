@@ -74,7 +74,7 @@ class MoveToPlaceSM(Behavior):
 
     def create(self):
         # x:1400 y:157, x:1020 y:449
-        _state_machine = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['start_joints', 'exe_client', 'place_pose', 'tool_name', 'velocity'], output_keys=['target_joints'])
+        _state_machine = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['start_joints', 'exe_client', 'place_pose', 'tool_name', 'velocity', 'ik_target_frame'], output_keys=['expected_joints', 'exe_client'])
         _state_machine.userdata.place_pos_max = self.place_pos_max
         _state_machine.userdata.place_pos_min = self.place_pos_min
         _state_machine.userdata.vacuum_io_pins = self.vacuum_io_pins
@@ -82,11 +82,12 @@ class MoveToPlaceSM(Behavior):
         _state_machine.userdata.exe_client = None
         _state_machine.userdata.translation_list = [.0, .0, 0.1]
         _state_machine.userdata.start_joints = None
-        _state_machine.userdata.target_joints = None
+        _state_machine.userdata.expected_joints = None
         _state_machine.userdata.place_pose = None
         _state_machine.userdata.tool_name = None
         _state_machine.userdata.translation_zero = [.0, .0, .0]
         _state_machine.userdata.velocity = 10
+        _state_machine.userdata.ik_target_frame = 'tool_tip'
 
         # Additional creation code can be added inside the following tags
         # [MANUAL_CREATE]
@@ -107,7 +108,7 @@ class MoveToPlaceSM(Behavior):
                                             parameters={'group_name': self.group_name, 'joint_names': self.joint_names, 'namespace': self.namespace, 'wait': False}),
                                         transitions={'finished': 'Move Arm To Obj Pose Async', 'failed': 'failed'},
                                         autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
-                                        remapping={'target_pose': 'place_pose', 'translation_list': 'translation_list', 'start_joints': 'start_joints', 'velocity': 'velocity', 'exe_client': 'exe_client', 'target_joints': 'target_joints'})
+                                        remapping={'target_pose': 'place_pose', 'translation_list': 'translation_list', 'start_joints': 'start_joints', 'velocity': 'velocity', 'exe_client': 'exe_client', 'ik_target_frame': 'ik_target_frame', 'target_joints': 'start_joints'})
 
             # x:1131 y:295
             OperatableStateMachine.add('Move Arm To Pose Async_3',
@@ -115,7 +116,7 @@ class MoveToPlaceSM(Behavior):
                                             parameters={'group_name': self.group_name, 'joint_names': self.joint_names, 'namespace': self.namespace, 'wait': False}),
                                         transitions={'finished': 'finished', 'failed': 'failed'},
                                         autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
-                                        remapping={'target_pose': 'place_pose', 'translation_list': 'translation_list', 'start_joints': 'start_joints', 'velocity': 'velocity', 'exe_client': 'exe_client', 'target_joints': 'target_joints'})
+                                        remapping={'target_pose': 'place_pose', 'translation_list': 'translation_list', 'start_joints': 'expected_joints', 'velocity': 'velocity', 'exe_client': 'exe_client', 'ik_target_frame': 'ik_target_frame', 'target_joints': 'expected_joints'})
 
             # x:23 y:362
             OperatableStateMachine.add('check_trans_list',
@@ -133,7 +134,7 @@ class MoveToPlaceSM(Behavior):
 
             # x:793 y:238
             OperatableStateMachine.add('release_gripper',
-                                        HiwinXeg32GripperClient(mode='open', direction=0, distance=0, speed=0, holding_stroke=0, holding_speed=0, holding_force=0, flag=0, namespace=self.namespace),
+                                        HiwinXeg32GripperClient(mode='open', direction=0, distance=0, speed=0, holding_stroke=0, holding_speed=0, holding_force=0, flag=0, namespace=self.namespace, sim=self.sim),
                                         transitions={'done': 'check_trans_list_2', 'failed': 'failed'},
                                         autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
 
@@ -176,7 +177,7 @@ class MoveToPlaceSM(Behavior):
                                             parameters={'group_name': self.group_name, 'joint_names': self.joint_names, 'namespace': self.namespace}),
                                         transitions={'finished': 'select_tool_depend_on_input', 'failed': 'failed'},
                                         autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
-                                        remapping={'target_pose': 'place_pose', 'translation_list': 'translation_zero', 'start_joints': 'start_joints', 'velocity': 'velocity', 'exe_client': 'exe_client', 'target_joints': 'target_joints'})
+                                        remapping={'target_pose': 'place_pose', 'translation_list': 'translation_zero', 'start_joints': 'start_joints', 'velocity': 'velocity', 'exe_client': 'exe_client', 'ik_target_frame': 'ik_target_frame', 'target_joints': 'expected_joints'})
 
 
         return _state_machine

@@ -43,6 +43,7 @@ class GetDIOState(EventState):
 
     def execute(self, userdata):
         if self._sim:
+            userdata.vals = [True] * len(userdata.pins)
             return 'done'
 
         if self._io_sub.has_msg(self._io_topic):
