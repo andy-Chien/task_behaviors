@@ -84,7 +84,7 @@ class MultipleToolsBinPickingTaskSM(Behavior):
 
 
     def create(self):
-        # x:600 y:213, x:108 y:555
+        # x:558 y:205, x:383 y:266
         _state_machine = OperatableStateMachine(outcomes=['finished', 'failed'])
         _state_machine.userdata.zero_vector_3 = [0.0, 0.0, 0.0]
         _state_machine.userdata.gripper_mode = 'expert'
@@ -92,7 +92,7 @@ class MultipleToolsBinPickingTaskSM(Behavior):
         _state_machine.userdata.curr_tool_name = 'pj'
         _state_machine.userdata.place_pose = None
         _state_machine.userdata.velocity = 10
-        _state_machine.userdata.target_tool_name = 'suction'
+        _state_machine.userdata.target_tool_name = 'pj'
         _state_machine.userdata.exe_client = None
         _state_machine.userdata.init_joints = self.init_joints
         _state_machine.userdata.ik_target_frame = 'tool_tip'
@@ -106,20 +106,11 @@ class MultipleToolsBinPickingTaskSM(Behavior):
 
 
         with _state_machine:
-            # x:51 y:39
-            OperatableStateMachine.add('Move Arm To Init Joints Async',
-                                        self.use_behavior(MoveArmToJointsAsyncSM, 'Move Arm To Init Joints Async',
-                                            default_keys=['start_joints'],
-                                            parameters={'group_name': self.group_name, 'joint_names': self.joint_names, 'namespace': self.namespace, 'use_curr_as_start': True}),
-                                        transitions={'finished': 'start_img_update', 'failed': 'failed'},
-                                        autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
-                                        remapping={'velocity': 'velocity', 'target_joints': 'init_joints', 'exe_client': 'exe_client', 'expected_joints': 'expected_joints'})
-
-            # x:579 y:36
+            # x:35 y:65
             OperatableStateMachine.add('Change Tool Task',
                                         self.use_behavior(ChangeToolTaskSM, 'Change Tool Task',
                                             parameters={'namespace': self.namespace, 'group_name': self.group_name, 'joint_names': self.joint_names, 'sim': self.sim, 'infront_sucker': self.infront_sucker, 'sucker_spot': self.sucker_spot}),
-                                        transitions={'finished': 'Tool Selection based on GQCNN', 'failed': 'failed'},
+                                        transitions={'finished': 'Move Arm To Init Joints Async', 'failed': 'failed'},
                                         autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
                                         remapping={'target_tool_name': 'target_tool_name', 'exe_client': 'exe_client', 'curr_tool_name': 'curr_tool_name', 'expected_joints': 'expected_joints', 'tool_frame': 'ik_target_frame'})
 
@@ -131,7 +122,16 @@ class MultipleToolsBinPickingTaskSM(Behavior):
                                         autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
                                         remapping={'target_tool_name': 'target_tool_name', 'exe_client': 'exe_client', 'curr_tool_name': 'curr_tool_name', 'expected_joints': 'expected_joints', 'tool_frame': 'ik_target_frame'})
 
-            # x:593 y:277
+            # x:257 y:26
+            OperatableStateMachine.add('Move Arm To Init Joints Async',
+                                        self.use_behavior(MoveArmToJointsAsyncSM, 'Move Arm To Init Joints Async',
+                                            default_keys=['start_joints'],
+                                            parameters={'group_name': self.group_name, 'joint_names': self.joint_names, 'namespace': self.namespace, 'use_curr_as_start': True}),
+                                        transitions={'finished': 'start_img_update', 'failed': 'failed'},
+                                        autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
+                                        remapping={'velocity': 'velocity', 'target_joints': 'init_joints', 'exe_client': 'exe_client', 'expected_joints': 'expected_joints'})
+
+            # x:505 y:276
             OperatableStateMachine.add('Move Arm To Relay Joints Async',
                                         self.use_behavior(MoveArmToJointsAsyncSM, 'Move Arm To Relay Joints Async',
                                             parameters={'group_name': self.group_name, 'joint_names': self.joint_names, 'namespace': self.namespace, 'wait': False}),
@@ -147,11 +147,11 @@ class MultipleToolsBinPickingTaskSM(Behavior):
                                         autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
                                         remapping={'start_joints': 'expected_joints', 'velocity': 'velocity', 'exe_client': 'exe_client', 'pick_pose': 'target_picking_pose', 'ik_target_frame': 'ik_target_frame', 'tool_name': 'curr_tool_name', 'expected_joints': 'expected_joints'})
 
-            # x:531 y:430
+            # x:530 y:442
             OperatableStateMachine.add('Move To Place',
                                         self.use_behavior(MoveToPlaceSM, 'Move To Place',
                                             parameters={'io_service': self.io_service, 'sim': self.sim, 'place_in_random_area': True, 'joint_names': self.joint_names, 'select_tool_by_input': True, 'namespace': self.namespace, 'group_name': self.group_name, 'place_pos_max': self.place_pos_max, 'place_pos_min': self.place_pos_min, 'vacuum_io_pins': self.vacuum_io_pins}),
-                                        transitions={'finished': 'detach_obj', 'failed': 'failed'},
+                                        transitions={'finished': 'detach_obj', 'failed': 'Move To Place'},
                                         autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
                                         remapping={'start_joints': 'expected_joints', 'exe_client': 'exe_client', 'place_pose': 'place_pose', 'tool_name': 'curr_tool_name', 'velocity': 'velocity', 'ik_target_frame': 'ik_target_frame', 'expected_joints': 'expected_joints'})
 
@@ -164,7 +164,7 @@ class MultipleToolsBinPickingTaskSM(Behavior):
 
             # x:787 y:620
             OperatableStateMachine.add('attach_obj',
-                                        MoveItAttachedObjState(mesh_file='', operation='add', obj_type='box', link_name='', touch_links=[], size=[0.1, 0.1, 0.1], namespace=self.namespace, obj_name='picked_obj', pos=[0.0,0.0,0.0], quat=[1.0,0.0,0.0,0.0]),
+                                        MoveItAttachedObjState(mesh_file='', operation='add', obj_type='cylinker', link_name='', touch_links=[], size=[0.05, 0.08], namespace=self.namespace, obj_name='picked_obj', pos=[0.0,0.0,0.03], quat=[1.0,0.0,0.0,0.0]),
                                         transitions={'done': 'release_occupied_marker'},
                                         autonomy={'done': Autonomy.Off},
                                         remapping={'link_name': 'ik_target_frame', 'pose': 'none'})
@@ -183,7 +183,7 @@ class MultipleToolsBinPickingTaskSM(Behavior):
                                         autonomy={'true': Autonomy.Off, 'false': Autonomy.Off},
                                         remapping={'curr_tool': 'curr_tool_name', 'target_tool': 'target_tool_name'})
 
-            # x:545 y:353
+            # x:541 y:365
             OperatableStateMachine.add('detach_obj',
                                         MoveItAttachedObjState(mesh_file='', operation='remove', obj_type='box', link_name='', touch_links=[], size=[0.1, 0.1, 0.1], namespace=self.namespace, obj_name='picked_obj', pos=[0.0,0.0,0.0], quat=[1.0,0.0,0.0,0.0]),
                                         transitions={'done': 'Move Arm To Relay Joints Async'},
@@ -211,14 +211,14 @@ class MultipleToolsBinPickingTaskSM(Behavior):
                                         autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off, 'retry': Autonomy.Off},
                                         remapping={'mask_img_msg': 'mask_img_msg', 'img_info': 'img_info', 'marker_poses': 'marker_poses', 'poses_frame': 'poses_frame'})
 
-            # x:116 y:601
+            # x:44 y:237
             OperatableStateMachine.add('release_occupied_marker_2',
                                         ImgMaskingClientState(namespace='', marker_id=5, create_depth_mask=False, update_mask=False, start_update_timer=False, stop_update_timer=False, mark_release=True, get_masked_img=False, resolution_wide=516, resolution_high=386),
-                                        transitions={'done': 'failed', 'failed': 'failed', 'retry': 'release_occupied_marker_2'},
+                                        transitions={'done': 'Move Arm To Init Joints Async', 'failed': 'failed', 'retry': 'release_occupied_marker_2'},
                                         autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off, 'retry': Autonomy.Off},
                                         remapping={'mask_img_msg': 'mask_img_msg', 'img_info': 'img_info', 'marker_poses': 'marker_poses', 'poses_frame': 'poses_frame'})
 
-            # x:211 y:140
+            # x:562 y:29
             OperatableStateMachine.add('start_img_update',
                                         ImgMaskingClientState(namespace='', marker_id=5, create_depth_mask=False, update_mask=True, start_update_timer=True, stop_update_timer=False, mark_release=False, get_masked_img=False, resolution_wide=516, resolution_high=386),
                                         transitions={'done': 'Add Picking Box To Scene', 'failed': 'failed', 'retry': 'Add Picking Box To Scene'},
@@ -232,11 +232,11 @@ class MultipleToolsBinPickingTaskSM(Behavior):
                                         autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off, 'retry': Autonomy.Off},
                                         remapping={'mask_img_msg': 'mask_img_msg', 'img_info': 'img_info', 'marker_poses': 'marker_poses', 'poses_frame': 'poses_frame'})
 
-            # x:313 y:41
+            # x:755 y:39
             OperatableStateMachine.add('Add Picking Box To Scene',
                                         self.use_behavior(AddBoxToSceneSM, 'Add Picking Box To Scene',
                                             parameters={'namespace': self.namespace, 'box_name': 'picking_box'}),
-                                        transitions={'finished': 'Change Tool Task'},
+                                        transitions={'finished': 'Tool Selection based on GQCNN'},
                                         autonomy={'finished': Autonomy.Inherit},
                                         remapping={'frame_id': 'poses_frame', 'marker_poses': 'marker_poses'})
 

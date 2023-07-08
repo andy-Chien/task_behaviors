@@ -62,10 +62,10 @@ class TestGQCNNSM(Behavior):
 
 
         with _state_machine:
-            # x:107 y:30
-            OperatableStateMachine.add('init_bin_mask',
-                                        ImgMaskingClientState(namespace='', marker_id=5, create_depth_mask=True, update_mask=True, start_update_timer=False, stop_update_timer=False, mark_release=True, get_masked_img=False, resolution_wide=516, resolution_high=386),
-                                        transitions={'done': 'finished', 'failed': 'failed', 'retry': 'init_bin_mask'},
+            # x:176 y:373
+            OperatableStateMachine.add('release_marker_occupy_and_stop_timmer',
+                                        ImgMaskingClientState(namespace='', marker_id=5, create_depth_mask=False, update_mask=False, start_update_timer=False, stop_update_timer=False, mark_release=True, get_masked_img=False, resolution_wide=516, resolution_high=386),
+                                        transitions={'done': 'finished', 'failed': 'failed', 'retry': 'release_marker_occupy_and_stop_timmer'},
                                         autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off, 'retry': Autonomy.Off},
                                         remapping={'mask_img_msg': 'mask_img_msg', 'img_info': 'img_info', 'marker_poses': 'marker_poses', 'poses_frame': 'poses_frame'})
 
@@ -76,17 +76,17 @@ class TestGQCNNSM(Behavior):
                                         autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off, 'retry': Autonomy.Off, 'nothing': Autonomy.Off},
                                         remapping={'mask_img_msg': 'mask_img_msg', 'camera_info_msg': 'img_info', 'pj_pose': 'pj_pose', 'suc_pose': 'suc_pose', 'frame': 'frame', 'pj_qv': 'pj_qv', 'suc_qv': 'suc_qv'})
 
+            # x:107 y:30
+            OperatableStateMachine.add('init_bin_mask',
+                                        ImgMaskingClientState(namespace='', marker_id=5, create_depth_mask=True, update_mask=True, start_update_timer=False, stop_update_timer=False, mark_release=True, get_masked_img=False, resolution_wide=516, resolution_high=386),
+                                        transitions={'done': 'finished', 'failed': 'failed', 'retry': 'init_bin_mask'},
+                                        autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off, 'retry': Autonomy.Off},
+                                        remapping={'mask_img_msg': 'mask_img_msg', 'img_info': 'img_info', 'marker_poses': 'marker_poses', 'poses_frame': 'poses_frame'})
+
             # x:358 y:206
             OperatableStateMachine.add('release_marker_occupy',
                                         ImgMaskingClientState(namespace='', marker_id=5, create_depth_mask=False, update_mask=False, start_update_timer=False, stop_update_timer=False, mark_release=True, get_masked_img=False, resolution_wide=516, resolution_high=386),
                                         transitions={'done': 'get_masked_img', 'failed': 'failed', 'retry': 'release_marker_occupy'},
-                                        autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off, 'retry': Autonomy.Off},
-                                        remapping={'mask_img_msg': 'mask_img_msg', 'img_info': 'img_info', 'marker_poses': 'marker_poses', 'poses_frame': 'poses_frame'})
-
-            # x:176 y:373
-            OperatableStateMachine.add('release_marker_occupy_and_stop_timmer',
-                                        ImgMaskingClientState(namespace='', marker_id=5, create_depth_mask=False, update_mask=False, start_update_timer=False, stop_update_timer=True, mark_release=True, get_masked_img=False, resolution_wide=516, resolution_high=386),
-                                        transitions={'done': 'finished', 'failed': 'failed', 'retry': 'release_marker_occupy_and_stop_timmer'},
                                         autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off, 'retry': Autonomy.Off},
                                         remapping={'mask_img_msg': 'mask_img_msg', 'img_info': 'img_info', 'marker_poses': 'marker_poses', 'poses_frame': 'poses_frame'})
 

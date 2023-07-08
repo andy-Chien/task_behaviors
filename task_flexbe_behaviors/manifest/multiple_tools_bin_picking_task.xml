@@ -12,8 +12,8 @@
 
 
 	<!-- Contained Behaviors -->
-	<contains name="Move Arm To Joints Async" />
 	<contains name="Change Tool Task" />
+	<contains name="Move Arm To Joints Async" />
 	<contains name="Move To Pick" />
 	<contains name="Move To Place" />
 	<contains name="Tool Selection based on GQCNN" />

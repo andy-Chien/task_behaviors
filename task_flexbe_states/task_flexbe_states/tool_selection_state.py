@@ -12,6 +12,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from copy import deepcopy
 import quaternion as qtn
+from math import acos
 
 # from autolab_core import (Point, Logger, BinaryImage, CameraIntrinsics,
 #                           ColorImage, DepthImage)
@@ -70,45 +71,90 @@ class ToolSelectionState(EventState):
                 sp = None
             if pp.position.z < min_z - DIS:
                 pp = None
+
+            vec = [mp[i-1] - mp[i] for i in range(len(mp))]
+            vec = [v / np.linalg.norm(v) for v in vec]
+            pland_d = [-1 * sum(v * p) for v, p in zip(vec, mp)]
+
+            sp_min_d = DIS
+            pp_min_d = DIS
+            sp_min_d_vec = None
+            pp_min_d_vec = None
             
-            if not sp is None and not pp is None:
-                vec = [mp[i-1] - mp[i] for i in range(len(mp))]
-                vec = [v / np.linalg.norm(v) for v in vec]
-                pland_d = [-1 * sum(v * p) for v, p in zip(vec, mp)]
-
-                sp_min_d = DIS
-                pp_min_d = DIS
-                sp_min_d_vec = None
-                pp_min_d_vec = None
-
+            if sp != None:
                 for v, d in zip(vec, pland_d):
                     sd = sum(np.array([sp.position.x, sp.position.y, sp.position.z]) * v) + d
-                    pd = sum(np.array([pp.position.x, pp.position.y, pp.position.z]) * v) + d
                     if sd < sp_min_d:
                         sp_min_d = sd
                         sp_min_d_vec = v
-                    if pd < pp_min_d:
-                        pp_min_d = pd
-                        pp_min_d_vec = v
-
                 if sp_min_d < -1 * DIS:
                     sp = None
                 elif sp_min_d < 0:
                     sp.position.x -= sp_min_d * sp_min_d_vec[0]
                     sp.position.y -= sp_min_d * sp_min_d_vec[1]
                     sp.position.z -= sp_min_d * sp_min_d_vec[2]
+                s_factor = (sp_min_d + DIS) / (2 * DIS) if sp_min_d < DIS else 1
+                sq *= s_factor
+                
+            if pp != None:
+                pp_min_d_tmp = 9999
+                for v, d in zip(vec, pland_d):
+                    pd = sum(np.array([pp.position.x, pp.position.y, pp.position.z]) * v) + d
+                    if pd < pp_min_d:
+                        pp_min_d = pd
+                        pp_min_d_vec = v
+                    elif pd < pp_min_d_tmp:
+                        pp_min_d_tmp = pd
+                        pp_min_d_vec = v
                 if pp_min_d < -1 * DIS:
                     pp = None
                 elif pp_min_d < 0:
                     pp.position.x -= pp_min_d * pp_min_d_vec[0]
                     pp.position.y -= pp_min_d * pp_min_d_vec[1]
                     pp.position.z -= pp_min_d * pp_min_d_vec[2]
-
-                s_factor = (sp_min_d + DIS) / (2 * DIS) if sp_min_d < DIS else 1
                 p_factor = (pp_min_d + DIS) / (2 * DIS) if pp_min_d < DIS else 1
-
-                sq *= s_factor
                 pq *= p_factor
+
+
+
+            # if not sp is None and not pp is None:
+            #     vec = [mp[i-1] - mp[i] for i in range(len(mp))]
+            #     vec = [v / np.linalg.norm(v) for v in vec]
+            #     pland_d = [-1 * sum(v * p) for v, p in zip(vec, mp)]
+
+            #     sp_min_d = DIS
+            #     pp_min_d = DIS
+            #     sp_min_d_vec = None
+            #     pp_min_d_vec = None
+
+            #     for v, d in zip(vec, pland_d):
+            #         sd = sum(np.array([sp.position.x, sp.position.y, sp.position.z]) * v) + d
+            #         pd = sum(np.array([pp.position.x, pp.position.y, pp.position.z]) * v) + d
+            #         if sd < sp_min_d:
+            #             sp_min_d = sd
+            #             sp_min_d_vec = v
+            #         if pd < pp_min_d:
+            #             pp_min_d = pd
+            #             pp_min_d_vec = v
+
+            #     if sp_min_d < -1 * DIS:
+            #         sp = None
+            #     elif sp_min_d < 0:
+            #         sp.position.x -= sp_min_d * sp_min_d_vec[0]
+            #         sp.position.y -= sp_min_d * sp_min_d_vec[1]
+            #         sp.position.z -= sp_min_d * sp_min_d_vec[2]
+            #     if pp_min_d < -1 * DIS:
+            #         pp = None
+            #     elif pp_min_d < 0:
+            #         pp.position.x -= pp_min_d * pp_min_d_vec[0]
+            #         pp.position.y -= pp_min_d * pp_min_d_vec[1]
+            #         pp.position.z -= pp_min_d * pp_min_d_vec[2]
+
+            #     s_factor = (sp_min_d + DIS) / (2 * DIS) if sp_min_d < DIS else 1
+            #     p_factor = (pp_min_d + DIS) / (2 * DIS) if pp_min_d < DIS else 1
+
+            #     sq *= s_factor
+            #     pq *= p_factor
 
         target_pose = PoseStamped()
 
@@ -158,10 +204,41 @@ class ToolSelectionState(EventState):
         self._logger('===============================================')
         self._logger('===============================================')
 
+        pose = target_pose.pose
+        quat = qtn.quaternion(pose.orientation.w, pose.orientation.x, pose.orientation.y, pose.orientation.z)
+        # y_trans = qtn.from_rotation_vector([0., np.pi, 0.])
+        # quat *= y_trans
+
+        quat *= qtn.quaternion(0.707106781186547, 0., 0.707106781186547, 0.)
+        mat = qtn.as_rotation_matrix(quat)
+        z_angle = acos(abs(mat[2][2]))
+        if z_angle > 30 * np.pi / 180:
+            a = z_angle - 30 * np.pi / 180
+            v = np.cross(mat.transpose()[2], [0, 0, 1]) * a
+            quat *= qtn.from_rotation_vector(v)
+
+        pose.orientation.w = quat.w
+        pose.orientation.x = quat.x
+        pose.orientation.y = quat.y
+        pose.orientation.z = quat.z
+
         if tar_tool == 'pj':
+            pp = pose
             p = np.array([pp.position.x, pp.position.y, pp.position.z])
             q = qtn.quaternion(pp.orientation.w, pp.orientation.x, pp.orientation.y, pp.orientation.z)
             r = qtn.as_rotation_matrix(q)
+            vy = r.transpose()[1]
+            self._logger('vy = {}, pp_min_d_vec = {}, =============================================='.format(
+                vy, pp_min_d_vec
+            ))
+            if np.dot(vy, pp_min_d_vec) < 0:
+                q *= qtn.from_rotation_vector([0, 0, np.pi])
+                pp.orientation.w = q.w
+                pp.orientation.x = q.x
+                pp.orientation.y = q.y
+                pp.orientation.z = q.z
+                r = qtn.as_rotation_matrix(q)
+
             t = np.identity(4)
             t[:3, :3] = r
             t[:3, 3] = p
@@ -195,17 +272,6 @@ class ToolSelectionState(EventState):
             self._logger('p1 is {}'.format(p1))
             self._logger('max_depth is {}'.format(max_depth))
 
-        pose = target_pose.pose
-        quat = qtn.quaternion(pose.orientation.w, pose.orientation.x, pose.orientation.y, pose.orientation.z)
-        # y_trans = qtn.from_rotation_vector([0., np.pi, 0.])
-        # quat *= y_trans
-
-        quat *= qtn.quaternion(0.5, 0.5, 0.5, 0.5)
-
-        pose.orientation.w = quat.w
-        pose.orientation.x = quat.x
-        pose.orientation.y = quat.y
-        pose.orientation.z = quat.z
         userdata.target_pose = target_pose
         return 'done'
     

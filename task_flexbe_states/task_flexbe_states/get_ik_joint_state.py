@@ -137,6 +137,7 @@ class GetIkJointState(EventState):
             state.joint_state.position = list(sj)
 
         state.joint_state.header.stamp = self._time_now.to_msg()
+        state.is_diff = True
         return state
 
     def calculate_tf_trans(self, listened_tf, user_trans):

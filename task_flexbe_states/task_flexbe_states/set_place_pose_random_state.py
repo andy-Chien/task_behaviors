@@ -29,8 +29,8 @@ class SetPlacePoseRandomState(EventState):
 
     def execute(self, userdata):
         max, min = np.array(userdata.place_position_max), np.array(userdata.place_position_min)
-        Logger.logerr('max = {}, min = {}'.format(max, min))
         if not np.all(max - min >= 0):
+            Logger.logerr('max = {}, min = {}'.format(max, min))
             Logger.logerr('[Set Place Pose Random State]: Place Position setting wrong')
         p = Pose()
         pos = (max - min) * np.random.rand(3) + min

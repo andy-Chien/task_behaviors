@@ -10,6 +10,7 @@ from flexbe_core.proxy import ProxyServiceCaller
 from geometry_msgs.msg import Pose, PoseStamped
 from sensor_msgs.msg import JointState
 import copy
+import quaternion as qtn
 
 class MoveItComputeIK(EventState):
     '''
@@ -117,9 +118,18 @@ class MoveItComputeIK(EventState):
 
         tl = userdata.translation_list
         if not tl is None and len(tl) == 3 and np.linalg.norm(tl) > 0.001:
-            ps.pose.position.x += tl[0]
-            ps.pose.position.y += tl[1]
-            ps.pose.position.z += tl[2]
+            q = qtn.quaternion(ps.pose.orientation.w, 
+                               ps.pose.orientation.x,
+                               ps.pose.orientation.y,
+                               ps.pose.orientation.z)
+            mat = qtn.as_rotation_matrix(q).transpose()
+            v = np.array([0.]*3)
+            v += mat[0] * tl[0]
+            v += mat[1] * tl[1]
+            v += mat[2] * tl[2]
+            ps.pose.position.x += v[0]
+            ps.pose.position.y += v[1]
+            ps.pose.position.z += v[2]
         self._logger.info('Pose of ik request is {}'.format(ps))
 
         self._req.ik_request.pose_stamped = ps
@@ -135,6 +145,6 @@ class MoveItComputeIK(EventState):
                 sj = sj * np.pi / 180
             state.joint_state.name = joint_names
             state.joint_state.position = list(sj)
-
+        state.is_diff = True
         state.joint_state.header.stamp = self._node.get_clock().now().to_msg()
         return state

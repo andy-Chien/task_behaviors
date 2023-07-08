@@ -169,4 +169,5 @@ class MoveItJointsPlanState(EventState):
         joint_state.position = list(start_joints)
         state = RobotState()
         state.joint_state = joint_state
+        state.is_diff = True
         return state

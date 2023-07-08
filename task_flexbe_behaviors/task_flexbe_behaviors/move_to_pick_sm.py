@@ -78,7 +78,7 @@ class MoveToPickSM(Behavior):
         _state_machine.userdata.vacuum_io_pins = self.vacuum_io_pins
         _state_machine.userdata.vacuum_io_vals = [1]
         _state_machine.userdata.exe_client = None
-        _state_machine.userdata.translation_list = [.0, .0, -0.1]
+        _state_machine.userdata.translation_list = [.0, .0, -0.05]
         _state_machine.userdata.start_joints = None
         _state_machine.userdata.expected_joints = None
         _state_machine.userdata.pick_pose = None

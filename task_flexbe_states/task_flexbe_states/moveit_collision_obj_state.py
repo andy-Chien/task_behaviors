@@ -82,8 +82,8 @@ class MoveItCollisionObjState(EventState):
         ul = userdata.frame_id
         if up == None:
             pose.position.x = self.pos[0]
-            pose.position.x = self.pos[1]
-            pose.position.x = self.pos[2]
+            pose.position.y = self.pos[1]
+            pose.position.z = self.pos[2]
             pose.orientation.w = self.quat[0]
             pose.orientation.x = self.quat[1]
             pose.orientation.y = self.quat[2]
@@ -95,8 +95,8 @@ class MoveItCollisionObjState(EventState):
                 pose = up.pose
             elif isinstance(up, (list, np.ndarray)) and len(up) == 7:
                 pose.position.x = up[0]
-                pose.position.x = up[1]
-                pose.position.x = up[2]
+                pose.position.y = up[1]
+                pose.position.z = up[2]
                 pose.orientation.w = up[3]
                 pose.orientation.x = up[4]
                 pose.orientation.y = up[5]
