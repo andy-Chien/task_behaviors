@@ -44,6 +44,7 @@ In case of using current joint as start joints, just set the input start joints 
         self.add_parameter('use_curr_as_start', False)
         self.add_parameter('from_frame', 'base_link')
         self.add_parameter('to_frame', 'tool_tip')
+        self.add_parameter('translation_in_target_frame', True)
 
         # references to used behaviors
         OperatableStateMachine.initialize_ros(node)
@@ -107,7 +108,7 @@ In case of using current joint as start joints, just set the input start joints 
 
             # x:94 y:45
             OperatableStateMachine.add('ik',
-                                        MoveItComputeIK(group_name=self.group_name, joint_names=self.joint_names, namespace=self.namespace, from_frame=self.from_frame, to_frame=self.to_frame),
+                                        MoveItComputeIK(group_name=self.group_name, joint_names=self.joint_names, namespace=self.namespace, from_frame=self.from_frame, to_frame=self.to_frame, translation_in_target_frame=self.translation_in_target_frame),
                                         transitions={'done': 'plan', 'failed': 'failed'},
                                         autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off},
                                         remapping={'start_joints': 'start_joints', 'target_pose': 'target_pose', 'target_frame': 'ik_target_frame', 'translation_list': 'translation_list', 'target_joints': 'target_joints'})

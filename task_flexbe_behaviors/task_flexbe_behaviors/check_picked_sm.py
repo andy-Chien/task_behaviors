@@ -40,6 +40,7 @@ class CheckPickedSM(Behavior):
         self.add_parameter('pressure_sensor_pin', dict())
         self.add_parameter('gripper_sensor_pin', dict())
         self.add_parameter('io_service', dict())
+        self.add_parameter('vacuum_io_pins', dict())
 
         # references to used behaviors
         OperatableStateMachine.initialize_ros(node)

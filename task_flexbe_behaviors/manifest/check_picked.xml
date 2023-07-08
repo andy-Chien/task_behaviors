@@ -36,6 +36,10 @@
 			<key name="" />
 		</param>
 
+		<param type="yaml" name="vacuum_io_pins" default="" label="vacuum_io_pins" hint="Sets the vacuum_io_pins">
+			<key name="" />
+		</param>
+
 	</params>
 
 

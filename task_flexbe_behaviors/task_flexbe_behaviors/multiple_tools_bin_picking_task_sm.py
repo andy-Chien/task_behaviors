@@ -45,7 +45,7 @@ class MultipleToolsBinPickingTaskSM(Behavior):
         self.add_parameter('namespace', 'robot_2')
         self.add_parameter('sim', True)
         self.add_parameter('init_joints', dict())
-        self.add_parameter('gripper_sensor_pin', dict())
+        self.add_parameter('pressure_sensor_pin', dict())
         self.add_parameter('pick_and_place_param_file', 'task_flexbe_behaviors/config/pick_and_place.yaml')
         self.add_parameter('io_topic', dict())
         self.add_parameter('io_service', dict())
@@ -56,6 +56,7 @@ class MultipleToolsBinPickingTaskSM(Behavior):
         self.add_parameter('joint_names', dict())
         self.add_parameter('vacuum_io_pins', dict())
         self.add_parameter('gripper_sensor_pin', dict())
+        self.add_parameter('planner', 'AdaptLazyPRM')
 
         # references to used behaviors
         OperatableStateMachine.initialize_ros(node)
@@ -95,7 +96,7 @@ class MultipleToolsBinPickingTaskSM(Behavior):
         _state_machine.userdata.curr_tool_name = 'pj'
         _state_machine.userdata.place_pose = None
         _state_machine.userdata.velocity = 10
-        _state_machine.userdata.target_tool_name = 'pj'
+        _state_machine.userdata.target_tool_name = 'suction'
         _state_machine.userdata.exe_client = None
         _state_machine.userdata.init_joints = self.init_joints
         _state_machine.userdata.ik_target_frame = 'tool_tip'
@@ -129,7 +130,7 @@ class MultipleToolsBinPickingTaskSM(Behavior):
             # x:636 y:487
             OperatableStateMachine.add('Check Picked',
                                         self.use_behavior(CheckPickedSM, 'Check Picked',
-                                            parameters={'namespace': self.namespace, 'sim': self.sim, 'io_topic': self.io_topic}),
+                                            parameters={'namespace': self.namespace, 'sim': self.sim, 'io_topic': self.io_topic, 'pressure_sensor_pin': self.pressure_sensor_pin, 'gripper_sensor_pin': self.gripper_sensor_pin}),
                                         transitions={'true': 'Move To Place', 'false': 'detach_obj'},
                                         autonomy={'true': Autonomy.Inherit, 'false': Autonomy.Inherit},
                                         remapping={'curr_tool_name': 'curr_tool_name', 'fail_cnt': 'fail_cnt'})
@@ -169,14 +170,15 @@ class MultipleToolsBinPickingTaskSM(Behavior):
 
             # x:741 y:203
             OperatableStateMachine.add('Tool Selection based on GQCNN',
-                                        self.use_behavior(ToolSelectionbasedonGQCNNSM, 'Tool Selection based on GQCNN'),
+                                        self.use_behavior(ToolSelectionbasedonGQCNNSM, 'Tool Selection based on GQCNN',
+                                            parameters={'group_name': self.group_name, 'joint_names': self.joint_names, 'namespace': self.namespace}),
                                         transitions={'finished': 'check_tool', 'failed': 'failed', 'nothing_to_grasp': 'stop_img_update'},
                                         autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit, 'nothing_to_grasp': Autonomy.Inherit},
-                                        remapping={'curr_tool_name': 'curr_tool_name', 'fail_cnt': 'fail_cnt', 'target_tool_name': 'target_tool_name', 'target_pose': 'target_picking_pose'})
+                                        remapping={'curr_tool_name': 'curr_tool_name', 'fail_cnt': 'fail_cnt', 'ik_target_frame': 'ik_target_frame', 'start_joints': 'expected_joints', 'target_tool_name': 'target_tool_name', 'target_pose': 'target_picking_pose'})
 
             # x:639 y:573
             OperatableStateMachine.add('attach_obj',
-                                        MoveItAttachedObjState(mesh_file='', operation='add', obj_type='cylinker', link_name='', touch_links=[], size=[0.05, 0.08], namespace=self.namespace, obj_name='picked_obj', pos=[0.0,0.0,0.03], quat=[1.0,0.0,0.0,0.0]),
+                                        MoveItAttachedObjState(mesh_file='', operation='add', obj_type='cylinder', link_name='', touch_links=[], size=[0.05, 0.04], namespace=self.namespace, obj_name='picked_obj', pos=[0.0,0.0,0.03], quat=[1.0,0.0,0.0,0.0]),
                                         transitions={'done': 'release_occupied_marker'},
                                         autonomy={'done': Autonomy.Off},
                                         remapping={'link_name': 'ik_target_frame', 'pose': 'none'})

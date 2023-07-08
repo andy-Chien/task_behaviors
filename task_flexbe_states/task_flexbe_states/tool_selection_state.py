@@ -23,6 +23,7 @@ Created on 24.02.2022
 '''
 
 DIS = 0.06
+ACCEPTABLE_DIS = 0.02
 PJ_MIN_DIS = 0.03
 SUC_MIN_DIS = 0.01
 
@@ -63,104 +64,64 @@ class ToolSelectionState(EventState):
         sp, pp = deepcopy(userdata.suc_pose), deepcopy(userdata.pj_pose)
         sq, pq = userdata.suc_qv, userdata.pj_qv
         mp = [np.array([x.position.x, x.position.y, x.position.z]) for x in userdata.marker_poses]
-        min_z = np.min(mp, axis=0)[2] - DIS
+        min_z = np.min(mp, axis=0)[2] - ACCEPTABLE_DIS
+        if sp.position.z < min_z:
+            sp = None
+        if pp.position.z < min_z:
+            pp = None
         if not sp is None and not pp is None:
             self._logger('===============================================')
             self._logger('===============================================')
             self._logger('mp = {}'.format(mp))
 
-            if sp.position.z < min_z - DIS:
-                sp = None
-            if pp.position.z < min_z - DIS:
-                pp = None
 
             vec = [mp[i-1] - mp[i] for i in range(len(mp))]
             vec = [v / np.linalg.norm(v) for v in vec]
-            pland_d = [-1 * sum(v * p) for v, p in zip(vec, mp)]
+            pland_d = [-1 * np.dot(v, p) for v, p in zip(vec, mp)]
+
+            self._logger('vec is {}'.format(vec))
 
             sp_min_d = DIS
-            pp_min_d = DIS
-            sp_min_d_vec = None
+            pp_min_d = DIS + 9999 # always get at lest one pp_min_d_vec
             pp_min_d_vec = None
             
             if sp != None:
                 for v, d in zip(vec, pland_d):
-                    sd = sum(np.array([sp.position.x, sp.position.y, sp.position.z]) * v) + d
+                    sd = np.dot([sp.position.x, sp.position.y, sp.position.z], v) + d
+                    if sd < -1 * ACCEPTABLE_DIS:
+                        sp = None
+                        break
                     if sd < sp_min_d:
                         sp_min_d = sd
-                        sp_min_d_vec = v
-                if sp_min_d < -1 * DIS:
-                    sp = None
-                elif sp_min_d < SUC_MIN_DIS:
-                    sp.position.x = (SUC_MIN_DIS - sp_min_d) * sp_min_d_vec[0]
-                    sp.position.y = (SUC_MIN_DIS - sp_min_d) * sp_min_d_vec[1]
-                    sp.position.z = (SUC_MIN_DIS - sp_min_d) * sp_min_d_vec[2]
+                    if sd < SUC_MIN_DIS:
+                        sp.position.x = (SUC_MIN_DIS - sd) * v[0]
+                        sp.position.y = (SUC_MIN_DIS - sd) * v[1]
+                        sp.position.z = (SUC_MIN_DIS - sd) * v[2]
+
                 s_factor = (sp_min_d + DIS) / (2 * DIS) if sp_min_d < DIS else 1
                 if 'suc' in userdata.curr_tool:
                     s_factor /= 2**userdata.fail_cnt
                 sq *= s_factor
                 
             if pp != None:
-                pp_min_d_tmp = 9999
                 for v, d in zip(vec, pland_d):
-                    pd = sum(np.array([pp.position.x, pp.position.y, pp.position.z]) * v) + d
+                    pd = np.dot([pp.position.x, pp.position.y, pp.position.z], v) + d
+                    if pd < -1 * ACCEPTABLE_DIS:
+                        pp = None
+                        break
                     if pd < pp_min_d:
                         pp_min_d = pd
-                        pp_min_d_vec = v
-                    elif pd < pp_min_d_tmp:
-                        pp_min_d_tmp = pd
-                        pp_min_d_vec = v
-                if pp_min_d < -1 * DIS:
-                    pp = None
-                elif pp_min_d < PJ_MIN_DIS:
-                    pp.position.x += (PJ_MIN_DIS - pp_min_d) * pp_min_d_vec[0]
-                    pp.position.y += (PJ_MIN_DIS - pp_min_d) * pp_min_d_vec[1]
-                    pp.position.z += (PJ_MIN_DIS - pp_min_d) * pp_min_d_vec[2]
+                        pp_min_d_vec = deepcopy(v)
+                    if pd < PJ_MIN_DIS:
+                        pp.position.x += (PJ_MIN_DIS - pd) * v[0]
+                        pp.position.y += (PJ_MIN_DIS - pd) * v[1]
+                        pp.position.z += (PJ_MIN_DIS - pd) * v[2]
+
                 p_factor = (pp_min_d + DIS) / (2 * DIS) if pp_min_d < DIS else 1
                 if 'pj' in userdata.curr_tool:
                     s_factor /= 2**userdata.fail_cnt
                 pq *= p_factor
 
-
-
-            # if not sp is None and not pp is None:
-            #     vec = [mp[i-1] - mp[i] for i in range(len(mp))]
-            #     vec = [v / np.linalg.norm(v) for v in vec]
-            #     pland_d = [-1 * sum(v * p) for v, p in zip(vec, mp)]
-
-            #     sp_min_d = DIS
-            #     pp_min_d = DIS
-            #     sp_min_d_vec = None
-            #     pp_min_d_vec = None
-
-            #     for v, d in zip(vec, pland_d):
-            #         sd = sum(np.array([sp.position.x, sp.position.y, sp.position.z]) * v) + d
-            #         pd = sum(np.array([pp.position.x, pp.position.y, pp.position.z]) * v) + d
-            #         if sd < sp_min_d:
-            #             sp_min_d = sd
-            #             sp_min_d_vec = v
-            #         if pd < pp_min_d:
-            #             pp_min_d = pd
-            #             pp_min_d_vec = v
-
-            #     if sp_min_d < -1 * DIS:
-            #         sp = None
-            #     elif sp_min_d < 0:
-            #         sp.position.x -= sp_min_d * sp_min_d_vec[0]
-            #         sp.position.y -= sp_min_d * sp_min_d_vec[1]
-            #         sp.position.z -= sp_min_d * sp_min_d_vec[2]
-            #     if pp_min_d < -1 * DIS:
-            #         pp = None
-            #     elif pp_min_d < 0:
-            #         pp.position.x -= pp_min_d * pp_min_d_vec[0]
-            #         pp.position.y -= pp_min_d * pp_min_d_vec[1]
-            #         pp.position.z -= pp_min_d * pp_min_d_vec[2]
-
-            #     s_factor = (sp_min_d + DIS) / (2 * DIS) if sp_min_d < DIS else 1
-            #     p_factor = (pp_min_d + DIS) / (2 * DIS) if pp_min_d < DIS else 1
-
-            #     sq *= s_factor
-            #     pq *= p_factor
 
         target_pose = PoseStamped()
 
@@ -264,11 +225,14 @@ class ToolSelectionState(EventState):
 
             depth_img = self.cv_gridge.imgmsg_to_cv2(userdata.img[1], desired_encoding='16UC1')
             camera_intrinsics = np.reshape(userdata.img_info[1].k, (3,3))
-            avg_d0 = self.calculate_average_depth(depth_img, p0, camera_intrinsics, int(min_z * 1000)) / 1000.0
-            avg_d1 = self.calculate_average_depth(depth_img, p1, camera_intrinsics, int(min_z * 1000)) / 1000.0
+            avg_d0 = self.calculate_average_depth(depth_img, p0, camera_intrinsics, int(min_z * 1000))
+            avg_d1 = self.calculate_average_depth(depth_img, p1, camera_intrinsics, int(min_z * 1000))
 
             if avg_d0 is None or avg_d1 is None:
                 return 'failed'
+            
+            avg_d0 /= 1000.0
+            avg_d1 /= 1000.0
 
             max_depth = min(avg_d0, avg_d1)
             if pp.position.z > max_depth:

@@ -47,6 +47,7 @@ class MoveToPlaceSM(Behavior):
         self.add_parameter('place_pos_min', dict())
         self.add_parameter('vacuum_io_pins', dict())
         self.add_parameter('tool_name', 'suction')
+        self.add_parameter('planner', 'BiTRRT')
 
         # references to used behaviors
         OperatableStateMachine.initialize_ros(node)
@@ -105,7 +106,7 @@ class MoveToPlaceSM(Behavior):
             # x:218 y:419
             OperatableStateMachine.add('Move Arm To Obj Up Pose Async',
                                         self.use_behavior(MoveArmToPoseAsyncSM, 'Move Arm To Obj Up Pose Async',
-                                            parameters={'group_name': self.group_name, 'joint_names': self.joint_names, 'namespace': self.namespace, 'wait': False}),
+                                            parameters={'group_name': self.group_name, 'joint_names': self.joint_names, 'namespace': self.namespace, 'planner': self.planner, 'wait': False}),
                                         transitions={'finished': 'Move Arm To Obj Pose Async', 'failed': 'failed'},
                                         autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
                                         remapping={'target_pose': 'place_pose', 'translation_list': 'translation_list', 'start_joints': 'start_joints', 'velocity': 'velocity', 'exe_client': 'exe_client', 'ik_target_frame': 'ik_target_frame', 'target_joints': 'start_joints'})
@@ -113,7 +114,7 @@ class MoveToPlaceSM(Behavior):
             # x:1131 y:295
             OperatableStateMachine.add('Move Arm To Pose Async_3',
                                         self.use_behavior(MoveArmToPoseAsyncSM, 'Move Arm To Pose Async_3',
-                                            parameters={'group_name': self.group_name, 'joint_names': self.joint_names, 'namespace': self.namespace, 'wait': False}),
+                                            parameters={'group_name': self.group_name, 'joint_names': self.joint_names, 'namespace': self.namespace, 'planner': self.planner, 'wait': False}),
                                         transitions={'finished': 'finished', 'failed': 'failed'},
                                         autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
                                         remapping={'target_pose': 'place_pose', 'translation_list': 'translation_list', 'start_joints': 'expected_joints', 'velocity': 'velocity', 'exe_client': 'exe_client', 'ik_target_frame': 'ik_target_frame', 'target_joints': 'expected_joints'})
@@ -174,7 +175,7 @@ class MoveToPlaceSM(Behavior):
             # x:222 y:311
             OperatableStateMachine.add('Move Arm To Obj Pose Async',
                                         self.use_behavior(MoveArmToPoseAsyncSM, 'Move Arm To Obj Pose Async',
-                                            parameters={'group_name': self.group_name, 'joint_names': self.joint_names, 'namespace': self.namespace}),
+                                            parameters={'group_name': self.group_name, 'joint_names': self.joint_names, 'namespace': self.namespace, 'planner': self.planner}),
                                         transitions={'finished': 'select_tool_depend_on_input', 'failed': 'failed'},
                                         autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
                                         remapping={'target_pose': 'place_pose', 'translation_list': 'translation_zero', 'start_joints': 'start_joints', 'velocity': 'velocity', 'exe_client': 'exe_client', 'ik_target_frame': 'ik_target_frame', 'target_joints': 'expected_joints'})

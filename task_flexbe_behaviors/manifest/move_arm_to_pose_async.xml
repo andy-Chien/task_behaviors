@@ -35,6 +35,8 @@ In case of using current joint as start joints, just set the input start joints 
 
 		<param type="text" name="to_frame" default="tool_tip" label="to_frame" hint="Sets the to_frame" />
 
+		<param type="boolean" name="translation_in_target_frame" default="True" label="translation_in_target_frame" hint="Sets the translation_in_target_frame" />
+
 	</params>
 
 

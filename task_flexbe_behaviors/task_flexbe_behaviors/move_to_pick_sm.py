@@ -46,6 +46,7 @@ class MoveToPickSM(Behavior):
         self.add_parameter('pressure_sensor_pin', dict())
         self.add_parameter('io_topic', dict())
         self.add_parameter('tool_name', 'suction')
+        self.add_parameter('planner', 'BiTRRT')
 
         # references to used behaviors
         OperatableStateMachine.initialize_ros(node)
@@ -60,8 +61,8 @@ class MoveToPickSM(Behavior):
         SetDIOState.initialize_ros(node)
         self.add_behavior(MoveArmToPoseAsyncSM, 'Move Arm To Obj Pose Async', node)
         self.add_behavior(MoveArmToPoseAsyncSM, 'Move Arm To Obj Pose Async 2', node)
-        self.add_behavior(MoveArmToPoseAsyncSM, 'Move Arm To Obj Up Pose Async', node)
-        self.add_behavior(MoveArmToPoseAsyncSM, 'Move Arm To Obj Up Pose Async 2', node)
+        self.add_behavior(MoveArmToPoseAsyncSM, 'Move Arm To Obj Up Async', node)
+        self.add_behavior(MoveArmToPoseAsyncSM, 'Move Arm To Pick Pose Front Async', node)
 
         # Additional initialization code can be added inside the following tags
         # [MANUAL_INIT]
@@ -87,6 +88,7 @@ class MoveToPickSM(Behavior):
         _state_machine.userdata.pressure_sensor_pin = self.pressure_sensor_pin
         _state_machine.userdata.velocity = 10
         _state_machine.userdata.ik_target_frame = 'tool_tip'
+        _state_machine.userdata.translation_z_up_list = [.0, .0, -0.2]
 
         # Additional creation code can be added inside the following tags
         # [MANUAL_CREATE]
@@ -96,9 +98,9 @@ class MoveToPickSM(Behavior):
 
         with _state_machine:
             # x:131 y:300
-            OperatableStateMachine.add('Move Arm To Obj Up Pose Async',
-                                        self.use_behavior(MoveArmToPoseAsyncSM, 'Move Arm To Obj Up Pose Async',
-                                            parameters={'group_name': self.group_name, 'joint_names': self.joint_names, 'namespace': self.namespace, 'wait': False}),
+            OperatableStateMachine.add('Move Arm To Pick Pose Front Async',
+                                        self.use_behavior(MoveArmToPoseAsyncSM, 'Move Arm To Pick Pose Front Async',
+                                            parameters={'group_name': self.group_name, 'joint_names': self.joint_names, 'namespace': self.namespace, 'planner': self.planner, 'wait': False}),
                                         transitions={'finished': 'select_tool_depend_on_input', 'failed': 'failed'},
                                         autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
                                         remapping={'target_pose': 'pick_pose', 'translation_list': 'translation_list', 'start_joints': 'start_joints', 'velocity': 'velocity', 'exe_client': 'exe_client', 'ik_target_frame': 'ik_target_frame', 'target_joints': 'expected_joints'})
@@ -106,23 +108,23 @@ class MoveToPickSM(Behavior):
             # x:521 y:215
             OperatableStateMachine.add('Move Arm To Obj Pose Async 2',
                                         self.use_behavior(MoveArmToPoseAsyncSM, 'Move Arm To Obj Pose Async 2',
-                                            parameters={'group_name': self.group_name, 'joint_names': self.joint_names, 'namespace': self.namespace, 'wait': False}),
+                                            parameters={'group_name': self.group_name, 'joint_names': self.joint_names, 'namespace': self.namespace, 'planner': self.planner, 'wait': False}),
                                         transitions={'finished': 'suc', 'failed': 'failed'},
                                         autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
                                         remapping={'target_pose': 'pick_pose', 'translation_list': 'translation_zero', 'start_joints': 'expected_joints', 'velocity': 'velocity', 'exe_client': 'exe_client', 'ik_target_frame': 'ik_target_frame', 'target_joints': 'expected_joints'})
 
             # x:854 y:228
-            OperatableStateMachine.add('Move Arm To Obj Up Pose Async 2',
-                                        self.use_behavior(MoveArmToPoseAsyncSM, 'Move Arm To Obj Up Pose Async 2',
-                                            parameters={'group_name': self.group_name, 'joint_names': self.joint_names, 'namespace': self.namespace, 'wait': False}),
+            OperatableStateMachine.add('Move Arm To Obj Up Async',
+                                        self.use_behavior(MoveArmToPoseAsyncSM, 'Move Arm To Obj Up Async',
+                                            parameters={'group_name': self.group_name, 'joint_names': self.joint_names, 'namespace': self.namespace, 'planner': self.planner, 'wait': False, 'translation_in_target_frame': False}),
                                         transitions={'finished': 'finished', 'failed': 'failed'},
                                         autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
-                                        remapping={'target_pose': 'pick_pose', 'translation_list': 'translation_list', 'start_joints': 'expected_joints', 'velocity': 'velocity', 'exe_client': 'exe_client', 'ik_target_frame': 'ik_target_frame', 'target_joints': 'expected_joints'})
+                                        remapping={'target_pose': 'pick_pose', 'translation_list': 'translation_z_up_list', 'start_joints': 'expected_joints', 'velocity': 'velocity', 'exe_client': 'exe_client', 'ik_target_frame': 'ik_target_frame', 'target_joints': 'expected_joints'})
 
             # x:907 y:409
             OperatableStateMachine.add('cancel_execution',
                                         MoveitCancelExecuteState(namespace=self.namespace, sim=False),
-                                        transitions={'done': 'Move Arm To Obj Up Pose Async 2'},
+                                        transitions={'done': 'Move Arm To Obj Up Async'},
                                         autonomy={'done': Autonomy.Off},
                                         remapping={'exe_client': 'exe_client'})
 
@@ -136,7 +138,7 @@ class MoveToPickSM(Behavior):
             # x:854 y:99
             OperatableStateMachine.add('grasp',
                                         HiwinXeg32GripperClient(mode='expert', direction=0, distance=0, speed=6000, holding_stroke=3200, holding_speed=20000, holding_force=40, flag=1, namespace=self.namespace, sim=self.sim),
-                                        transitions={'done': 'Move Arm To Obj Up Pose Async 2', 'failed': 'failed'},
+                                        transitions={'done': 'Move Arm To Obj Up Async', 'failed': 'failed'},
                                         autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
 
             # x:124 y:163
@@ -175,7 +177,7 @@ class MoveToPickSM(Behavior):
             # x:526 y:94
             OperatableStateMachine.add('Move Arm To Obj Pose Async',
                                         self.use_behavior(MoveArmToPoseAsyncSM, 'Move Arm To Obj Pose Async',
-                                            parameters={'group_name': self.group_name, 'joint_names': self.joint_names, 'namespace': self.namespace}),
+                                            parameters={'group_name': self.group_name, 'joint_names': self.joint_names, 'namespace': self.namespace, 'planner': self.planner}),
                                         transitions={'finished': 'grasp', 'failed': 'failed'},
                                         autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
                                         remapping={'target_pose': 'pick_pose', 'translation_list': 'translation_zero', 'start_joints': 'expected_joints', 'velocity': 'velocity', 'exe_client': 'exe_client', 'ik_target_frame': 'ik_target_frame', 'target_joints': 'expected_joints'})

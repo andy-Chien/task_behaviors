@@ -47,6 +47,8 @@
 
 		<param type="text" name="tool_name" default="suction" label="tool_name" hint="Sets the tool_name" />
 
+		<param type="text" name="planner" default="BiTRRT" label="planner" hint="Sets the planner" />
+
 	</params>
 
 

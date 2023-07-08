@@ -33,8 +33,8 @@
 			<key name="init_joints" />
 		</param>
 
-		<param type="yaml" name="gripper_sensor_pin" default="task_flexbe_behaviors/config/pick_and_place.yaml" label="gripper_sensor_pin" hint="Sets the gripper_sensor_pin">
-			<key name="gripper_sensor_pin" />
+		<param type="yaml" name="pressure_sensor_pin" default="task_flexbe_behaviors/config/pick_and_place.yaml" label="pressure_sensor_pin" hint="Sets the pressure_sensor_pin">
+			<key name="pressure_sensor_pin" />
 		</param>
 
 		<param type="text" name="pick_and_place_param_file" default="task_flexbe_behaviors/config/pick_and_place.yaml" label="pick_and_place_param_file" hint="Sets the pick_and_place_param_file" />
@@ -74,6 +74,8 @@
 		<param type="yaml" name="gripper_sensor_pin" default="task_flexbe_behaviors/config/pick_and_place.yaml" label="gripper_sensor_pin" hint="Sets the gripper_sensor_pin">
 			<key name="gripper_sensor_pin" />
 		</param>
+
+		<param type="text" name="planner" default="AdaptLazyPRM" label="planner" hint="Sets the planner" />
 
 	</params>
 

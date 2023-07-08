@@ -30,7 +30,7 @@ class MoveItComputeIK(EventState):
     <= failed
     '''
 
-    def __init__(self, group_name, joint_names, namespace='', from_frame='base_link', to_frame='tool_tip'):
+    def __init__(self, group_name, joint_names, namespace='', from_frame='base_link', to_frame='tool_tip', translation_in_target_frame=True):
         '''Constructor'''
         super(MoveItComputeIK, self).__init__(outcomes = ['done', 'failed'],
                                             input_keys = ['start_joints', 'target_pose', 'target_frame','translation_list'],
@@ -42,6 +42,7 @@ class MoveItComputeIK(EventState):
 
         self._req = GetPositionIK.Request()
         self._req.ik_request.group_name = group_name
+        self.translation_in_target_frame = translation_in_target_frame
 
         if len(namespace) > 1 or (len(namespace) == 1 and namespace.startswith('/')):
             namespace = namespace[1:] if namespace[0] == '/' else namespace
@@ -118,15 +119,18 @@ class MoveItComputeIK(EventState):
 
         tl = userdata.translation_list
         if not tl is None and len(tl) == 3 and np.linalg.norm(tl) > 0.001:
-            q = qtn.quaternion(ps.pose.orientation.w, 
-                               ps.pose.orientation.x,
-                               ps.pose.orientation.y,
-                               ps.pose.orientation.z)
-            mat = qtn.as_rotation_matrix(q).transpose()
-            v = np.array([0.]*3)
-            v += mat[0] * tl[0]
-            v += mat[1] * tl[1]
-            v += mat[2] * tl[2]
+            if self.translation_in_target_frame:
+                q = qtn.quaternion(ps.pose.orientation.w, 
+                                ps.pose.orientation.x,
+                                ps.pose.orientation.y,
+                                ps.pose.orientation.z)
+                mat = qtn.as_rotation_matrix(q).transpose()
+                v = np.array([0.]*3)
+                v += mat[0] * tl[0]
+                v += mat[1] * tl[1]
+                v += mat[2] * tl[2]
+            else:
+                v = tl
             ps.pose.position.x += v[0]
             ps.pose.position.y += v[1]
             ps.pose.position.z += v[2]

@@ -14,5 +14,17 @@
 	<!-- Contained Behaviors -->
 
 	<!-- Available Parameters -->
+	<params>
+
+		<param type="text" name="group_name" default="" label="group_name" hint="Sets the group_name" />
+
+		<param type="yaml" name="joint_names" default="" label="joint_names" hint="Sets the joint_names">
+			<key name="" />
+		</param>
+
+		<param type="text" name="namespace" default="" label="namespace" hint="Sets the namespace" />
+
+	</params>
+
 
 </behavior>
