@@ -14,5 +14,11 @@
 	<!-- Contained Behaviors -->
 
 	<!-- Available Parameters -->
+	<params>
+
+		<param type="text" name="namespace" default="" label="namespace" hint="Sets the namespace" />
+
+	</params>
+
 
 </behavior>
