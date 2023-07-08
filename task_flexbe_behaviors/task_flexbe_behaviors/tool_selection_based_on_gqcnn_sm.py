@@ -53,10 +53,11 @@ class ToolSelectionbasedonGQCNNSM(Behavior):
 
     def create(self):
         # x:385 y:219, x:381 y:171, x:297 y:402
-        _state_machine = OperatableStateMachine(outcomes=['finished', 'failed', 'nothing_to_grasp'], input_keys=['curr_tool_name'], output_keys=['target_tool_name', 'target_pose'])
+        _state_machine = OperatableStateMachine(outcomes=['finished', 'failed', 'nothing_to_grasp'], input_keys=['curr_tool_name', 'fail_cnt'], output_keys=['target_tool_name', 'target_pose'])
         _state_machine.userdata.curr_tool_name = 'suction'
         _state_machine.userdata.target_pose = None
         _state_machine.userdata.target_tool_name = ''
+        _state_machine.userdata.fail_cnt = 0
 
         # Additional creation code can be added inside the following tags
         # [MANUAL_CREATE]

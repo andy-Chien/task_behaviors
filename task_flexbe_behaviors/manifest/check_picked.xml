@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<behavior name="Check Picked">
+
+	<executable package_path="task_flexbe_behaviors.check_picked_sm" class="CheckPickedSM" />
+	<tagstring>v0</tagstring>
+	<author>Andy Chien</author>
+	<date>Sat Jul 08 2023</date>
+	<description>
+		check it is picked or not
+	</description>
+
+
+	<!-- Contained Behaviors -->
+
+	<!-- Available Parameters -->
+	<params>
+
+		<param type="text" name="namespace" default="" label="namespace" hint="Sets the namespace" />
+
+		<param type="boolean" name="sim" default="False" label="sim" hint="Sets the sim" />
+
+		<param type="yaml" name="io_topic" default="" label="io_topic" hint="Sets the io_topic">
+			<key name="" />
+		</param>
+
+		<param type="yaml" name="pressure_sensor_pin" default="task_flexbe_behaviors/config/pick_and_place.yaml" label="pressure_sensor_pin" hint="Sets the pressure_sensor_pin">
+			<key name="pressure_sensor_pin" />
+		</param>
+
+		<param type="yaml" name="gripper_sensor_pin" default="task_flexbe_behaviors/config/pick_and_place.yaml" label="gripper_sensor_pin" hint="Sets the gripper_sensor_pin">
+			<key name="gripper_sensor_pin" />
+		</param>
+
+		<param type="yaml" name="io_service" default="" label="io_service" hint="Sets the io_service">
+			<key name="" />
+		</param>
+
+	</params>
+
+
+</behavior>

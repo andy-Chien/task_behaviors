@@ -71,10 +71,10 @@ class ChangeToolTaskSM(Behavior):
         # x:857 y:663, x:1115 y:159
         _state_machine = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['target_tool_name', 'exe_client', 'curr_tool_name'], output_keys=['curr_tool_name', 'expected_joints', 'tool_frame', 'exe_client'])
         _state_machine.userdata.direction_in = 0
-        _state_machine.userdata.distance = 600
+        _state_machine.userdata.distance = 0
         _state_machine.userdata.speed = 6000
-        _state_machine.userdata.holding_stroke = 2600
-        _state_machine.userdata.holding_speed = 500
+        _state_machine.userdata.holding_stroke = 3200
+        _state_machine.userdata.holding_speed = 2000
         _state_machine.userdata.holding_force_little = 40
         _state_machine.userdata.flag = 1
         _state_machine.userdata.infront_sucker = self.infront_sucker
@@ -138,21 +138,21 @@ class ChangeToolTaskSM(Behavior):
 
             # x:606 y:608
             OperatableStateMachine.add('hold_or_release_2_check',
-                                        HiwinXeg32GripperApi(sim=self.sim),
+                                        HiwinXeg32GripperApi(sim=self.sim, namespace=self.namespace),
                                         transitions={'done': 'hold_or_release_3_check', 'failed': 'failed'},
                                         autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off},
                                         remapping={'mode': 'mode', 'direction': 'direction_out', 'distance': 'distance_little', 'speed': 'speed_little', 'holding_stroke': 'holding_stroke_little', 'holding_speed': 'holding_speed_little', 'holding_force': 'holding_force_little', 'flag': 'flag'})
 
             # x:413 y:723
             OperatableStateMachine.add('hold_or_release_3_check',
-                                        HiwinXeg32GripperApi(sim=self.sim),
+                                        HiwinXeg32GripperApi(sim=self.sim, namespace=self.namespace),
                                         transitions={'done': 'set_curr_name', 'failed': 'failed'},
                                         autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off},
-                                        remapping={'mode': 'mode', 'direction': 'direction_in', 'distance': 'distance_little', 'speed': 'speed_little', 'holding_stroke': 'holding_stroke_little', 'holding_speed': 'holding_speed_little', 'holding_force': 'holding_force_little', 'flag': 'flag'})
+                                        remapping={'mode': 'mode', 'direction': 'direction_in', 'distance': 'distance_little', 'speed': 'speed_little', 'holding_stroke': 'holding_stroke_little', 'holding_speed': 'holding_speed_little', 'holding_force': 'holding_force', 'flag': 'flag'})
 
             # x:48 y:551
             OperatableStateMachine.add('hold_or_release_sucker',
-                                        HiwinXeg32GripperApi(sim=self.sim),
+                                        HiwinXeg32GripperApi(sim=self.sim, namespace=self.namespace),
                                         transitions={'done': 'Change Tool Model', 'failed': 'failed'},
                                         autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off},
                                         remapping={'mode': 'mode', 'direction': 'direction_in', 'distance': 'distance', 'speed': 'speed', 'holding_stroke': 'holding_stroke', 'holding_speed': 'holding_speed', 'holding_force': 'holding_force', 'flag': 'flag'})

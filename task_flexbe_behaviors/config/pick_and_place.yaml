@@ -6,8 +6,9 @@ random_place_pose:
 place_pos_min: [-0.32, -0.45, -0.1]
 place_pos_max: [-0.28, -0.35, -0.08]
 
-vacuum_io_pins: [2]
-pressure_sensor_pin: [3]
+vacuum_io_pins: [3]
+pressure_sensor_pin: [4]
+gripper_sensor_pin: [7]
 
 infront_sucker: [38.81, -84.56, 63.86, -69.23, -89.29, -5.65]
 sucker_spot: [0.6200551986694336, -1.38384706178774058, 1.0053377151489258, -1.1916464010821741, -1.5656312147723597, -0.16830856004823858]

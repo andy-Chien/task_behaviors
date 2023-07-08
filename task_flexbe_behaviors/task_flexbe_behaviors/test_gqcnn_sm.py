@@ -52,7 +52,7 @@ class TestGQCNNSM(Behavior):
 
 
     def create(self):
-        # x:610 y:464, x:156 y:220
+        # x:723 y:463, x:156 y:220
         _state_machine = OperatableStateMachine(outcomes=['finished', 'failed'])
 
         # Additional creation code can be added inside the following tags

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<behavior name="Add Box To Scene">
+
+	<executable package_path="task_flexbe_behaviors.add_box_to_scene_sm" class="AddBoxToSceneSM" />
+	<tagstring>v0</tagstring>
+	<author>Andy Chien</author>
+	<date>Thu Jul 06 2023</date>
+	<description>
+		As the name
+	</description>
+
+
+	<!-- Contained Behaviors -->
+
+	<!-- Available Parameters -->
+	<params>
+
+		<param type="yaml" name="box_mesh" default="task_flexbe_behaviors/config/pick_and_place.yaml" label="box_mesh" hint="Sets the box_mesh">
+			<key name="box_mesh" />
+		</param>
+
+		<param type="yaml" name="box_ring_mesh" default="task_flexbe_behaviors/config/pick_and_place.yaml" label="box_ring_mesh" hint="Sets the box_ring_mesh">
+			<key name="box_ring_mesh" />
+		</param>
+
+		<param type="text" name="namespace" default="" label="namespace" hint="Sets the namespace" />
+
+		<param type="text" name="box_name" default="" label="box_name" hint="Sets the box_name" />
+
+	</params>
+
+
+</behavior>

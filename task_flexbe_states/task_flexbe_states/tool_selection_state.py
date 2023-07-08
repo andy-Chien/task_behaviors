@@ -22,7 +22,9 @@ Created on 24.02.2022
 @author: Andy Chien
 '''
 
-DIS = 0.05
+DIS = 0.06
+PJ_MIN_DIS = 0.03
+SUC_MIN_DIS = 0.01
 
 class ToolSelectionState(EventState):
     '''
@@ -43,7 +45,7 @@ class ToolSelectionState(EventState):
         '''
         super(ToolSelectionState, self).__init__(outcomes=['done', 'failed'],
                                                   input_keys=['marker_poses', 'pj_pose', 'suc_pose', 
-                                                              'frame', 'pj_qv', 'suc_qv', 'curr_tool', 'img_info', 'img'],
+                                                              'frame', 'pj_qv', 'suc_qv', 'curr_tool', 'img_info', 'img', 'fail_cnt'],
                                                   output_keys=['target_pose', 'tar_tool'])
         
         self._node = ToolSelectionState._node
@@ -89,11 +91,13 @@ class ToolSelectionState(EventState):
                         sp_min_d_vec = v
                 if sp_min_d < -1 * DIS:
                     sp = None
-                elif sp_min_d < 0:
-                    sp.position.x -= sp_min_d * sp_min_d_vec[0]
-                    sp.position.y -= sp_min_d * sp_min_d_vec[1]
-                    sp.position.z -= sp_min_d * sp_min_d_vec[2]
+                elif sp_min_d < SUC_MIN_DIS:
+                    sp.position.x = (SUC_MIN_DIS - sp_min_d) * sp_min_d_vec[0]
+                    sp.position.y = (SUC_MIN_DIS - sp_min_d) * sp_min_d_vec[1]
+                    sp.position.z = (SUC_MIN_DIS - sp_min_d) * sp_min_d_vec[2]
                 s_factor = (sp_min_d + DIS) / (2 * DIS) if sp_min_d < DIS else 1
+                if 'suc' in userdata.curr_tool:
+                    s_factor /= 2**userdata.fail_cnt
                 sq *= s_factor
                 
             if pp != None:
@@ -108,11 +112,13 @@ class ToolSelectionState(EventState):
                         pp_min_d_vec = v
                 if pp_min_d < -1 * DIS:
                     pp = None
-                elif pp_min_d < 0:
-                    pp.position.x -= pp_min_d * pp_min_d_vec[0]
-                    pp.position.y -= pp_min_d * pp_min_d_vec[1]
-                    pp.position.z -= pp_min_d * pp_min_d_vec[2]
+                elif pp_min_d < PJ_MIN_DIS:
+                    pp.position.x += (PJ_MIN_DIS - pp_min_d) * pp_min_d_vec[0]
+                    pp.position.y += (PJ_MIN_DIS - pp_min_d) * pp_min_d_vec[1]
+                    pp.position.z += (PJ_MIN_DIS - pp_min_d) * pp_min_d_vec[2]
                 p_factor = (pp_min_d + DIS) / (2 * DIS) if pp_min_d < DIS else 1
+                if 'pj' in userdata.curr_tool:
+                    s_factor /= 2**userdata.fail_cnt
                 pq *= p_factor
 
 

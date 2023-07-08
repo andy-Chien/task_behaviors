@@ -13,6 +13,7 @@
 
 	<!-- Contained Behaviors -->
 	<contains name="Change Tool Task" />
+	<contains name="Check Picked" />
 	<contains name="Move Arm To Joints Async" />
 	<contains name="Move To Pick" />
 	<contains name="Move To Place" />
@@ -32,8 +33,8 @@
 			<key name="init_joints" />
 		</param>
 
-		<param type="yaml" name="pressure_sensor_pin" default="task_flexbe_behaviors/config/pick_and_place.yaml" label="pressure_sensor_pin" hint="Sets the pressure_sensor_pin">
-			<key name="pressure_sensor_pin" />
+		<param type="yaml" name="gripper_sensor_pin" default="task_flexbe_behaviors/config/pick_and_place.yaml" label="gripper_sensor_pin" hint="Sets the gripper_sensor_pin">
+			<key name="gripper_sensor_pin" />
 		</param>
 
 		<param type="text" name="pick_and_place_param_file" default="task_flexbe_behaviors/config/pick_and_place.yaml" label="pick_and_place_param_file" hint="Sets the pick_and_place_param_file" />
@@ -68,6 +69,10 @@
 
 		<param type="yaml" name="vacuum_io_pins" default="task_flexbe_behaviors/config/pick_and_place.yaml" label="vacuum_io_pins" hint="Sets the vacuum_io_pins">
 			<key name="" />
+		</param>
+
+		<param type="yaml" name="gripper_sensor_pin" default="task_flexbe_behaviors/config/pick_and_place.yaml" label="gripper_sensor_pin" hint="Sets the gripper_sensor_pin">
+			<key name="gripper_sensor_pin" />
 		</param>
 
 	</params>

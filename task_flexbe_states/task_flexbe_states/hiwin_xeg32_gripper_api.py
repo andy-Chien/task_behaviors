@@ -30,7 +30,7 @@ class HiwinXeg32GripperApi(EventState):
     <= done                     set robot collision objects to initial pose success
     '''
 
-    def __init__(self, sim=False):
+    def __init__(self, sim=False, namespace=''):
         '''Constructor'''
         super(HiwinXeg32GripperApi, self).__init__(outcomes = ['done', 'failed'],
                                             input_keys = ['mode', 'direction', 'distance', 'speed','holding_stroke', 
@@ -51,8 +51,13 @@ class HiwinXeg32GripperApi(EventState):
         self.holding_force = None
         self.flag = None
         self.req = GripperCommand.Request()
+
+        if len(namespace) > 1 or (len(namespace) == 1 and namespace.startswith('/')):
+            namespace = namespace[1:] if namespace[0] == '/' else namespace
+            self.gripper_service = '/' + namespace + '/execute_gripper'
+        else:
+            self.gripper_service = '/execute_gripper'
         
-        self.gripper_service = '/execute_gripper'
         self._gripper_client = ProxyServiceCaller({self.gripper_service : GripperCommand})
 
         self._time_now = self._node.get_clock().now()

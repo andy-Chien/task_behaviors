@@ -135,7 +135,7 @@ class MoveToPickSM(Behavior):
 
             # x:854 y:99
             OperatableStateMachine.add('grasp',
-                                        HiwinXeg32GripperClient(mode='close', direction=0, distance=0, speed=0, holding_stroke=0, holding_speed=0, holding_force=0, flag=0, namespace=self.namespace, sim=self.sim),
+                                        HiwinXeg32GripperClient(mode='expert', direction=0, distance=0, speed=6000, holding_stroke=3200, holding_speed=20000, holding_force=40, flag=1, namespace=self.namespace, sim=self.sim),
                                         transitions={'done': 'Move Arm To Obj Up Pose Async 2', 'failed': 'failed'},
                                         autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
 
