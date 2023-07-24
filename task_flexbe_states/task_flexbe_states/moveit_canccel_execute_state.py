@@ -39,6 +39,7 @@ class MoveitCancelExecuteState(EventState):
         client = userdata.exe_client
         if client.is_active(self._exe_action):
             client.cancel(self._exe_action)
+            Logger.loginfo('call cancel')
         elif client.has_result(self._exe_action):
             client.remove_result(self._exe_action)
         else:

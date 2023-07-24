@@ -96,10 +96,10 @@ class MultipleToolsBinPickingTaskSM(Behavior):
         _state_machine.userdata.curr_tool_name = 'pj'
         _state_machine.userdata.place_pose = None
         _state_machine.userdata.velocity = 10
-        _state_machine.userdata.target_tool_name = 'suction'
+        _state_machine.userdata.target_tool_name = 'pj'
         _state_machine.userdata.exe_client = None
         _state_machine.userdata.init_joints = self.init_joints
-        _state_machine.userdata.ik_target_frame = 'tool_tip'
+        _state_machine.userdata.ik_target_frame = 'pj_tool_tip'
         _state_machine.userdata.expected_joints = None
         _state_machine.userdata.none = None
         _state_machine.userdata.fail_cnt = 0
@@ -111,6 +111,15 @@ class MultipleToolsBinPickingTaskSM(Behavior):
 
 
         with _state_machine:
+            # x:257 y:26
+            OperatableStateMachine.add('Move Arm To Init Joints Async',
+                                        self.use_behavior(MoveArmToJointsAsyncSM, 'Move Arm To Init Joints Async',
+                                            default_keys=['start_joints'],
+                                            parameters={'group_name': self.group_name, 'joint_names': self.joint_names, 'namespace': self.namespace, 'use_curr_as_start': True}),
+                                        transitions={'finished': 'start_img_update', 'failed': 'failed'},
+                                        autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
+                                        remapping={'velocity': 'velocity', 'target_joints': 'init_joints', 'exe_client': 'exe_client', 'expected_joints': 'expected_joints'})
+
             # x:42 y:34
             OperatableStateMachine.add('Change Tool Task',
                                         self.use_behavior(ChangeToolTaskSM, 'Change Tool Task',
@@ -134,15 +143,6 @@ class MultipleToolsBinPickingTaskSM(Behavior):
                                         transitions={'true': 'Move To Place', 'false': 'detach_obj'},
                                         autonomy={'true': Autonomy.Inherit, 'false': Autonomy.Inherit},
                                         remapping={'curr_tool_name': 'curr_tool_name', 'fail_cnt': 'fail_cnt'})
-
-            # x:257 y:26
-            OperatableStateMachine.add('Move Arm To Init Joints Async',
-                                        self.use_behavior(MoveArmToJointsAsyncSM, 'Move Arm To Init Joints Async',
-                                            default_keys=['start_joints'],
-                                            parameters={'group_name': self.group_name, 'joint_names': self.joint_names, 'namespace': self.namespace, 'use_curr_as_start': True}),
-                                        transitions={'finished': 'start_img_update', 'failed': 'failed'},
-                                        autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
-                                        remapping={'velocity': 'velocity', 'target_joints': 'init_joints', 'exe_client': 'exe_client', 'expected_joints': 'expected_joints'})
 
             # x:377 y:263
             OperatableStateMachine.add('Move Arm To Relay Joints Async',
@@ -228,7 +228,7 @@ class MultipleToolsBinPickingTaskSM(Behavior):
             # x:562 y:29
             OperatableStateMachine.add('start_img_update',
                                         ImgMaskingClientState(namespace='', marker_id=5, create_depth_mask=False, update_mask=True, start_update_timer=True, stop_update_timer=False, mark_release=False, get_masked_img=False, resolution_wide=516, resolution_high=386),
-                                        transitions={'done': 'Add Picking Box To Scene', 'failed': 'failed', 'retry': 'Add Picking Box To Scene'},
+                                        transitions={'done': 'Add Picking Box To Scene', 'failed': 'failed', 'retry': 'start_img_update'},
                                         autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off, 'retry': Autonomy.Off},
                                         remapping={'mask_img_msg': 'mask_img_msg', 'img_info': 'img_info', 'marker_poses': 'marker_poses', 'poses_frame': 'poses_frame'})
 

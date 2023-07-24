@@ -61,7 +61,7 @@ class PickingPoseAdjustState(EventState):
         if userdata.retry_cnt > 10:
             return 'failed'
 
-        sp = deepcopy(userdata.target_pose)
+        sp = deepcopy(userdata.target_pose.pose)
         mp = [np.array([x.position.x, x.position.y, x.position.z]) for x in userdata.marker_poses]
 
         close_vec = []
@@ -85,13 +85,13 @@ class PickingPoseAdjustState(EventState):
             rv = np.cross(z_vec, [0,0,1]) * 0.1
             quat *= qtn.from_rotation_vector(rv)
 
-        target_pose = PoseStamped()
-        target_pose.pose.position.x = sp.position.x
-        target_pose.pose.position.y = sp.position.y
-        target_pose.pose.position.z = sp.position.z
-        target_pose.pose.orientation.w = quat.w
-        target_pose.pose.orientation.x = quat.x
-        target_pose.pose.orientation.y = quat.y
-        target_pose.pose.orientation.z = quat.z
-        userdata.target_pose = target_pose
+        target_pose = Pose()
+        target_pose.position.x = sp.position.x
+        target_pose.position.y = sp.position.y
+        target_pose.position.z = sp.position.z
+        target_pose.orientation.w = quat.w
+        target_pose.orientation.x = quat.x
+        target_pose.orientation.y = quat.y
+        target_pose.orientation.z = quat.z
+        userdata.target_pose.pose = target_pose
         return 'done'

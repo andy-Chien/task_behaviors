@@ -12,7 +12,7 @@ from flexbe_states.check_condition_state import CheckConditionState
 from flexbe_states.decision_state import DecisionState
 from task_flexbe_behaviors.move_arm_to_pose_async_sm import MoveArmToPoseAsyncSM
 from task_flexbe_states.decision_by_param_state import DecisionByParam
-from task_flexbe_states.hiwin_xeg32_gripper_client import HiwinXeg32GripperClient
+from task_flexbe_states.hiwin_xeg32_gripper_api import HiwinXeg32GripperApi
 from task_flexbe_states.set_DIO_state import SetDIOState
 from task_flexbe_states.set_place_pose_random_state import SetPlacePoseRandomState
 # Additional imports can be added inside the following tags
@@ -57,7 +57,7 @@ class MoveToPlaceSM(Behavior):
         CheckConditionState.initialize_ros(node)
         DecisionByParam.initialize_ros(node)
         DecisionState.initialize_ros(node)
-        HiwinXeg32GripperClient.initialize_ros(node)
+        HiwinXeg32GripperApi.initialize_ros(node)
         SetDIOState.initialize_ros(node)
         SetPlacePoseRandomState.initialize_ros(node)
         self.add_behavior(MoveArmToPoseAsyncSM, 'Move Arm To Obj Pose Async', node)
@@ -89,6 +89,9 @@ class MoveToPlaceSM(Behavior):
         _state_machine.userdata.translation_zero = [.0, .0, .0]
         _state_machine.userdata.velocity = 10
         _state_machine.userdata.ik_target_frame = 'tool_tip'
+        _state_machine.userdata.zero = 0
+        _state_machine.userdata.mode = 'open'
+        _state_machine.userdata.flag = 1
 
         # Additional creation code can be added inside the following tags
         # [MANUAL_CREATE]
@@ -133,15 +136,16 @@ class MoveToPlaceSM(Behavior):
                                         autonomy={'true': Autonomy.Off, 'false': Autonomy.Off},
                                         remapping={'input_value': 'translation_list'})
 
-            # x:793 y:238
-            OperatableStateMachine.add('release_gripper',
-                                        HiwinXeg32GripperClient(mode='open', direction=0, distance=0, speed=0, holding_stroke=0, holding_speed=0, holding_force=0, flag=0, namespace=self.namespace, sim=self.sim),
+            # x:809 y:244
+            OperatableStateMachine.add('hiwin',
+                                        HiwinXeg32GripperApi(sim=self.sim, namespace=self.namespace),
                                         transitions={'done': 'check_trans_list_2', 'failed': 'failed'},
-                                        autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
+                                        autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off},
+                                        remapping={'mode': 'mode', 'direction': 'zero', 'distance': 'zero', 'speed': 'zero', 'holding_stroke': 'zero', 'holding_speed': 'zero', 'holding_force': 'zero', 'flag': 'flag'})
 
             # x:804 y:64
             OperatableStateMachine.add('release_suction',
-                                        SetDIOState(io_service=self.io_service, namespace='', sim=self.sim),
+                                        SetDIOState(io_service=self.io_service, namespace=self.namespace, sim=self.sim),
                                         transitions={'done': 'check_trans_list_2', 'failed': 'check_trans_list_2'},
                                         autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off},
                                         remapping={'pins': 'vacuum_io_pins', 'vals': 'vacuum_io_vals'})
@@ -162,14 +166,14 @@ class MoveToPlaceSM(Behavior):
             # x:504 y:239
             OperatableStateMachine.add('tool_select',
                                         DecisionState(outcomes=['pj', 'suction'], conditions=lambda x: x),
-                                        transitions={'pj': 'release_gripper', 'suction': 'release_suction'},
+                                        transitions={'pj': 'hiwin', 'suction': 'release_suction'},
                                         autonomy={'pj': Autonomy.Off, 'suction': Autonomy.Off},
                                         remapping={'input_value': 'tool_name'})
 
             # x:496 y:60
             OperatableStateMachine.add('tool_select_defult',
                                         DecisionByParam(decided=self.tool_name, outcomes=['pj', 'suction']),
-                                        transitions={'pj': 'release_gripper', 'suction': 'release_suction'},
+                                        transitions={'pj': 'hiwin', 'suction': 'release_suction'},
                                         autonomy={'pj': Autonomy.Off, 'suction': Autonomy.Off})
 
             # x:222 y:311

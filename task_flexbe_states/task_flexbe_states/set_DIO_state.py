@@ -44,15 +44,19 @@ class SetDIOState(EventState):
             self._set_io = ProxyServiceCaller({self._io_service: SetIO})
 
     def execute(self, userdata):
-        return 'done' if self.result else 'failed'
+        if self._sim:
+            return 'done'
+        
+        if not self._set_io.done(self._io_service):
+            return
+        result = self._set_io.result(self._io_service)
+        return 'done' if result.success else 'failed'
 
     def on_enter(self, userdata):
-        if self._sim:
-            self.result = True
-        else:    
+        if not self._sim:
             for p, v in zip(userdata.pins, userdata.vals):
                 req = SetIO.Request()
                 req.fun = SetIO.Request.FUN_SET_DIGITAL_OUT
-                req.pin = p
-                req.state = v
-                self.result = self._set_io.call(self._io_service, req)
+                req.pin = int(p)
+                req.state = float(v)
+                self._set_io.call_async(self._io_service, req)

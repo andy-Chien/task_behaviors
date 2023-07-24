@@ -125,7 +125,7 @@ class ToolSelectionbasedonGQCNNSM(Behavior):
             # x:395 y:328
             OperatableStateMachine.add('select_tool',
                                         ToolSelectionState(),
-                                        transitions={'done': 'check_ik', 'failed': 'release_marker_occupy'},
+                                        transitions={'done': 'finished', 'failed': 'release_marker_occupy'},
                                         autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off},
                                         remapping={'marker_poses': 'marker_poses', 'pj_pose': 'pj_pose', 'suc_pose': 'suc_pose', 'frame': 'frame', 'pj_qv': 'pj_qv', 'suc_qv': 'suc_qv', 'curr_tool': 'curr_tool_name', 'img_info': 'img_info', 'img': 'mask_img_msg', 'fail_cnt': 'fail_cnt', 'target_pose': 'target_pose', 'tar_tool': 'target_tool_name'})
 

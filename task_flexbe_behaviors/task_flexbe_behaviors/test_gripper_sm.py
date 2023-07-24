@@ -54,7 +54,7 @@ class TestGripperSM(Behavior):
         _state_machine.userdata.direction = 0
         _state_machine.userdata.distance = 0
         _state_machine.userdata.speed = 6000
-        _state_machine.userdata.holding_stroke = 3200
+        _state_machine.userdata.holding_stroke = 3000
         _state_machine.userdata.holding_speed = 2000
         _state_machine.userdata.holding_force = 40
         _state_machine.userdata.flag = 1
@@ -62,7 +62,7 @@ class TestGripperSM(Behavior):
         _state_machine.userdata.open = 'open'
         _state_machine.userdata.expert = 'expert'
         _state_machine.userdata.off = 'off'
-        _state_machine.userdata.gripper_mode = 'close'
+        _state_machine.userdata.gripper_mode = 'open'
 
         # Additional creation code can be added inside the following tags
         # [MANUAL_CREATE]

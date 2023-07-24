@@ -67,6 +67,7 @@ class ToolSelectionState(EventState):
         min_z = np.min(mp, axis=0)[2] - ACCEPTABLE_DIS
         if sp.position.z < min_z:
             sp = None
+        pp_min_d_vec = None
         if pp.position.z < min_z:
             pp = None
         if not sp is None and not pp is None:
@@ -83,7 +84,6 @@ class ToolSelectionState(EventState):
 
             sp_min_d = DIS
             pp_min_d = DIS + 9999 # always get at lest one pp_min_d_vec
-            pp_min_d_vec = None
             
             if sp != None:
                 for v, d in zip(vec, pland_d):
@@ -188,6 +188,16 @@ class ToolSelectionState(EventState):
         pose.orientation.x = quat.x
         pose.orientation.y = quat.y
         pose.orientation.z = quat.z
+
+        if tar_tool == 'suction':
+            p = np.array([pp.position.x, pp.position.y, pp.position.z])
+            q = qtn.quaternion(pp.orientation.w, pp.orientation.x, pp.orientation.y, pp.orientation.z)
+            r = qtn.as_rotation_matrix(q)
+            vz = r.transpose()[2]
+            p += 0.3 * vz
+            pp.position.x = p[0]
+            pp.position.y = p[1]
+            pp.position.z = p[2]
 
         if tar_tool == 'pj':
             pp = pose
