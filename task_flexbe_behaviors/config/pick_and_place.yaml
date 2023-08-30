@@ -13,11 +13,11 @@ gripper_sensor_pin: [7]
 infront_sucker: [0.5968870520591736, -1.3388102690326136, 0.8664364814758301, -1.097706143056051, -1.5658825079547327, -0.18301135698427373]
 sucker_spot: [0.5775434374809265, -1.3343222776996058, 0.934260368347168, -1.1701415220843714, -1.565666977559225, -0.20206720033754522]
 
-io_service: io_and_status_controller/set_io
-io_topic: io_and_status_controller/io_states
+io_service: "io_and_status_controller/set_io"
+io_topic: "io_and_status_controller/io_states"
 
 init_pose: [0.7, 0.0, 0.7, 0.0, 1.0, 0.0, 0.0]
-init_joints: [34.0, -107.0, 115.8, -98.4, -90, -101.0]
+init_joints: [27.0, -110.0, 95.0, -76.0, -90.0, -108.0]
 
 gripper_mesh_file: "/home/andy/packing_ws/install/mr_description/share/mr_description/meshes/tool/tool_no_suction.stl"
 suction_mesh_file: "/home/andy/packing_ws/install/mr_description/share/mr_description/meshes/tool/tool_with_suction_323.stl"

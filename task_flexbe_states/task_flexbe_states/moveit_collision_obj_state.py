@@ -66,6 +66,8 @@ class MoveItCollisionObjState(EventState):
         ProxyPublisher._initialize(EventState._node)
         self._logger = self._node.get_logger()
 
+        self._logger.info('mesh_file = {}, type = {}'.format(self.mesh_file, type(self.mesh_file)))
+
         self._obj_publisher = ProxyPublisher({self._obj_topic: CollisionObject})
 
     def stop(self):

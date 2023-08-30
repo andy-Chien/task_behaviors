@@ -68,7 +68,7 @@ In case of using current joint as start joints, just set the input start joints 
 
 
     def create(self):
-        # x:562 y:450, x:314 y:219
+        # x:562 y:450, x:314 y:250
         _state_machine = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['target_pose', 'translation_list', 'start_joints', 'velocity', 'exe_client', 'ik_target_frame'], output_keys=['target_joints', 'exe_client'])
         _state_machine.userdata.exe_client = None
         _state_machine.userdata.velocity = 10
@@ -86,10 +86,10 @@ In case of using current joint as start joints, just set the input start joints 
 
 
         with _state_machine:
-            # x:95 y:398
+            # x:30 y:427
             OperatableStateMachine.add('need_current',
                                         DecisionByParam(decided=self.use_curr_as_start, outcomes=['True', 'False']),
-                                        transitions={'True': 'get_curr', 'False': 'wait_until'},
+                                        transitions={'True': 'wait_for_running_2', 'False': 'wait_until'},
                                         autonomy={'True': Autonomy.Off, 'False': Autonomy.Off})
 
             # x:500 y:169
@@ -120,10 +120,17 @@ In case of using current joint as start joints, just set the input start joints 
                                         autonomy={'failed': Autonomy.Off, 'done': Autonomy.Off, 'retriable': Autonomy.Off},
                                         remapping={'start_joints': 'start_joints', 'target_joints': 'target_joints', 'velocity': 'velocity', 'planner': 'planner', 'joint_trajectory': 'joint_trajectory', 'planning_time': 'planning_time', 'planning_error_code': 'planning_error_code'})
 
-            # x:314 y:408
+            # x:334 y:406
             OperatableStateMachine.add('wait_for_running',
                                         WaitForRunningState(wait_until_complete_rate=0, wait_until_points_left=0, namespace=self.namespace),
                                         transitions={'waiting': 'wait_for_running', 'done': 'finished', 'collision': 'failed', 'failed': 'failed'},
+                                        autonomy={'waiting': Autonomy.Off, 'done': Autonomy.Off, 'collision': Autonomy.Off, 'failed': Autonomy.Off},
+                                        remapping={'exe_client': 'exe_client'})
+
+            # x:172 y:416
+            OperatableStateMachine.add('wait_for_running_2',
+                                        WaitForRunningState(wait_until_complete_rate=0, wait_until_points_left=0, namespace=self.namespace),
+                                        transitions={'waiting': 'wait_for_running', 'done': 'get_curr', 'collision': 'failed', 'failed': 'failed'},
                                         autonomy={'waiting': Autonomy.Off, 'done': Autonomy.Off, 'collision': Autonomy.Off, 'failed': Autonomy.Off},
                                         remapping={'exe_client': 'exe_client'})
 

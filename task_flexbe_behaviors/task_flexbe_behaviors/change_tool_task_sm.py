@@ -44,6 +44,9 @@ class ChangeToolTaskSM(Behavior):
         self.add_parameter('sim', False)
         self.add_parameter('infront_sucker', dict())
         self.add_parameter('sucker_spot', dict())
+        self.add_parameter('gripper_mesh_file', dict())
+        self.add_parameter('suction_mesh_file', dict())
+        self.add_parameter('tool_touch_links', dict())
 
         # references to used behaviors
         OperatableStateMachine.initialize_ros(node)
@@ -114,7 +117,7 @@ class ChangeToolTaskSM(Behavior):
             # x:1138 y:356
             OperatableStateMachine.add('Change Tool Model_2',
                                         self.use_behavior(ChangeToolModelSM, 'Change Tool Model_2',
-                                            parameters={'namespace': self.namespace}),
+                                            parameters={'gripper_mesh_file': self.gripper_mesh_file, 'suction_mesh_file': self.suction_mesh_file, 'tool_touch_links': self.tool_touch_links, 'namespace': self.namespace}),
                                         transitions={'finished': 'finished', 'failed': 'failed'},
                                         autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
                                         remapping={'curr_tool': 'curr_tool_name', 'target_tool': 'target_tool_name', 'tool_frame': 'tool_frame'})
@@ -255,7 +258,7 @@ class ChangeToolTaskSM(Behavior):
             # x:70 y:688
             OperatableStateMachine.add('Change Tool Model',
                                         self.use_behavior(ChangeToolModelSM, 'Change Tool Model',
-                                            parameters={'namespace': self.namespace}),
+                                            parameters={'gripper_mesh_file': self.gripper_mesh_file, 'suction_mesh_file': self.suction_mesh_file, 'tool_touch_links': self.tool_touch_links, 'namespace': self.namespace}),
                                         transitions={'finished': 'plan_back', 'failed': 'failed'},
                                         autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
                                         remapping={'curr_tool': 'curr_tool_name', 'target_tool': 'target_tool_name', 'tool_frame': 'tool_frame'})

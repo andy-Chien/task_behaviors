@@ -48,6 +48,7 @@ class MoveItAttachedObjState(EventState):
         self.pos = pos
         self.quat = quat
 
+        self._logger = self._node.get_logger()
         if len(namespace) > 1 or (len(namespace) == 1 and namespace.startswith('/')):
             namespace = namespace[1:] if namespace[0] == '/' else namespace
             self._attach_topic = '/' + namespace + '/attached_collision_object'
@@ -59,6 +60,11 @@ class MoveItAttachedObjState(EventState):
             self._obj_topic = '/collision_object'
             self.link_name = link_name
             self.touch_links = touch_links
+
+        self._logger.info('touch_links = {}'.format(self.touch_links))
+        self._logger.info('mesh_file = {}, type = {}'.format(self.mesh_file, type(self.mesh_file)))
+        print('print touch_links = {}'.format(touch_links))
+        print('print mesh_file = {}'.format(mesh_file))
 
         if link_name.startswith('/'):
             self.link_name = link_name[1:]
@@ -72,7 +78,6 @@ class MoveItAttachedObjState(EventState):
 
 
         ProxyPublisher._initialize(EventState._node)
-        self._logger = self._node.get_logger()
 
         self._publisher = ProxyPublisher({self._attach_topic: AttachedCollisionObject})
         self._obj_publisher = ProxyPublisher({self._obj_topic: CollisionObject})
@@ -85,7 +90,7 @@ class MoveItAttachedObjState(EventState):
         Execute this state
         '''
         self._logger.info('touch_links = {}'.format(self.touch_links))
-        self._logger.info('mesh_file = {}'.format(self.mesh_file))
+        self._logger.info('mesh_file = {}, type = {}'.format(self.mesh_file, type(self.mesh_file)))
         pose = Pose()
 
         up = userdata.pose
@@ -143,6 +148,8 @@ class MoveItAttachedObjState(EventState):
             o3d_mesh = o3d_io.read_triangle_mesh(self.mesh_file)
             vertices = np.asarray(o3d_mesh.vertices)
             triangles = np.asarray(o3d_mesh.triangles)
+            self._logger.error('o3d_mesh: {}'.format(o3d_mesh))
+
             for v in vertices:
                 p = Point()
                 p.x, p.y, p.z = v
@@ -172,6 +179,14 @@ class MoveItAttachedObjState(EventState):
         else:
             ok = False
         if ok:
+            self._logger.error('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+            self._logger.error('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+            self._logger.error('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+            self._logger.error('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+            self._logger.error('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+            self._logger.error('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+            self._logger.error('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+            self._logger.error('msg: {}'.format(msg))
             self._publisher.publish(self._attach_topic, msg)
         if 'remove' in self.operation:
             time.sleep(0.1)

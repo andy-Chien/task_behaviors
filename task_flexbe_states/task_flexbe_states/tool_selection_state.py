@@ -65,10 +65,10 @@ class ToolSelectionState(EventState):
         sq, pq = userdata.suc_qv, userdata.pj_qv
         mp = [np.array([x.position.x, x.position.y, x.position.z]) for x in userdata.marker_poses]
         min_z = np.min(mp, axis=0)[2] - ACCEPTABLE_DIS
-        if sp.position.z < min_z:
+        if not sp is None and sp.position.z < min_z:
             sp = None
         pp_min_d_vec = None
-        if pp.position.z < min_z:
+        if not pp is None and pp.position.z < min_z:
             pp = None
         if not sp is None and not pp is None:
             self._logger('===============================================')
@@ -189,15 +189,15 @@ class ToolSelectionState(EventState):
         pose.orientation.y = quat.y
         pose.orientation.z = quat.z
 
-        if tar_tool == 'suction':
-            p = np.array([pp.position.x, pp.position.y, pp.position.z])
-            q = qtn.quaternion(pp.orientation.w, pp.orientation.x, pp.orientation.y, pp.orientation.z)
-            r = qtn.as_rotation_matrix(q)
-            vz = r.transpose()[2]
-            p += 0.3 * vz
-            pp.position.x = p[0]
-            pp.position.y = p[1]
-            pp.position.z = p[2]
+        # if tar_tool == 'suction':
+        #     p = np.array([sp.position.x, sp.position.y, sp.position.z])
+        #     q = qtn.quaternion(sp.orientation.w, sp.orientation.x, sp.orientation.y, sp.orientation.z)
+        #     r = qtn.as_rotation_matrix(q)
+        #     vz = r.transpose()[2]
+        #     p += 0.1 * vz
+        #     sp.position.x = p[0]
+        #     sp.position.y = p[1]
+        #     sp.position.z = p[2]
 
         if tar_tool == 'pj':
             pp = pose

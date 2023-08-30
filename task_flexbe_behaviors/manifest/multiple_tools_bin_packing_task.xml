@@ -78,6 +78,18 @@
 
 		<param type="text" name="planner" default="AdaptLazyPRM" label="planner" hint="Sets the planner" />
 
+		<param type="yaml" name="gripper_mesh_file" default="task_flexbe_behaviors/config/pick_and_place.yaml" label="gripper_mesh_file" hint="Sets the gripper_mesh_file">
+			<key name="gripper_mesh_file" />
+		</param>
+
+		<param type="yaml" name="suction_mesh_file" default="task_flexbe_behaviors/config/pick_and_place.yaml" label="suction_mesh_file" hint="Sets the suction_mesh_file">
+			<key name="suction_mesh_file" />
+		</param>
+
+		<param type="yaml" name="tool_touch_links" default="task_flexbe_behaviors/config/pick_and_place.yaml" label="tool_touch_links" hint="Sets the tool_touch_links">
+			<key name="tool_touch_links" />
+		</param>
+
 	</params>
 
 

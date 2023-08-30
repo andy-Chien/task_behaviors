@@ -67,9 +67,9 @@ class PackingPlanningSM(Behavior):
         # x:17 y:672, x:334 y:11
         _state_machine = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['exe_client', 'ik_target_frame'], output_keys=['exe_client', 'expected_joints', 'packing_pose'])
         _state_machine.userdata.velocity = 10
-        _state_machine.userdata.tp1 = [0.613, -0.174, 0.130, 0.131, -0.991, 0.0, 0.0]
-        _state_machine.userdata.tp2 = [0.613, -0.174, 0.130, 0.131, -0.991, 0.0, 0.0]
-        _state_machine.userdata.tp3 = [0.613, -0.174, 0.130, 0.131, -0.991, 0.0, 0.0]
+        _state_machine.userdata.tp1 = [0.559, -0.138, 0.181, 0.924, -0.382, -0.000, -0.003]
+        _state_machine.userdata.tp2 = [0.559, -0.138, 0.181, 0.924, -0.382, -0.000, -0.003]
+        _state_machine.userdata.tp3 = [0.559, -0.138, 0.181, 0.924, -0.382, -0.000, -0.003]
         _state_machine.userdata.start_joints = None
         _state_machine.userdata.exe_client = None
         _state_machine.userdata.ik_target_frame = None
@@ -89,7 +89,7 @@ class PackingPlanningSM(Behavior):
             # x:137 y:133
             OperatableStateMachine.add('Move Arm To Pose Async',
                                         self.use_behavior(MoveArmToPoseAsyncSM, 'Move Arm To Pose Async',
-                                            parameters={'group_name': self.group_name, 'joint_names': self.joint_names, 'namespace': self.namespace, 'planner': self.planner}),
+                                            parameters={'group_name': self.group_name, 'joint_names': self.joint_names, 'namespace': self.namespace, 'planner': self.planner, 'use_curr_as_start': True}),
                                         transitions={'finished': 'merge_point_cloud', 'failed': 'failed'},
                                         autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
                                         remapping={'target_pose': 'tp1', 'translation_list': 'translation_list', 'start_joints': 'start_joints', 'velocity': 'velocity', 'exe_client': 'exe_client', 'ik_target_frame': 'ik_target_frame', 'target_joints': 'target_joints'})
@@ -97,7 +97,7 @@ class PackingPlanningSM(Behavior):
             # x:454 y:133
             OperatableStateMachine.add('Move Arm To Pose Async_2',
                                         self.use_behavior(MoveArmToPoseAsyncSM, 'Move Arm To Pose Async_2',
-                                            parameters={'group_name': self.group_name, 'joint_names': self.joint_names, 'namespace': self.namespace, 'planner': self.planner}),
+                                            parameters={'group_name': self.group_name, 'joint_names': self.joint_names, 'namespace': self.namespace, 'planner': self.planner, 'use_curr_as_start': True}),
                                         transitions={'finished': 'merge_point_cloud', 'failed': 'failed'},
                                         autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
                                         remapping={'target_pose': 'tp2', 'translation_list': 'translation_list', 'start_joints': 'start_joints', 'velocity': 'velocity', 'exe_client': 'exe_client', 'ik_target_frame': 'ik_target_frame', 'target_joints': 'target_joints'})
@@ -105,7 +105,7 @@ class PackingPlanningSM(Behavior):
             # x:779 y:130
             OperatableStateMachine.add('Move Arm To Pose Async_3',
                                         self.use_behavior(MoveArmToPoseAsyncSM, 'Move Arm To Pose Async_3',
-                                            parameters={'group_name': self.group_name, 'joint_names': self.joint_names, 'namespace': self.namespace, 'planner': self.planner}),
+                                            parameters={'group_name': self.group_name, 'joint_names': self.joint_names, 'namespace': self.namespace, 'planner': self.planner, 'use_curr_as_start': True}),
                                         transitions={'finished': 'merge_point_cloud', 'failed': 'failed'},
                                         autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
                                         remapping={'target_pose': 'tp3', 'translation_list': 'translation_list', 'start_joints': 'start_joints', 'velocity': 'velocity', 'exe_client': 'exe_client', 'ik_target_frame': 'ik_target_frame', 'target_joints': 'expected_joints'})

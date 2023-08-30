@@ -110,15 +110,19 @@ class GQCNNGraspPlanState(EventState):
                 userdata.suc_qv = result[1].grasp.q_value
             elif self.has_pj_server:
                 userdata.suc_pose = None
+                userdata.suc_qv = None
                 userdata.pj_pose = result[0].grasp.pose
                 userdata.pj_qv = result[0].grasp.q_value
             elif self.has_suc_server:
                 userdata.pj_pose = None
+                userdata.pj_qv = None
                 userdata.suc_pose = result[0].grasp.pose
                 userdata.suc_qv = result[0].grasp.q_value
             else:
                 userdata.pj_pose = None
                 userdata.suc_pose = None
+                userdata.suc_qv = None
+                userdata.pj_qv = None
             
             return 'done'
 

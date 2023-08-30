@@ -99,7 +99,7 @@ class MultipleToolsBinPickingTaskSM(Behavior):
         _state_machine.userdata.target_tool_name = 'suction'
         _state_machine.userdata.exe_client = None
         _state_machine.userdata.init_joints = self.init_joints
-        _state_machine.userdata.ik_target_frame = 'pj_tool_tip'
+        _state_machine.userdata.ik_target_frame = 'suction_tool_tip'
         _state_machine.userdata.expected_joints = None
         _state_machine.userdata.none = None
         _state_machine.userdata.fail_cnt = 0

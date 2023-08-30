@@ -9,6 +9,7 @@
 
 from flexbe_core import Behavior, Autonomy, OperatableStateMachine, ConcurrencyContainer, PriorityContainer, Logger
 from flexbe_states.flexible_check_condition_state import FlexibleCheckConditionState
+from flexbe_states.wait_state import WaitState
 from task_flexbe_behaviors.add_box_to_scene_sm import AddBoxToSceneSM
 from task_flexbe_behaviors.change_tool_task_sm import ChangeToolTaskSM
 from task_flexbe_behaviors.check_picked_sm import CheckPickedSM
@@ -58,6 +59,9 @@ class MultipleToolsBinPackingTaskSM(Behavior):
         self.add_parameter('vacuum_io_pins', dict())
         self.add_parameter('gripper_sensor_pin', dict())
         self.add_parameter('planner', 'AdaptLazyPRM')
+        self.add_parameter('gripper_mesh_file', dict())
+        self.add_parameter('suction_mesh_file', dict())
+        self.add_parameter('tool_touch_links', dict())
 
         # references to used behaviors
         OperatableStateMachine.initialize_ros(node)
@@ -69,6 +73,7 @@ class MultipleToolsBinPackingTaskSM(Behavior):
         ImgMaskingClientState.initialize_ros(node)
         MoveItAttachedObjState.initialize_ros(node)
         SetDataByConditionState.initialize_ros(node)
+        WaitState.initialize_ros(node)
         self.add_behavior(AddBoxToSceneSM, 'Add Picking Box To Scene', node)
         self.add_behavior(ChangeToolTaskSM, 'Change Tool Task', node)
         self.add_behavior(ChangeToolTaskSM, 'Change Tool Task_2', node)
@@ -101,7 +106,7 @@ class MultipleToolsBinPackingTaskSM(Behavior):
         _state_machine.userdata.target_tool_name = 'suction'
         _state_machine.userdata.exe_client = None
         _state_machine.userdata.init_joints = self.init_joints
-        _state_machine.userdata.ik_target_frame = 'pj_tool_tip'
+        _state_machine.userdata.ik_target_frame = 'suction_tool_tip'
         _state_machine.userdata.expected_joints = None
         _state_machine.userdata.none = None
         _state_machine.userdata.fail_cnt = 0
@@ -113,10 +118,16 @@ class MultipleToolsBinPackingTaskSM(Behavior):
 
 
         with _state_machine:
-            # x:42 y:34
+            # x:8 y:157
+            OperatableStateMachine.add('wait',
+                                        WaitState(wait_time=5),
+                                        transitions={'done': 'Change Tool Task'},
+                                        autonomy={'done': Autonomy.Off})
+
+            # x:58 y:33
             OperatableStateMachine.add('Change Tool Task',
                                         self.use_behavior(ChangeToolTaskSM, 'Change Tool Task',
-                                            parameters={'namespace': self.namespace, 'group_name': self.group_name, 'joint_names': self.joint_names, 'sim': self.sim, 'infront_sucker': self.infront_sucker, 'sucker_spot': self.sucker_spot}),
+                                            parameters={'namespace': self.namespace, 'group_name': self.group_name, 'joint_names': self.joint_names, 'sim': self.sim, 'infront_sucker': self.infront_sucker, 'sucker_spot': self.sucker_spot, 'gripper_mesh_file': self.gripper_mesh_file, 'suction_mesh_file': self.suction_mesh_file, 'tool_touch_links': self.tool_touch_links}),
                                         transitions={'finished': 'Move Arm To Init Joints Async', 'failed': 'failed'},
                                         autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
                                         remapping={'target_tool_name': 'target_tool_name', 'exe_client': 'exe_client', 'curr_tool_name': 'curr_tool_name', 'expected_joints': 'expected_joints', 'tool_frame': 'ik_target_frame'})
@@ -124,7 +135,7 @@ class MultipleToolsBinPackingTaskSM(Behavior):
             # x:410 y:726
             OperatableStateMachine.add('Change Tool Task_2',
                                         self.use_behavior(ChangeToolTaskSM, 'Change Tool Task_2',
-                                            parameters={'namespace': self.namespace, 'group_name': self.group_name, 'joint_names': self.joint_names, 'sim': self.sim, 'infront_sucker': self.infront_sucker, 'sucker_spot': self.sucker_spot}),
+                                            parameters={'namespace': self.namespace, 'group_name': self.group_name, 'joint_names': self.joint_names, 'sim': self.sim, 'infront_sucker': self.infront_sucker, 'sucker_spot': self.sucker_spot, 'gripper_mesh_file': self.gripper_mesh_file, 'suction_mesh_file': self.suction_mesh_file, 'tool_touch_links': self.tool_touch_links}),
                                         transitions={'finished': 'Move To Pick', 'failed': 'release_occupied_marker_2'},
                                         autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
                                         remapping={'target_tool_name': 'target_tool_name', 'exe_client': 'exe_client', 'curr_tool_name': 'curr_tool_name', 'expected_joints': 'expected_joints', 'tool_frame': 'ik_target_frame'})
@@ -237,19 +248,33 @@ class MultipleToolsBinPackingTaskSM(Behavior):
 
             # x:562 y:29
             OperatableStateMachine.add('start_img_update',
+                                        ImgMaskingClientState(namespace='', marker_id=15, create_depth_mask=False, update_mask=True, start_update_timer=True, stop_update_timer=False, mark_release=False, get_masked_img=False, resolution_wide=516, resolution_high=386),
+                                        transitions={'done': 'start_img_update_2', 'failed': 'failed', 'retry': 'start_img_update'},
+                                        autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off, 'retry': Autonomy.Off},
+                                        remapping={'mask_img_msg': 'mask_img_msg', 'img_info': 'img_info', 'marker_poses': 'marker_poses', 'poses_frame': 'poses_frame'})
+
+            # x:782 y:27
+            OperatableStateMachine.add('start_img_update_2',
                                         ImgMaskingClientState(namespace='', marker_id=5, create_depth_mask=False, update_mask=True, start_update_timer=True, stop_update_timer=False, mark_release=False, get_masked_img=False, resolution_wide=516, resolution_high=386),
-                                        transitions={'done': 'Add Picking Box To Scene', 'failed': 'failed', 'retry': 'start_img_update'},
+                                        transitions={'done': 'Add Picking Box To Scene', 'failed': 'failed', 'retry': 'start_img_update_2'},
                                         autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off, 'retry': Autonomy.Off},
                                         remapping={'mask_img_msg': 'mask_img_msg', 'img_info': 'img_info', 'marker_poses': 'marker_poses', 'poses_frame': 'poses_frame'})
 
             # x:543 y:116
             OperatableStateMachine.add('stop_img_update',
                                         ImgMaskingClientState(namespace='', marker_id=5, create_depth_mask=False, update_mask=False, start_update_timer=False, stop_update_timer=True, mark_release=True, get_masked_img=False, resolution_wide=516, resolution_high=386),
-                                        transitions={'done': 'finished', 'failed': 'failed', 'retry': 'stop_img_update'},
+                                        transitions={'done': 'stop_img_update_2', 'failed': 'failed', 'retry': 'stop_img_update'},
                                         autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off, 'retry': Autonomy.Off},
                                         remapping={'mask_img_msg': 'mask_img_msg', 'img_info': 'img_info', 'marker_poses': 'marker_poses', 'poses_frame': 'poses_frame'})
 
-            # x:755 y:39
+            # x:406 y:179
+            OperatableStateMachine.add('stop_img_update_2',
+                                        ImgMaskingClientState(namespace='', marker_id=15, create_depth_mask=False, update_mask=False, start_update_timer=False, stop_update_timer=True, mark_release=True, get_masked_img=False, resolution_wide=516, resolution_high=386),
+                                        transitions={'done': 'finished', 'failed': 'failed', 'retry': 'stop_img_update_2'},
+                                        autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off, 'retry': Autonomy.Off},
+                                        remapping={'mask_img_msg': 'mask_img_msg', 'img_info': 'img_info', 'marker_poses': 'marker_poses', 'poses_frame': 'poses_frame'})
+
+            # x:765 y:114
             OperatableStateMachine.add('Add Picking Box To Scene',
                                         self.use_behavior(AddBoxToSceneSM, 'Add Picking Box To Scene',
                                             parameters={'namespace': self.namespace, 'box_name': 'picking_box'}),
