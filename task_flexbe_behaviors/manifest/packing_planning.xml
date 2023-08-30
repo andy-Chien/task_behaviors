@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<behavior name="Packing Planning">
+
+	<executable package_path="task_flexbe_behaviors.packing_planning_sm" class="PackingPlanningSM" />
+	<tagstring>v01</tagstring>
+	<author>Andy Chien</author>
+	<date>Aug 11 2023</date>
+	<description>
+		merge obj point cloud and plan the packing pose
+	</description>
+
+
+	<!-- Contained Behaviors -->
+	<contains name="Move Arm To Pose Async" />
+
+	<!-- Available Parameters -->
+	<params>
+
+		<param type="text" name="namespace" default="" label="namespace" hint="Sets the namespace" />
+
+		<param type="text" name="group_name" default="ur_manipulator" label="group_name" hint="Sets the group_name" />
+
+		<param type="yaml" name="joint_names" default="task_flexbe_behaviors/config/joint_names.yaml" label="joint_names" hint="Sets the joint_names">
+			<key name="joint_names" />
+		</param>
+
+		<param type="text" name="planner" default="AdaptLazyPRM" label="planner" hint="Sets the planner" />
+
+	</params>
+
+
+</behavior>
