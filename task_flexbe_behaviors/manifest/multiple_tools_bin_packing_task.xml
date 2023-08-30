@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<behavior name="Multiple Tools Bin Picking Task">
+<behavior name="Multiple Tools Bin Packing Task">
 
-	<executable package_path="task_flexbe_behaviors.multiple_tools_bin_picking_task_sm" class="MultipleToolsBinPickingTaskSM" />
+	<executable package_path="task_flexbe_behaviors.multiple_tools_bin_packing_task_sm" class="MultipleToolsBinPackingTaskSM" />
 	<tagstring>v0</tagstring>
 	<author>Andy Chien</author>
 	<date>Sat Jul 01 2023</date>
@@ -17,6 +17,7 @@
 	<contains name="Move Arm To Joints Async" />
 	<contains name="Move To Pick" />
 	<contains name="Move To Place" />
+	<contains name="Packing Planning" />
 	<contains name="Tool Selection based on GQCNN" />
 	<contains name="Add Box To Scene" />
 

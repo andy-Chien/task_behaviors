@@ -8,6 +8,7 @@
 ###########################################################
 
 from flexbe_core import Behavior, Autonomy, OperatableStateMachine, ConcurrencyContainer, PriorityContainer, Logger
+from flexbe_states.flexible_check_condition_state import FlexibleCheckConditionState
 from task_flexbe_behaviors.change_tool_model_sm import ChangeToolModelSM
 from task_flexbe_states.data_copy_state import DataCopyState
 from task_flexbe_states.get_current_joints import GetCurrentJoints
@@ -50,6 +51,7 @@ class ChangeToolTaskSM(Behavior):
         PriorityContainer.initialize_ros(node)
         Logger.initialize(node)
         DataCopyState.initialize_ros(node)
+        FlexibleCheckConditionState.initialize_ros(node)
         GetCurrentJoints.initialize_ros(node)
         HiwinXeg32GripperApi.initialize_ros(node)
         MoveItAsyncExecuteTrajectory.initialize_ros(node)
@@ -57,6 +59,7 @@ class ChangeToolTaskSM(Behavior):
         SetDataByConditionState.initialize_ros(node)
         WaitForRunningState.initialize_ros(node)
         self.add_behavior(ChangeToolModelSM, 'Change Tool Model', node)
+        self.add_behavior(ChangeToolModelSM, 'Change Tool Model_2', node)
 
         # Additional initialization code can be added inside the following tags
         # [MANUAL_INIT]
@@ -68,7 +71,7 @@ class ChangeToolTaskSM(Behavior):
 
 
     def create(self):
-        # x:857 y:663, x:1115 y:159
+        # x:1298 y:714, x:1115 y:159
         _state_machine = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['target_tool_name', 'exe_client', 'curr_tool_name'], output_keys=['curr_tool_name', 'expected_joints', 'tool_frame', 'exe_client'])
         _state_machine.userdata.direction_in = 0
         _state_machine.userdata.distance = 0
@@ -101,12 +104,27 @@ class ChangeToolTaskSM(Behavior):
 
 
         with _state_machine:
-            # x:557 y:17
+            # x:1071 y:17
             OperatableStateMachine.add('set_mode',
                                         SetDataByConditionState(condition=lambda x: 'open' if x == 'pj' else 'expert', userdata_src_names=['target_tool_name'], userdata_dst_names=['mode']),
-                                        transitions={'done': 'wait_for_running_0'},
+                                        transitions={'done': 'check_tool'},
                                         autonomy={'done': Autonomy.Off},
                                         remapping={'target_tool_name': 'target_tool_name', 'mode': 'mode'})
+
+            # x:1138 y:356
+            OperatableStateMachine.add('Change Tool Model_2',
+                                        self.use_behavior(ChangeToolModelSM, 'Change Tool Model_2',
+                                            parameters={'namespace': self.namespace}),
+                                        transitions={'finished': 'finished', 'failed': 'failed'},
+                                        autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
+                                        remapping={'curr_tool': 'curr_tool_name', 'target_tool': 'target_tool_name', 'tool_frame': 'tool_frame'})
+
+            # x:1220 y:94
+            OperatableStateMachine.add('check_tool',
+                                        FlexibleCheckConditionState(predicate=lambda x: x[0]==x[1], input_keys=['curr_tool', 'tar_tool']),
+                                        transitions={'true': 'wait_for_running_1', 'false': 'wait_for_running_0'},
+                                        autonomy={'true': Autonomy.Off, 'false': Autonomy.Off},
+                                        remapping={'curr_tool': 'curr_tool_name', 'tar_tool': 'target_tool_name'})
 
             # x:87 y:159
             OperatableStateMachine.add('excute_paln',
@@ -220,10 +238,17 @@ class ChangeToolTaskSM(Behavior):
                                         autonomy={'waiting': Autonomy.Off, 'done': Autonomy.Off, 'collision': Autonomy.Off, 'failed': Autonomy.Off},
                                         remapping={'exe_client': 'exe_client'})
 
-            # x:573 y:93
+            # x:757 y:55
             OperatableStateMachine.add('wait_for_running_0',
                                         WaitForRunningState(wait_until_complete_rate=0, wait_until_points_left=0, namespace=self.namespace),
                                         transitions={'waiting': 'wait_for_running_0', 'done': 'get_current_joint', 'collision': 'failed', 'failed': 'failed'},
+                                        autonomy={'waiting': Autonomy.Off, 'done': Autonomy.Off, 'collision': Autonomy.Off, 'failed': Autonomy.Off},
+                                        remapping={'exe_client': 'exe_client'})
+
+            # x:1296 y:197
+            OperatableStateMachine.add('wait_for_running_1',
+                                        WaitForRunningState(wait_until_complete_rate=0, wait_until_points_left=0, namespace=self.namespace),
+                                        transitions={'waiting': 'wait_for_running_1', 'done': 'Change Tool Model_2', 'collision': 'failed', 'failed': 'failed'},
                                         autonomy={'waiting': Autonomy.Off, 'done': Autonomy.Off, 'collision': Autonomy.Off, 'failed': Autonomy.Off},
                                         remapping={'exe_client': 'exe_client'})
 

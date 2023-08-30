@@ -62,10 +62,10 @@ class TestGQCNNSM(Behavior):
 
 
         with _state_machine:
-            # x:176 y:373
-            OperatableStateMachine.add('release_marker_occupy_and_stop_timmer',
-                                        ImgMaskingClientState(namespace='', marker_id=5, create_depth_mask=False, update_mask=False, start_update_timer=False, stop_update_timer=False, mark_release=True, get_masked_img=False, resolution_wide=516, resolution_high=386),
-                                        transitions={'done': 'finished', 'failed': 'failed', 'retry': 'release_marker_occupy_and_stop_timmer'},
+            # x:513 y:25
+            OperatableStateMachine.add('start_masking_timer',
+                                        ImgMaskingClientState(namespace='', marker_id=5, create_depth_mask=False, update_mask=False, start_update_timer=True, stop_update_timer=False, mark_release=False, get_masked_img=False, resolution_wide=516, resolution_high=386),
+                                        transitions={'done': 'get_masked_img', 'failed': 'failed', 'retry': 'start_masking_timer'},
                                         autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off, 'retry': Autonomy.Off},
                                         remapping={'mask_img_msg': 'mask_img_msg', 'img_info': 'img_info', 'marker_poses': 'marker_poses', 'poses_frame': 'poses_frame'})
 
@@ -90,10 +90,10 @@ class TestGQCNNSM(Behavior):
                                         autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off, 'retry': Autonomy.Off},
                                         remapping={'mask_img_msg': 'mask_img_msg', 'img_info': 'img_info', 'marker_poses': 'marker_poses', 'poses_frame': 'poses_frame'})
 
-            # x:513 y:25
-            OperatableStateMachine.add('start_masking_timer',
-                                        ImgMaskingClientState(namespace='', marker_id=5, create_depth_mask=False, update_mask=False, start_update_timer=True, stop_update_timer=False, mark_release=False, get_masked_img=False, resolution_wide=516, resolution_high=386),
-                                        transitions={'done': 'get_masked_img', 'failed': 'failed', 'retry': 'start_masking_timer'},
+            # x:176 y:373
+            OperatableStateMachine.add('release_marker_occupy_and_stop_timmer',
+                                        ImgMaskingClientState(namespace='', marker_id=5, create_depth_mask=False, update_mask=False, start_update_timer=False, stop_update_timer=False, mark_release=True, get_masked_img=False, resolution_wide=516, resolution_high=386),
+                                        transitions={'done': 'finished', 'failed': 'failed', 'retry': 'release_marker_occupy_and_stop_timmer'},
                                         autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off, 'retry': Autonomy.Off},
                                         remapping={'mask_img_msg': 'mask_img_msg', 'img_info': 'img_info', 'marker_poses': 'marker_poses', 'poses_frame': 'poses_frame'})
 

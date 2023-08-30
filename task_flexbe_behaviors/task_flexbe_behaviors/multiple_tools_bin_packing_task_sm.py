@@ -15,6 +15,7 @@ from task_flexbe_behaviors.check_picked_sm import CheckPickedSM
 from task_flexbe_behaviors.move_arm_to_joints_async_sm import MoveArmToJointsAsyncSM
 from task_flexbe_behaviors.move_to_pick_sm import MoveToPickSM
 from task_flexbe_behaviors.move_to_place_sm import MoveToPlaceSM
+from task_flexbe_behaviors.packing_planning_sm import PackingPlanningSM
 from task_flexbe_behaviors.tool_selection_based_on_gqcnn_sm import ToolSelectionbasedonGQCNNSM
 from task_flexbe_states.get_current_joints import GetCurrentJoints
 from task_flexbe_states.img_masking_client_state import ImgMaskingClientState
@@ -30,15 +31,15 @@ from task_flexbe_states.set_data_by_condition_state import SetDataByConditionSta
 Created on Sat Jul 01 2023
 @author: Andy Chien
 '''
-class MultipleToolsBinPickingTaskSM(Behavior):
+class MultipleToolsBinPackingTaskSM(Behavior):
     '''
     Bin picking using multiple tools depend on GQCNN
     '''
 
 
     def __init__(self, node):
-        super(MultipleToolsBinPickingTaskSM, self).__init__()
-        self.name = 'Multiple Tools Bin Picking Task'
+        super(MultipleToolsBinPackingTaskSM, self).__init__()
+        self.name = 'Multiple Tools Bin Packing Task'
 
         # parameters of this behavior
         self.add_parameter('group_name', 'ur_manipulator')
@@ -76,6 +77,7 @@ class MultipleToolsBinPickingTaskSM(Behavior):
         self.add_behavior(MoveArmToJointsAsyncSM, 'Move Arm To Relay Joints Async', node)
         self.add_behavior(MoveToPickSM, 'Move To Pick', node)
         self.add_behavior(MoveToPlaceSM, 'Move To Place', node)
+        self.add_behavior(PackingPlanningSM, 'Packing Planning', node)
         self.add_behavior(ToolSelectionbasedonGQCNNSM, 'Tool Selection based on GQCNN', node)
 
         # Additional initialization code can be added inside the following tags
@@ -131,7 +133,7 @@ class MultipleToolsBinPickingTaskSM(Behavior):
             OperatableStateMachine.add('Check Picked',
                                         self.use_behavior(CheckPickedSM, 'Check Picked',
                                             parameters={'namespace': self.namespace, 'sim': self.sim, 'io_topic': self.io_topic, 'pressure_sensor_pin': self.pressure_sensor_pin, 'gripper_sensor_pin': self.gripper_sensor_pin}),
-                                        transitions={'true': 'Move To Place', 'false': 'detach_obj'},
+                                        transitions={'true': 'Packing Planning', 'false': 'detach_obj'},
                                         autonomy={'true': Autonomy.Inherit, 'false': Autonomy.Inherit},
                                         remapping={'curr_tool_name': 'curr_tool_name', 'fail_cnt': 'fail_cnt'})
 
@@ -147,7 +149,7 @@ class MultipleToolsBinPickingTaskSM(Behavior):
             # x:377 y:263
             OperatableStateMachine.add('Move Arm To Relay Joints Async',
                                         self.use_behavior(MoveArmToJointsAsyncSM, 'Move Arm To Relay Joints Async',
-                                            parameters={'group_name': self.group_name, 'joint_names': self.joint_names, 'namespace': self.namespace, 'wait': False}),
+                                            parameters={'group_name': self.group_name, 'joint_names': self.joint_names, 'namespace': self.namespace, 'planner': self.planner, 'wait': False}),
                                         transitions={'finished': 'Tool Selection based on GQCNN', 'failed': 'failed'},
                                         autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
                                         remapping={'start_joints': 'expected_joints', 'velocity': 'velocity', 'target_joints': 'init_joints', 'exe_client': 'exe_client', 'expected_joints': 'expected_joints'})
@@ -155,18 +157,26 @@ class MultipleToolsBinPickingTaskSM(Behavior):
             # x:401 y:625
             OperatableStateMachine.add('Move To Pick',
                                         self.use_behavior(MoveToPickSM, 'Move To Pick',
-                                            parameters={'io_service': self.io_service, 'sim': self.sim, 'joint_names': self.joint_names, 'select_tool_by_input': True, 'namespace': self.namespace, 'group_name': self.group_name, 'vacuum_io_pins': self.vacuum_io_pins, 'pressure_sensor_pin': self.pressure_sensor_pin, 'io_topic': self.io_topic}),
+                                            parameters={'io_service': self.io_service, 'sim': self.sim, 'joint_names': self.joint_names, 'select_tool_by_input': True, 'namespace': self.namespace, 'group_name': self.group_name, 'vacuum_io_pins': self.vacuum_io_pins, 'pressure_sensor_pin': self.pressure_sensor_pin, 'io_topic': self.io_topic, 'planner': self.planner}),
                                         transitions={'finished': 'attach_obj', 'failed': 'release_occupied_marker_2'},
                                         autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
                                         remapping={'start_joints': 'expected_joints', 'velocity': 'velocity', 'exe_client': 'exe_client', 'pick_pose': 'target_picking_pose', 'ik_target_frame': 'ik_target_frame', 'tool_name': 'curr_tool_name', 'expected_joints': 'expected_joints'})
 
-            # x:405 y:447
+            # x:398 y:449
             OperatableStateMachine.add('Move To Place',
                                         self.use_behavior(MoveToPlaceSM, 'Move To Place',
-                                            parameters={'io_service': self.io_service, 'sim': self.sim, 'place_in_random_area': True, 'joint_names': self.joint_names, 'select_tool_by_input': True, 'namespace': self.namespace, 'group_name': self.group_name, 'place_pos_max': self.place_pos_max, 'place_pos_min': self.place_pos_min, 'vacuum_io_pins': self.vacuum_io_pins}),
+                                            parameters={'io_service': self.io_service, 'sim': self.sim, 'place_in_random_area': False, 'joint_names': self.joint_names, 'select_tool_by_input': True, 'namespace': self.namespace, 'group_name': self.group_name, 'place_pos_max': self.place_pos_max, 'place_pos_min': self.place_pos_min, 'vacuum_io_pins': self.vacuum_io_pins, 'planner': self.planner}),
                                         transitions={'finished': 'detach_obj', 'failed': 'Move To Place'},
                                         autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
-                                        remapping={'start_joints': 'expected_joints', 'exe_client': 'exe_client', 'place_pose': 'place_pose', 'tool_name': 'curr_tool_name', 'velocity': 'velocity', 'ik_target_frame': 'ik_target_frame', 'expected_joints': 'expected_joints'})
+                                        remapping={'start_joints': 'expected_joints', 'exe_client': 'exe_client', 'place_pose': 'packing_pose', 'tool_name': 'curr_tool_name', 'velocity': 'velocity', 'ik_target_frame': 'ik_target_frame', 'expected_joints': 'expected_joints'})
+
+            # x:639 y:334
+            OperatableStateMachine.add('Packing Planning',
+                                        self.use_behavior(PackingPlanningSM, 'Packing Planning',
+                                            parameters={'namespace': self.namespace, 'group_name': self.group_name, 'joint_names': self.joint_names, 'planner': self.planner}),
+                                        transitions={'finished': 'Move To Place', 'failed': 'failed'},
+                                        autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
+                                        remapping={'exe_client': 'exe_client', 'ik_target_frame': 'ik_target_frame', 'expected_joints': 'expected_joints', 'packing_pose': 'packing_pose'})
 
             # x:741 y:203
             OperatableStateMachine.add('Tool Selection based on GQCNN',

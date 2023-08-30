@@ -87,7 +87,7 @@ class ToolSelectionbasedonGQCNNSM(Behavior):
                                         autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off, 'retry': Autonomy.Off},
                                         remapping={'mask_img_msg': 'mask_img_msg', 'img_info': 'img_info', 'marker_poses': 'marker_poses', 'poses_frame': 'poses_frame'})
 
-            # x:641 y:329
+            # x:732 y:236
             OperatableStateMachine.add('check_ik',
                                         MoveItComputeIK(group_name=self.group_name, joint_names=self.joint_names, namespace=self.namespace, from_frame='base_link', to_frame='tool_tip', translation_in_target_frame=True),
                                         transitions={'done': 'finished', 'failed': 'adjust_pose'},
@@ -115,21 +115,21 @@ class ToolSelectionbasedonGQCNNSM(Behavior):
                                         autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off, 'retry': Autonomy.Off},
                                         remapping={'mask_img_msg': 'mask_img_msg', 'img_info': 'img_info', 'marker_poses': 'marker_poses', 'poses_frame': 'poses_frame'})
 
-            # x:239 y:334
+            # x:237 y:348
             OperatableStateMachine.add('reset_retry_cnt',
                                         SetDataByDataState(userdata_src_names=['zero'], userdata_dst_names=['retry_cnt']),
                                         transitions={'done': 'select_tool'},
                                         autonomy={'done': Autonomy.Off},
                                         remapping={'zero': 'zero', 'retry_cnt': 'retry_cnt'})
 
-            # x:395 y:328
+            # x:408 y:349
             OperatableStateMachine.add('select_tool',
                                         ToolSelectionState(),
-                                        transitions={'done': 'finished', 'failed': 'release_marker_occupy'},
+                                        transitions={'done': 'adjust_pose', 'failed': 'release_marker_occupy'},
                                         autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off},
                                         remapping={'marker_poses': 'marker_poses', 'pj_pose': 'pj_pose', 'suc_pose': 'suc_pose', 'frame': 'frame', 'pj_qv': 'pj_qv', 'suc_qv': 'suc_qv', 'curr_tool': 'curr_tool_name', 'img_info': 'img_info', 'img': 'mask_img_msg', 'fail_cnt': 'fail_cnt', 'target_pose': 'target_pose', 'tar_tool': 'target_tool_name'})
 
-            # x:629 y:427
+            # x:718 y:320
             OperatableStateMachine.add('adjust_pose',
                                         PickingPoseAdjustState(),
                                         transitions={'done': 'check_ik', 'failed': 'failed'},
