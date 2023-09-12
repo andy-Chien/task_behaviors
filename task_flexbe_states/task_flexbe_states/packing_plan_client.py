@@ -14,6 +14,7 @@ import numpy as np
 import ros2_numpy
 from tf2_ros import TransformException
 import rclpy
+import time
 
 
 class PackingPlanClient(EventState):
@@ -50,6 +51,7 @@ class PackingPlanClient(EventState):
             self._frame_id = namespace + frame_id
 
         self._service = ProxyServiceCaller({self._service_name: PackingPlanning})
+        ProxyTransformListener._initialize(self._node)
         self.tf_listener = ProxyTransformListener().listener()
         self.tf_buffer = self.tf_listener.buffer
         
@@ -58,15 +60,17 @@ class PackingPlanClient(EventState):
             return
         result = self._service.result(self._service_name)
         rpp = result.relative_place_pose
-        xyz_vec = np.identity(3)
-        xyz_vec[0][0] = rpp.angular.x
-        xyz_vec[1][1] = rpp.angular.y
-        xyz_vec[2][2] = rpp.angular.z
-        xyz_qtn = qtn.from_rotation_vector(xyz_vec)
+        Logger.logwarn('relative_place_pose = {}'.format(rpp))
+
+        # xyz_vec = np.identity(3)
+        # xyz_vec[0][0] = rpp.angular.x
+        # xyz_vec[1][1] = rpp.angular.y
+        # xyz_vec[2][2] = rpp.angular.z
+        xyz_qtn = qtn.from_rotation_vector(np.array([0.0, 0.0, rpp.angular.z]))
         box_m_place = np.mat(np.identity(4))
-        box_m_place[:3, 3] = [rpp.linear.x, rpp.linear.y, rpp.linear.z]
-        box_m_place[:3, :3] = qtn.as_rotation_matrix(
-            xyz_qtn[0] * xyz_qtn[1] * xyz_qtn[2])[:3, :3]
+        box_m_place[:3, 3] = [[rpp.linear.x], [-1*rpp.linear.y], [rpp.linear.z]]
+        # box_m_place[:3, 3] = [[rpp.linear.x], [rpp.linear.y], [0.1]]
+        box_m_place[:3, :3] = qtn.as_rotation_matrix(xyz_qtn)[:3, :3]
         
         box_m_place_ori = np.mat(np.identity(4))
         box_m_place_pos = np.mat(np.identity(4))
@@ -118,10 +122,13 @@ class PackingPlanClient(EventState):
         ps.header.frame_id = self._frame_id
         p = ps.pose
         po = p.orientation
-        [p.position.x, p.position.y, p.position.z] = base_m_place[:3, 3]
+        p.position.x = base_m_place[0, 3]
+        p.position.y = base_m_place[1, 3]
+        p.position.z = base_m_place[2, 3]
         [po.w, po.x, po.y, po.z] = qtn.as_float_array(
             qtn.from_rotation_matrix(base_m_place[:3, :3]))
-        
+
+        Logger.logwarn('Place pose = {}'.format(p))
         userdata.packing_pose = p
         return 'done' if result.success else 'failed'
 
@@ -133,14 +140,16 @@ class PackingPlanClient(EventState):
         req.is_first_obj = userdata.is_first_obj
         self._service.call_async(self._service_name, req)
 
-    def cloud_msg_from_open3d(o3d_pcd):
+    def cloud_msg_from_open3d(self, o3d_pcd):
         pcd = np.asarray(o3d_pcd.points)
-        data = np.zeros(pcd.shape[0], dtype=[
-            ('x', np.float32),
-            ('y', np.float32),
-            ('z', np.float32)
-        ])
-        data['x'] = pcd[:, 0]
-        data['y'] = pcd[:, 1]
-        data['z'] = pcd[:, 2]
-        return ros2_numpy.msgify(PointCloud2, data)
+        # data = np.zeros(pcd.shape[0], dtype=[
+        #     ('x', np.float32),
+        #     ('y', np.float32),
+        #     ('z', np.float32)
+        # ])
+        data = dict()
+        data['xyz'] = pcd
+        msg = ros2_numpy.msgify(PointCloud2, data)
+        Logger.logwarn('pcd.shape = {}, height = {}, width = {}, point_step = {}, row_step = {}, data.len = {}'.format(
+            pcd.shape, msg.height, msg.width, msg.point_step, msg.row_step, len(msg.data)))
+        return msg

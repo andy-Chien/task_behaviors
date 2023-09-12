@@ -11,6 +11,7 @@ from geometry_msgs.msg import Pose, PoseStamped
 from sensor_msgs.msg import JointState
 import copy
 import quaternion as qtn
+from rclpy.duration import Duration
 
 class MoveItComputeIK(EventState):
     '''
@@ -137,6 +138,7 @@ class MoveItComputeIK(EventState):
         self._logger.info('Pose of ik request is {}'.format(ps))
 
         self._req.ik_request.pose_stamped = ps
+        self._req.ik_request.timeout = Duration(seconds=2).to_msg()
         self._ik_client.call_async(self._ik_service, self._req)
 
     def generate_robot_state(self, joint_names, start_joints):

@@ -90,6 +90,14 @@
 			<key name="tool_touch_links" />
 		</param>
 
+		<param type="yaml" name="box_mesh" default="task_flexbe_behaviors/config/pick_and_place.yaml" label="box_mesh" hint="Sets the box_mesh">
+			<key name="box_mesh" />
+		</param>
+
+		<param type="yaml" name="box_ring_mesh" default="task_flexbe_behaviors/config/pick_and_place.yaml" label="box_ring_mesh" hint="Sets the box_ring_mesh">
+			<key name="box_ring_mesh" />
+		</param>
+
 	</params>
 
 

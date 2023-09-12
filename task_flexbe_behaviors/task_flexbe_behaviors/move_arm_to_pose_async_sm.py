@@ -115,12 +115,12 @@ In case of using current joint as start joints, just set the input start joints 
 
             # x:303 y:66
             OperatableStateMachine.add('plan',
-                                        MoveItJointsPlanState(group_name=self.group_name, joint_names=self.joint_names, retry_cnt=3, namespace=self.namespace, planner='RRTConnectkConfigDefault', time_out=0.5, attempts=10),
+                                        MoveItJointsPlanState(group_name=self.group_name, joint_names=self.joint_names, retry_cnt=20, namespace=self.namespace, planner='RRTConnectkConfigDefault', time_out=0.5, attempts=10),
                                         transitions={'failed': 'failed', 'done': 'check_running_is_done', 'retriable': 'plan'},
                                         autonomy={'failed': Autonomy.Off, 'done': Autonomy.Off, 'retriable': Autonomy.Off},
                                         remapping={'start_joints': 'start_joints', 'target_joints': 'target_joints', 'velocity': 'velocity', 'planner': 'planner', 'joint_trajectory': 'joint_trajectory', 'planning_time': 'planning_time', 'planning_error_code': 'planning_error_code'})
 
-            # x:334 y:406
+            # x:359 y:415
             OperatableStateMachine.add('wait_for_running',
                                         WaitForRunningState(wait_until_complete_rate=0, wait_until_points_left=0, namespace=self.namespace),
                                         transitions={'waiting': 'wait_for_running', 'done': 'finished', 'collision': 'failed', 'failed': 'failed'},
@@ -130,7 +130,7 @@ In case of using current joint as start joints, just set the input start joints 
             # x:172 y:416
             OperatableStateMachine.add('wait_for_running_2',
                                         WaitForRunningState(wait_until_complete_rate=0, wait_until_points_left=0, namespace=self.namespace),
-                                        transitions={'waiting': 'wait_for_running', 'done': 'get_curr', 'collision': 'failed', 'failed': 'failed'},
+                                        transitions={'waiting': 'wait_for_running_2', 'done': 'get_curr', 'collision': 'failed', 'failed': 'failed'},
                                         autonomy={'waiting': Autonomy.Off, 'done': Autonomy.Off, 'collision': Autonomy.Off, 'failed': Autonomy.Off},
                                         remapping={'exe_client': 'exe_client'})
 

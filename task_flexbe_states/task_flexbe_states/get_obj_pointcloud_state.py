@@ -11,8 +11,10 @@ import open3d as o3d
 import numpy as np
 import quaternion as qtn
 from tf2_ros import TransformException
-from tf2_ros.buffer import Buffer
-from tf2_ros.transform_listener import TransformListener
+# from tf2_ros.buffer import Buffer
+# from tf2_ros.transform_listener import TransformListener
+from flexbe_core.proxy.proxy_transform_listener import ProxyTransformListener
+
 '''
 Created on 21.06.2023
 
@@ -43,8 +45,11 @@ class GetObjPointCloudState(EventState):
         ProxySubscriberCached._initialize(self._node)
         self._logger = self._node.get_logger().info
         self.tip_link = tip_link
-        self.tf_buffer = Buffer()
-        self.tf_listener = TransformListener(self.tf_buffer, self._node)
+        # self.tf_buffer = Buffer()
+        # self.tf_listener = TransformListener(self.tf_buffer, self._node)
+        ProxyTransformListener._initialize(self._node)
+        self.tf_listener = ProxyTransformListener().listener()
+        self.tf_buffer = self.tf_listener.buffer
         
         self._depth_camera_info = depth_camera_info
         self._depth_image_topic = depth_image_topic
@@ -90,10 +95,10 @@ class GetObjPointCloudState(EventState):
             self.depth_image_received = False
 
             merged_points = np.concatenate([np.asarray(cloud.points) for cloud in self.depthpcd])
-            o3d_points = o3d.cuda.pybind.utility.Vector3dVector(merged_points)
+            o3d_points = o3d.pybind.utility.Vector3dVector(merged_points)
             merged_cloud = o3d.geometry.PointCloud(o3d_points)
-            o3d.visualization.draw_geometries([merged_cloud], window_name='Open3D', width=3840, height=2160, \
-            left=50, top=50, point_show_normal=False, mesh_show_wireframe=False, mesh_show_back_face=False)
+            # o3d.visualization.draw_geometries([merged_cloud], window_name='Open3D', width=3840, height=2160, \
+            # left=50, top=50, point_show_normal=False, mesh_show_wireframe=False, mesh_show_back_face=False)
             userdata.obj_pointcloud = merged_cloud
 
             return 'done'
@@ -131,6 +136,11 @@ class GetObjPointCloudState(EventState):
                     self.camera_frame,
                     rclpy.time.Time()
                 )
+                world_trans_camera_2 = self.tf_buffer.lookup_transform(
+                    'world',
+                    'rgb_camera_link',
+                    rclpy.time.Time()
+                )
             except TransformException as ex:
                 Logger.logwarn('lookupTransform for tip failed!')
                 return
@@ -145,7 +155,7 @@ class GetObjPointCloudState(EventState):
                                                              camera_trans_tip.transform.rotation.x, 
                                                              camera_trans_tip.transform.rotation.y, 
                                                              camera_trans_tip.transform.rotation.z))
-            world_2_camera = np.identity(4)
+            world_2_camera = np.mat(np.identity(4))
             world_2_camera[:3, :3] = qtn.as_rotation_matrix(
                 np.quaternion(world_trans_camera.transform.rotation.w, 
                                 world_trans_camera.transform.rotation.x, 
@@ -154,30 +164,45 @@ class GetObjPointCloudState(EventState):
             )
             world_2_camera[:3, 3] = np.array([world_trans_camera.transform.translation.x, 
                                                 world_trans_camera.transform.translation.y, 
-                                                world_trans_camera.transform.translation.z])
+                                                world_trans_camera.transform.translation.z]).reshape(3,1)
+            
+            world_2_camera_2 = qtn.as_rotation_matrix(
+                np.quaternion(world_trans_camera_2.transform.rotation.w, 
+                                world_trans_camera_2.transform.rotation.x, 
+                                world_trans_camera_2.transform.rotation.y, 
+                                world_trans_camera_2.transform.rotation.z)
+            )
             
             rot_vec = cam_2_tip[:3, 2]
                         
 
             if self.cnt_depth_img == 1:
-                R = np.array([[1., 0., 0.], [0., 1., 0.], [0., 0., 1.]])
+                R = np.mat([[1., 0., 0.], [0., 1., 0.], [0., 0., 1.]])
 
             elif self.cnt_depth_img == 2:#rotate degree -120
-                R = np.array([[-0.5, 0.8660254, 0.], [-0.8660254, -0.5, 0.], [0., 0., 1.]])
+                R = np.mat([[-0.5, 0.8660254, 0.], [-0.8660254, -0.5, 0.], [0., 0., 1.]])
 
             elif self.cnt_depth_img == 3:#rotate degree -240
 
-                R = np.array([[-0.5, -0.8660254, 0.], [0.8660254, -0.5, 0.], [0., 0., 1.]])
+                R = np.mat([[-0.5, -0.8660254, 0.], [0.8660254, -0.5, 0.], [0., 0., 1.]])
  
 
 
             # R = cam_2_tip
-            depthpcd = o3d.open3d.geometry.PointCloud.create_from_depth_image(o3d.geometry.Image(self.depth_img.astype(np.float32) * 0.001), 
+            depthpcd = o3d.geometry.PointCloud.create_from_depth_image(o3d.geometry.Image(self.depth_img.astype(np.float32) * 0.001), 
                                                                               cam.intrinsic, 
                                                                               depth_trunc=0)
 
             depthpcd = depthpcd.transform(world_2_camera)
-            depthpcd = depthpcd.rotate(R, center)
+
+            tt =  np.mat(np.identity(4))
+            tt[:3, 3] = np.reshape(center, (3,1))
+            depthpcd = depthpcd.transform(np.linalg.inv(tt))
+            depthpcd = depthpcd.rotate(R)
+            depthpcd = depthpcd.rotate(np.linalg.inv(world_2_camera_2))
+            
+            # o3d.visualization.draw_geometries([depthpcd], window_name='Open3D', width=3840, height=2160, \
+            #     left=50, top=50, point_show_normal=False, mesh_show_wireframe=False, mesh_show_back_face=False)
             self.depthpcd.append(depthpcd)
 
     def on_stop(self):
@@ -195,6 +220,6 @@ class GetObjPointCloudState(EventState):
 
     def get_depth_image_Info(self, data):
         depth_image = self.bridge.imgmsg_to_cv2(data, desired_encoding='32FC1')
-        depth_image = np.array([[x if x < 450 and 320<j<555 and 180<i<410 else np.nan for j, x in enumerate(row)] for i, row in enumerate(depth_image)])
+        depth_image = np.array([[x if x < 400 and 160<j<480 and 120<i<360 else np.nan for j, x in enumerate(row)] for i, row in enumerate(depth_image)])
         self.depth_img = depth_image
         self.depth_image_received = True

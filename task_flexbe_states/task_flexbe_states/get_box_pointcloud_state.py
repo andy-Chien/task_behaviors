@@ -66,16 +66,16 @@ class GetBoxPointCloudState(EventState):
 
 
     def on_enter(self, userdata):
-        depth_img = self.bridge.imgmsg_to_cv2(userdata.masked_depth_img, desired_encoding='32FC1')
-
-        cam_intrinsic = o3d.camera.PinholeCameraIntrinsic(int(userdata.camera_info.width), 
-                                                            int(userdata.camera_info.height),
-                                                            float(userdata.camera_info.k[0]),
-                                                            float(userdata.camera_info.k[4]),
-                                                            float(userdata.camera_info.k[2]),
-                                                            float(userdata.camera_info.k[5]))
-        cam_intrinsic.intrinsic_matrix = [[float(userdata.camera_info.k[0]), 0, float(userdata.camera_info.k[2])], 
-                                          [0, float(userdata.camera_info.k[4]), float(userdata.camera_info.k[5])], 
+        depth_img = self.bridge.imgmsg_to_cv2(userdata.masked_depth_img[1], desired_encoding='16UC1')
+        ci = userdata.camera_info[1]
+        cam_intrinsic = o3d.camera.PinholeCameraIntrinsic(int(ci.width), 
+                                                            int(ci.height),
+                                                            float(ci.k[0]),
+                                                            float(ci.k[4]),
+                                                            float(ci.k[2]),
+                                                            float(ci.k[5]))
+        cam_intrinsic.intrinsic_matrix = [[float(ci.k[0]), 0, float(ci.k[2])], 
+                                          [0, float(ci.k[4]), float(ci.k[5])], 
                                           [0, 0, 1]]
         
         mps = [np.array([x.position.x, x.position.y, x.position.z]) for x in userdata.marker_poses]
@@ -84,23 +84,23 @@ class GetBoxPointCloudState(EventState):
         vec_y = mps[1] - mps[0]
         vec_x_len = np.linalg.norm(vec_x)
         vec_y_len = np.linalg.norm(vec_y)
-        if abs(np.dot(vec_x / vec_x_len, [1, 0, 0])) > abs(np.dot(vec_y / vec_y_len, [1, 0, 0])):
+        if abs(np.dot(vec_x / vec_x_len, [1, 0, 0])) < abs(np.dot(vec_y / vec_y_len, [1, 0, 0])):
             vec_x, vec_y, vec_x_len, vec_y_len = vec_y, vec_x, vec_y_len, vec_x_len
         
         conter_pixel = [int(depth_img.shape[0] / 2), int(depth_img.shape[1] / 2)]
-        center_depth = depth_img[conter_pixel[0]][conter_pixel[1]] - center[2]
+        center_depth = depth_img[conter_pixel[0]][conter_pixel[1]] * 0.001 - center[2]
         userdata.box_size = [vec_x_len, vec_y_len, center_depth]
 
         camera_2_box = np.mat(np.identity(4))
-        camera_2_box[:3, 3] = center
+        camera_2_box[:3, 3] = np.reshape(center, (3,1))
 
         userdata.camera_trans_box = camera_2_box
-        userdata.frame = userdata.masked_depth_img.header.frame_id
+        userdata.frame = userdata.masked_depth_img[1].header.frame_id
         depthpcd = o3d.open3d.geometry.PointCloud.create_from_depth_image(
             o3d.geometry.Image(depth_img.astype(np.float32) * 0.001), 
             cam_intrinsic, depth_trunc=0)
 
-        userdata.box_pointcloud = depthpcd.transform(camera_2_box.T)
+        userdata.box_pointcloud = depthpcd.transform(np.linalg.inv(camera_2_box))
 
     def on_stop(self):
         pass

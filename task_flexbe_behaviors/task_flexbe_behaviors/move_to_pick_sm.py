@@ -9,6 +9,7 @@
 
 from flexbe_core import Behavior, Autonomy, OperatableStateMachine, ConcurrencyContainer, PriorityContainer, Logger
 from flexbe_states.decision_state import DecisionState
+from flexbe_states.wait_state import WaitState
 from task_flexbe_behaviors.move_arm_to_pose_async_sm import MoveArmToPoseAsyncSM
 from task_flexbe_states.decision_by_param_state import DecisionByParam
 from task_flexbe_states.get_DIO_state import GetDIOState
@@ -63,6 +64,7 @@ class MoveToPickSM(Behavior):
         SetDIOState.initialize_ros(node)
         SetDataByConditionState.initialize_ros(node)
         SetDataByDataState.initialize_ros(node)
+        WaitState.initialize_ros(node)
         self.add_behavior(MoveArmToPoseAsyncSM, 'Move Arm To Obj Pose Async', node)
         self.add_behavior(MoveArmToPoseAsyncSM, 'Move Arm To Obj Pose Async 2', node)
         self.add_behavior(MoveArmToPoseAsyncSM, 'Move Arm To Obj Up Async', node)
@@ -83,7 +85,7 @@ class MoveToPickSM(Behavior):
         _state_machine.userdata.vacuum_io_pins = self.vacuum_io_pins
         _state_machine.userdata.vacuum_io_vals = [1]
         _state_machine.userdata.exe_client = None
-        _state_machine.userdata.translation_list = [.0, .0, -0.05]
+        _state_machine.userdata.translation_list = [.0, .0, -0.15]
         _state_machine.userdata.start_joints = None
         _state_machine.userdata.expected_joints = None
         _state_machine.userdata.pick_pose = None
@@ -101,6 +103,7 @@ class MoveToPickSM(Behavior):
         _state_machine.userdata.holding_force = 40
         _state_machine.userdata.flag = 1
         _state_machine.userdata.mode = 'expert'
+        _state_machine.userdata.translation_15 = [.0, .0, 0.015]
 
         # Additional creation code can be added inside the following tags
         # [MANUAL_CREATE]
@@ -122,13 +125,13 @@ class MoveToPickSM(Behavior):
                                             parameters={'group_name': self.group_name, 'joint_names': self.joint_names, 'namespace': self.namespace, 'planner': self.planner, 'wait': False}),
                                         transitions={'finished': 'suc', 'failed': 'failed'},
                                         autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
-                                        remapping={'target_pose': 'pick_pose', 'translation_list': 'translation_zero', 'start_joints': 'expected_joints', 'velocity': 'velocity', 'exe_client': 'exe_client', 'ik_target_frame': 'ik_target_frame', 'target_joints': 'expected_joints'})
+                                        remapping={'target_pose': 'pick_pose', 'translation_list': 'translation_15', 'start_joints': 'expected_joints', 'velocity': 'velocity', 'exe_client': 'exe_client', 'ik_target_frame': 'ik_target_frame', 'target_joints': 'expected_joints'})
 
             # x:854 y:228
             OperatableStateMachine.add('Move Arm To Obj Up Async',
                                         self.use_behavior(MoveArmToPoseAsyncSM, 'Move Arm To Obj Up Async',
                                             parameters={'group_name': self.group_name, 'joint_names': self.joint_names, 'namespace': self.namespace, 'planner': self.planner, 'wait': False, 'translation_in_target_frame': False}),
-                                        transitions={'finished': 'finished', 'failed': 'failed'},
+                                        transitions={'finished': 'wait', 'failed': 'failed'},
                                         autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
                                         remapping={'target_pose': 'pick_pose', 'translation_list': 'translation_z_up_list', 'start_joints': 'expected_joints', 'velocity': 'velocity', 'exe_client': 'exe_client', 'ik_target_frame': 'ik_target_frame', 'target_joints': 'expected_joints'})
 
@@ -207,6 +210,12 @@ class MoveToPickSM(Behavior):
                                         DecisionByParam(decided=self.tool_name, outcomes=['pj', 'suction']),
                                         transitions={'pj': 'Move Arm To Obj Pose Async', 'suction': 'Move Arm To Obj Pose Async 2'},
                                         autonomy={'pj': Autonomy.Off, 'suction': Autonomy.Off})
+
+            # x:1129 y:336
+            OperatableStateMachine.add('wait',
+                                        WaitState(wait_time=1.0),
+                                        transitions={'done': 'finished'},
+                                        autonomy={'done': Autonomy.Off})
 
             # x:676 y:97
             OperatableStateMachine.add('Move Arm To Obj Pose Async',

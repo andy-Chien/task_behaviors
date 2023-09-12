@@ -28,7 +28,7 @@ class GetDIOState(EventState):
                                           input_keys=['pins'],
                                           output_keys=['vals'])
         self._sim = sim
-
+        print('io_topic = {}'.format(io_topic))
         if not io_topic.startswith('/'): 
             io_topic = '/' + io_topic 
 

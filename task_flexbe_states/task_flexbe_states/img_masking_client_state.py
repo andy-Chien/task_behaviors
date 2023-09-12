@@ -115,15 +115,18 @@ class ImgMaskingClientState(EventState):
                             pos.x, pos.y, pos.z, quat.w, quat.x, quat.y, quat.z
                         )
                     )
-                img = self.bridge.imgmsg_to_cv2(res.rgb_img, desired_encoding='bgr8')
-                plt.imshow(img, cmap='gray', vmin=0, vmax=255)
-                plt.show()
-                img = self.bridge.imgmsg_to_cv2(res.depth_img, desired_encoding='16UC1')
-                plt.imshow(img, cmap='gray', vmin=750, vmax=1100)
-                plt.show()
-                img = self.bridge.imgmsg_to_cv2(res.segmask, desired_encoding='8UC1')
-                plt.imshow(img, cmap='gray', vmin=0.0, vmax=255)
-                plt.show()
+                # img = self.bridge.imgmsg_to_cv2(res.rgb_img, desired_encoding='bgr8')
+                # self._logger("img = {}, shape = {}".format(img, img.shape))
+                # plt.imshow(img, cmap='gray', vmin=0, vmax=255)
+                # plt.show()
+                # img = self.bridge.imgmsg_to_cv2(res.depth_img, desired_encoding='16UC1')
+                # self._logger("img = {}, shape = {}".format(img, img.shape))
+                # plt.imshow(img, cmap='gray', vmin=750, vmax=1100)
+                # plt.show()
+                # img = self.bridge.imgmsg_to_cv2(res.segmask, desired_encoding='8UC1')
+                # self._logger("img = {}, shape = {}".format(img, img.shape))
+                # plt.imshow(img, cmap='gray', vmin=0.0, vmax=255)
+                # plt.show()
 
             if self.mask_req.mode & (rq.GET_MASKED_IMG | rq.UPDATE_MARK_MASK):
                 userdata.marker_poses = res.marker_poses

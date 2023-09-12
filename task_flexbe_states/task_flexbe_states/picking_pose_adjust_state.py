@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import os
-from flexbe_core import EventState
+from flexbe_core import EventState, Logger
 from flexbe_core.proxy import ProxyServiceCaller, ProxySubscriberCached
 from gqcnn_interfaces.srv import GQCNNGraspPlannerSegmask
 from sensor_msgs.msg import CameraInfo, Image
@@ -78,12 +78,27 @@ class PickingPoseAdjustState(EventState):
 
         quat = qtn.quaternion(sp.orientation.w, sp.orientation.x, sp.orientation.y, sp.orientation.z)
         z_vec = qtn.as_rotation_matrix(quat).transpose()[2]
+        Logger.logwarn('XXXXXXXXXxxxxxxxxxxxxxxxxxXXXXXXXXXXXXXX')
+        Logger.logwarn('XXXXXXXXXxxxxxxxxxxxxxxxxxXXXXXXXXXXXXXX')
+        Logger.logwarn('XXXXXXXXXxxxxxxxxxxxxxxxxxXXXXXXXXXXXXXX')
+        Logger.logwarn('XXXXXXXXXxxxxxxxxxxxxxxxxxXXXXXXXXXXXXXX')
+        Logger.logwarn('XXXXXXXXXxxxxxxxxxxxxxxxxxXXXXXXXXXXXXXX')
+        Logger.logwarn('z_vec = {}'.format(z_vec))
+
         for v in close_vec:
             rv = np.cross(z_vec, v) * -0.1
             quat *= qtn.from_rotation_vector(rv)
-        if v == []:
+            z_vec = qtn.as_rotation_matrix(quat).transpose()[2]
+            Logger.logwarn('z_vec close_vec = {}'.format(z_vec))
+        if z_vec[2] < -0.99:
+            z_vec[2] *= -1
+        while z_vec[2] < 0.97:
             rv = np.cross(z_vec, [0,0,1]) * 0.1
             quat *= qtn.from_rotation_vector(rv)
+            z_vec = qtn.as_rotation_matrix(quat).transpose()[2]
+            if z_vec[2] < -0.99:
+                z_vec[2] *= -1
+            Logger.logwarn('z_vec [0,0,1] = {}'.format(z_vec))
 
         target_pose = Pose()
         target_pose.position.x = sp.position.x

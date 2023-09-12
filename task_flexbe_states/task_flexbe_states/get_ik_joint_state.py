@@ -14,10 +14,11 @@ from flexbe_core import EventState, Logger
 from moveit_msgs.msg import MoveItErrorCodes, RobotState
 from moveit_msgs.srv import GetPositionIK
 from flexbe_core.proxy import ProxyServiceCaller, ProxySubscriberCached
+from flexbe_core.proxy.proxy_transform_listener import ProxyTransformListener
 from sensor_msgs.msg import JointState
 from tf2_ros import TransformException
-from tf2_ros.buffer import Buffer
-from tf2_ros.transform_listener import TransformListener
+# from tf2_ros.buffer import Buffer
+# from tf2_ros.transform_listener import TransformListener
 
 class GetIkJointState(EventState):
     '''
@@ -49,8 +50,11 @@ class GetIkJointState(EventState):
         self._req = GetPositionIK.Request()
         self._req.ik_request.group_name = group_name
 
-        self.tf_buffer = Buffer()
-        self.tf_listener = TransformListener(self.tf_buffer, self._node)
+        # self.tf_buffer = Buffer()
+        # self.tf_listener = TransformListener(self.tf_buffer, self._node)
+        ProxyTransformListener._initialize(self._node)
+        self.tf_listener = ProxyTransformListener().listener()
+        self.tf_buffer = self.tf_listener.buffer
         self.frame_id = frame_id
         self.listened_tf = False
 

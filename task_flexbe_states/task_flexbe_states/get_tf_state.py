@@ -2,12 +2,13 @@
 import os
 from flexbe_core import EventState, Logger
 from flexbe_core.proxy import ProxyServiceCaller, ProxySubscriberCached
+from flexbe_core.proxy.proxy_transform_listener import ProxyTransformListener
 import rclpy
 from cv_bridge import CvBridge, CvBridgeError
 import numpy as np
 from tf2_ros import TransformException
-from tf2_ros.buffer import Buffer
-from tf2_ros.transform_listener import TransformListener
+# from tf2_ros.buffer import Buffer
+# from tf2_ros.transform_listener import TransformListener
 '''
 Created on 21.06.2023
 
@@ -36,8 +37,11 @@ class GetTfState(EventState):
 
         self.parent_frame = parent_frame
         self.child_frame = child_frame
-        self.tf_buffer = Buffer()
-        self.tf_listener = TransformListener(self.tf_buffer, self._node)
+        # self.tf_buffer = Buffer()
+        # self.tf_listener = TransformListener(self.tf_buffer, self._node)
+        ProxyTransformListener._initialize(self._node)
+        self.tf_listener = ProxyTransformListener().listener()
+        self.tf_buffer = self.tf_listener.buffer
         self.transform_list = []
     def stop(self):
         pass

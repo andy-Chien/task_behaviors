@@ -62,6 +62,8 @@ class MultipleToolsBinPackingTaskSM(Behavior):
         self.add_parameter('gripper_mesh_file', dict())
         self.add_parameter('suction_mesh_file', dict())
         self.add_parameter('tool_touch_links', dict())
+        self.add_parameter('box_mesh', dict())
+        self.add_parameter('box_ring_mesh', dict())
 
         # references to used behaviors
         OperatableStateMachine.initialize_ros(node)
@@ -102,7 +104,7 @@ class MultipleToolsBinPackingTaskSM(Behavior):
         _state_machine.userdata.pressure_sensor_pin = self.pressure_sensor_pin
         _state_machine.userdata.curr_tool_name = 'suction'
         _state_machine.userdata.place_pose = None
-        _state_machine.userdata.velocity = 10
+        _state_machine.userdata.velocity = 40
         _state_machine.userdata.target_tool_name = 'suction'
         _state_machine.userdata.exe_client = None
         _state_machine.userdata.init_joints = self.init_joints
@@ -144,7 +146,7 @@ class MultipleToolsBinPackingTaskSM(Behavior):
             OperatableStateMachine.add('Check Picked',
                                         self.use_behavior(CheckPickedSM, 'Check Picked',
                                             parameters={'namespace': self.namespace, 'sim': self.sim, 'io_topic': self.io_topic, 'pressure_sensor_pin': self.pressure_sensor_pin, 'gripper_sensor_pin': self.gripper_sensor_pin}),
-                                        transitions={'true': 'Packing Planning', 'false': 'detach_obj'},
+                                        transitions={'true': 'Packing Planning', 'false': 'release_occupied_marker'},
                                         autonomy={'true': Autonomy.Inherit, 'false': Autonomy.Inherit},
                                         remapping={'curr_tool_name': 'curr_tool_name', 'fail_cnt': 'fail_cnt'})
 
@@ -181,7 +183,7 @@ class MultipleToolsBinPackingTaskSM(Behavior):
                                         autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
                                         remapping={'start_joints': 'expected_joints', 'exe_client': 'exe_client', 'place_pose': 'packing_pose', 'tool_name': 'curr_tool_name', 'velocity': 'velocity', 'ik_target_frame': 'ik_target_frame', 'expected_joints': 'expected_joints'})
 
-            # x:639 y:334
+            # x:678 y:290
             OperatableStateMachine.add('Packing Planning',
                                         self.use_behavior(PackingPlanningSM, 'Packing Planning',
                                             parameters={'namespace': self.namespace, 'group_name': self.group_name, 'joint_names': self.joint_names, 'planner': self.planner}),
@@ -200,18 +202,18 @@ class MultipleToolsBinPackingTaskSM(Behavior):
             # x:639 y:573
             OperatableStateMachine.add('attach_obj',
                                         MoveItAttachedObjState(mesh_file='', operation='add', obj_type='cylinder', link_name='', touch_links=[], size=[0.05, 0.04], namespace=self.namespace, obj_name='picked_obj', pos=[0.0,0.0,0.03], quat=[1.0,0.0,0.0,0.0]),
-                                        transitions={'done': 'release_occupied_marker'},
+                                        transitions={'done': 'Check Picked'},
                                         autonomy={'done': Autonomy.Off},
                                         remapping={'link_name': 'ik_target_frame', 'pose': 'none'})
 
-            # x:745 y:634
+            # x:863 y:646
             OperatableStateMachine.add('check_tool',
                                         FlexibleCheckConditionState(predicate=lambda x: x[0] == x[1], input_keys=['curr_tool', 'target_tool']),
                                         transitions={'true': 'Move To Pick', 'false': 'reset_fail_cnt'},
                                         autonomy={'true': Autonomy.Off, 'false': Autonomy.Off},
                                         remapping={'curr_tool': 'curr_tool_name', 'target_tool': 'target_tool_name'})
 
-            # x:416 y:361
+            # x:465 y:340
             OperatableStateMachine.add('detach_obj',
                                         MoveItAttachedObjState(mesh_file='', operation='remove', obj_type='box', link_name='', touch_links=[], size=[0.1, 0.1, 0.1], namespace=self.namespace, obj_name='picked_obj', pos=[0.0,0.0,0.0], quat=[1.0,0.0,0.0,0.0]),
                                         transitions={'done': 'Move Arm To Relay Joints Async'},
@@ -221,14 +223,14 @@ class MultipleToolsBinPackingTaskSM(Behavior):
             # x:140 y:558
             OperatableStateMachine.add('get_curr',
                                         GetCurrentJoints(joint_names=self.joint_names, namespace=self.namespace),
-                                        transitions={'done': 'Move Arm To Relay Joints Async', 'no_msg': 'failed'},
+                                        transitions={'done': 'detach_obj', 'no_msg': 'failed'},
                                         autonomy={'done': Autonomy.Off, 'no_msg': Autonomy.Off},
                                         remapping={'curr_joints': 'expected_joints'})
 
             # x:405 y:537
             OperatableStateMachine.add('release_occupied_marker',
                                         ImgMaskingClientState(namespace='', marker_id=5, create_depth_mask=False, update_mask=False, start_update_timer=False, stop_update_timer=False, mark_release=True, get_masked_img=False, resolution_wide=516, resolution_high=386),
-                                        transitions={'done': 'Check Picked', 'failed': 'failed', 'retry': 'release_occupied_marker'},
+                                        transitions={'done': 'detach_obj', 'failed': 'failed', 'retry': 'release_occupied_marker'},
                                         autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off, 'retry': Autonomy.Off},
                                         remapping={'mask_img_msg': 'mask_img_msg', 'img_info': 'img_info', 'marker_poses': 'marker_poses', 'poses_frame': 'poses_frame'})
 
@@ -248,7 +250,7 @@ class MultipleToolsBinPackingTaskSM(Behavior):
 
             # x:562 y:29
             OperatableStateMachine.add('start_img_update',
-                                        ImgMaskingClientState(namespace='', marker_id=15, create_depth_mask=False, update_mask=True, start_update_timer=True, stop_update_timer=False, mark_release=False, get_masked_img=False, resolution_wide=516, resolution_high=386),
+                                        ImgMaskingClientState(namespace='', marker_id=15, create_depth_mask=False, update_mask=True, start_update_timer=True, stop_update_timer=False, mark_release=False, get_masked_img=False, resolution_wide=512, resolution_high=512),
                                         transitions={'done': 'start_img_update_2', 'failed': 'failed', 'retry': 'start_img_update'},
                                         autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off, 'retry': Autonomy.Off},
                                         remapping={'mask_img_msg': 'mask_img_msg', 'img_info': 'img_info', 'marker_poses': 'marker_poses', 'poses_frame': 'poses_frame'})
@@ -277,7 +279,7 @@ class MultipleToolsBinPackingTaskSM(Behavior):
             # x:765 y:114
             OperatableStateMachine.add('Add Picking Box To Scene',
                                         self.use_behavior(AddBoxToSceneSM, 'Add Picking Box To Scene',
-                                            parameters={'namespace': self.namespace, 'box_name': 'picking_box'}),
+                                            parameters={'box_mesh': self.box_mesh, 'box_ring_mesh': self.box_ring_mesh, 'namespace': self.namespace, 'box_name': 'picking_box'}),
                                         transitions={'finished': 'Tool Selection based on GQCNN'},
                                         autonomy={'finished': Autonomy.Inherit},
                                         remapping={'frame_id': 'poses_frame', 'marker_poses': 'marker_poses'})
