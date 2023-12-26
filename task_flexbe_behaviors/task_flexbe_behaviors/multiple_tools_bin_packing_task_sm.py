@@ -145,7 +145,7 @@ class MultipleToolsBinPackingTaskSM(Behavior):
             # x:636 y:487
             OperatableStateMachine.add('Check Picked',
                                         self.use_behavior(CheckPickedSM, 'Check Picked',
-                                            parameters={'namespace': self.namespace, 'sim': self.sim, 'io_topic': self.io_topic, 'pressure_sensor_pin': self.pressure_sensor_pin, 'gripper_sensor_pin': self.gripper_sensor_pin}),
+                                            parameters={'namespace': self.namespace, 'sim': self.sim, 'io_topic': self.io_topic, 'pressure_sensor_pin': self.pressure_sensor_pin, 'gripper_sensor_pin': self.gripper_sensor_pin, 'io_service': self.io_service, 'vacuum_io_pins': self.vacuum_io_pins}),
                                         transitions={'true': 'Packing Planning', 'false': 'release_occupied_marker'},
                                         autonomy={'true': Autonomy.Inherit, 'false': Autonomy.Inherit},
                                         remapping={'curr_tool_name': 'curr_tool_name', 'fail_cnt': 'fail_cnt'})
@@ -162,7 +162,7 @@ class MultipleToolsBinPackingTaskSM(Behavior):
             # x:377 y:263
             OperatableStateMachine.add('Move Arm To Relay Joints Async',
                                         self.use_behavior(MoveArmToJointsAsyncSM, 'Move Arm To Relay Joints Async',
-                                            parameters={'group_name': self.group_name, 'joint_names': self.joint_names, 'namespace': self.namespace, 'planner': self.planner, 'wait': False}),
+                                            parameters={'group_name': self.group_name, 'joint_names': self.joint_names, 'namespace': self.namespace, 'planner': self.planner, 'wait': False, 'use_curr_as_start': True}),
                                         transitions={'finished': 'Tool Selection based on GQCNN', 'failed': 'failed'},
                                         autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
                                         remapping={'start_joints': 'expected_joints', 'velocity': 'velocity', 'target_joints': 'init_joints', 'exe_client': 'exe_client', 'expected_joints': 'expected_joints'})
@@ -237,7 +237,7 @@ class MultipleToolsBinPackingTaskSM(Behavior):
             # x:125 y:667
             OperatableStateMachine.add('release_occupied_marker_2',
                                         ImgMaskingClientState(namespace='', marker_id=5, create_depth_mask=False, update_mask=False, start_update_timer=False, stop_update_timer=False, mark_release=True, get_masked_img=False, resolution_wide=516, resolution_high=386),
-                                        transitions={'done': 'get_curr', 'failed': 'failed', 'retry': 'release_occupied_marker_2'},
+                                        transitions={'done': 'detach_obj', 'failed': 'failed', 'retry': 'release_occupied_marker_2'},
                                         autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off, 'retry': Autonomy.Off},
                                         remapping={'mask_img_msg': 'mask_img_msg', 'img_info': 'img_info', 'marker_poses': 'marker_poses', 'poses_frame': 'poses_frame'})
 

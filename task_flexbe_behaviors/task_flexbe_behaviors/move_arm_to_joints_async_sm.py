@@ -81,10 +81,10 @@ In case of using current joint as start joints, just set the input start joints 
 
 
         with _state_machine:
-            # x:95 y:398
+            # x:48 y:398
             OperatableStateMachine.add('need_current',
                                         DecisionByParam(decided=self.use_curr_as_start, outcomes=['True', 'False']),
-                                        transitions={'True': 'get_curr', 'False': 'wait_until'},
+                                        transitions={'True': 'wait_for_running_2', 'False': 'wait_until'},
                                         autonomy={'True': Autonomy.Off, 'False': Autonomy.Off})
 
             # x:500 y:169
@@ -119,6 +119,13 @@ In case of using current joint as start joints, just set the input start joints 
             OperatableStateMachine.add('wait_for_running',
                                         WaitForRunningState(wait_until_complete_rate=0, wait_until_points_left=0, namespace=self.namespace),
                                         transitions={'waiting': 'wait_for_running', 'done': 'set_expected_joints', 'collision': 'failed', 'failed': 'failed'},
+                                        autonomy={'waiting': Autonomy.Off, 'done': Autonomy.Off, 'collision': Autonomy.Off, 'failed': Autonomy.Off},
+                                        remapping={'exe_client': 'exe_client'})
+
+            # x:167 y:457
+            OperatableStateMachine.add('wait_for_running_2',
+                                        WaitForRunningState(wait_until_complete_rate=0, wait_until_points_left=0, namespace=self.namespace),
+                                        transitions={'waiting': 'wait_for_running_2', 'done': 'get_curr', 'collision': 'failed', 'failed': 'failed'},
                                         autonomy={'waiting': Autonomy.Off, 'done': Autonomy.Off, 'collision': Autonomy.Off, 'failed': Autonomy.Off},
                                         remapping={'exe_client': 'exe_client'})
 

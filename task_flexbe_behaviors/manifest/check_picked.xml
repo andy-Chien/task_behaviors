@@ -32,12 +32,12 @@
 			<key name="gripper_sensor_pin" />
 		</param>
 
-		<param type="yaml" name="io_service" default="" label="io_service" hint="Sets the io_service">
-			<key name="" />
+		<param type="yaml" name="io_service" default="task_flexbe_behaviors/config/pick_and_place.yaml" label="io_service" hint="Sets the io_service">
+			<key name="io_service" />
 		</param>
 
-		<param type="yaml" name="vacuum_io_pins" default="" label="vacuum_io_pins" hint="Sets the vacuum_io_pins">
-			<key name="" />
+		<param type="yaml" name="vacuum_io_pins" default="task_flexbe_behaviors/config/pick_and_place.yaml" label="vacuum_io_pins" hint="Sets the vacuum_io_pins">
+			<key name="vacuum_io_pins" />
 		</param>
 
 	</params>

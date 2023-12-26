@@ -118,8 +118,9 @@ class ToolSelectionState(EventState):
                         pp.position.z += (PJ_MIN_DIS - pd) * v[2]
 
                 p_factor = (pp_min_d + DIS) / (2 * DIS) if pp_min_d < DIS else 1
+                p_factor *= 0.8
                 if 'pj' in userdata.curr_tool:
-                    s_factor /= 2**userdata.fail_cnt
+                    p_factor /= 2**userdata.fail_cnt
                 pq *= p_factor
 
 
@@ -201,6 +202,7 @@ class ToolSelectionState(EventState):
 
         if tar_tool == 'pj':
             pp = pose
+            # pp.position.z += 0.01
             p = np.array([pp.position.x, pp.position.y, pp.position.z])
             q = qtn.quaternion(pp.orientation.w, pp.orientation.x, pp.orientation.y, pp.orientation.z)
             r = qtn.as_rotation_matrix(q)
@@ -208,7 +210,7 @@ class ToolSelectionState(EventState):
             self._logger('vy = {}, pp_min_d_vec = {}, =============================================='.format(
                 vy, pp_min_d_vec
             ))
-            if np.dot(vy, pp_min_d_vec) < 0:
+            if (not pp_min_d_vec is None) and np.dot(vy, pp_min_d_vec) < 0:
                 q *= qtn.from_rotation_vector([0, 0, np.pi])
                 pp.orientation.w = q.w
                 pp.orientation.x = q.x
@@ -231,20 +233,34 @@ class ToolSelectionState(EventState):
             p1.append(np.matmul(t, (np.array([-0.01, -0.005, 0.0, 1.0]) - np.array([0.0, 0.023, 0.0, 0.0])))[:3])
             p1.append(np.matmul(t, (np.array([-0.01,  0.005, 0.0, 1.0]) - np.array([0.0, 0.023, 0.0, 0.0])))[:3])
 
+            p_center = []
+            p_center.append(np.matmul(t, np.array([ 0.01,  0.005, 0.0, 1.0]))[:3])
+            p_center.append(np.matmul(t, np.array([ 0.01, -0.005, 0.0, 1.0]))[:3])
+            p_center.append(np.matmul(t, np.array([-0.01, -0.005, 0.0, 1.0]))[:3])
+            p_center.append(np.matmul(t, np.array([-0.01,  0.005, 0.0, 1.0]))[:3])
+
 
 
             depth_img = self.cv_gridge.imgmsg_to_cv2(userdata.img[1], desired_encoding='16UC1')
             camera_intrinsics = np.reshape(userdata.img_info[1].k, (3,3))
             avg_d0 = self.calculate_average_depth(depth_img, p0, camera_intrinsics, int(min_z * 1000))
             avg_d1 = self.calculate_average_depth(depth_img, p1, camera_intrinsics, int(min_z * 1000))
+            avg_d_center = self.calculate_average_depth(depth_img, p_center, camera_intrinsics, int(min_z * 1000))
 
-            if avg_d0 is None or avg_d1 is None:
+            if avg_d0 is None or avg_d1 is None or avg_d_center is None:
                 return 'failed'
             
             avg_d0 /= 1000.0
             avg_d1 /= 1000.0
+            avg_d_center /= 1000.0
+            
+            if pp.position.z > avg_d_center + 0.06:
+                pp.position.z = avg_d_center + 0.03
+            elif pp.position.z < avg_d_center + 0.03:
+                pp.position.z = avg_d_center + 0.03
 
-            max_depth = min(avg_d0, avg_d1)
+            pp.position.z = avg_d_center + 0.03
+            max_depth = min(avg_d0, avg_d1) + 0.01
             if pp.position.z > max_depth:
                 pp.position.z = max_depth
             target_pose.pose = pp

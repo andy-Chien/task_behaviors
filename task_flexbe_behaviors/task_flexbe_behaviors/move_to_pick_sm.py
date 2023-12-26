@@ -103,7 +103,7 @@ class MoveToPickSM(Behavior):
         _state_machine.userdata.holding_force = 40
         _state_machine.userdata.flag = 1
         _state_machine.userdata.mode = 'expert'
-        _state_machine.userdata.translation_15 = [.0, .0, 0.015]
+        _state_machine.userdata.translation_15 = [.0, .0, 0.01]
 
         # Additional creation code can be added inside the following tags
         # [MANUAL_CREATE]
@@ -194,7 +194,7 @@ class MoveToPickSM(Behavior):
             # x:746 y:422
             OperatableStateMachine.add('succked',
                                         DecisionState(outcomes=['True', 'False'], conditions=lambda x: x[0]),
-                                        transitions={'True': 'Move Arm To Obj Up Async', 'False': 'cnt++'},
+                                        transitions={'True': 'cancel_execution', 'False': 'cnt++'},
                                         autonomy={'True': Autonomy.Off, 'False': Autonomy.Off},
                                         remapping={'input_value': 'pressure_sensor_val'})
 
